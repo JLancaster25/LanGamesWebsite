@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -92,9 +91,73 @@ padding: 5rem 1rem;
 font-size: 2.5rem;
 margin-bottom: 1rem;
 }
-
-
 .hero p {
-max-width: 600px;
-margin: auto;
+<section id="services" class="container">
+<h2 class="section-title">Our Services</h2>
+<div class="services">
+<div class="card">
+<h3>LAN Tournaments</h3>
+<p>Organized LAN tournaments featuring popular titles, fair play, and great prizes.</p>
+</div>
+<div class="card">
+<h3>Community Events</h3>
+<p>Casual and competitive community gaming events that bring players together in person.</p>
+</div>
+<div class="card">
+<h3>Competitive Leagues</h3>
+<p>Structured leagues with rankings, seasons, and championship events.</p>
+</div>
+</div>
+</section>
+
+
+<section id="about">
+<h2 class="section-title">About Us</h2>
+<p class="about">
+Lan Games is a community-first gaming organization dedicated to hosting unforgettable LAN events, tournaments, and leagues. We focus on fair competition, inclusivity, and building strong local gaming communities.
+</p>
+</section>
+
+
+<section id="contact" class="container">
+<h2 class="section-title">Contact Us</h2>
+<div class="contact">
+<div>
+<strong>Phone</strong><br />
+Contact via Discord or Email
+</div>
+<div>
+<strong>Email</strong><br />
+admin@langames.online
+</div>
+<div>
+<strong>Location</strong><br />
+Serving Local & Online Communities
+</div>
+</div>
+</section>
+
+
+<footer>
+© 2026 Lan Games · langames.online · All rights reserved.
+</footer>
+
+
+<!-- Supabase Auth (Frontend Hook) -->
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://hyjglobgykckombyrjwv.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh5amdsb2JneWtja29tYnlyand2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2MTkxMDAsImV4cCI6MjA4NDE5NTEwMH0.trdoTTHuXJhkOt5CaNBZnXJyWhDLZ6Je8Xhy08wzDh8";
+
+
+const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+
+// Example usage:
+// supabase.auth.signInWithPassword({ email, password })
+// supabase.auth.signUp({ email, password })
+</script>
+</body>
+</html>
+
 </html>
