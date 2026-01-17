@@ -20,6 +20,18 @@ a{display:block;text-align:center;margin-top:1rem;color:#2563eb;text-decoration:
 <input id="password" type="password" placeholder="Password" />
 <button onclick="login()">Login</button>
 <a href="register.html">Create an account</a>
+<button onclick="discordLogin()" style="margin-top:1rem;background:#5865F2">Login with Discord</button>
+<!-- STEP 3: DISCORD LOGIN SCRIPT -->
+<script>
+async function discordLogin() {
+await supabase.auth.signInWithOAuth({
+provider: 'discord',
+options: {
+redirectTo: 'https://langames.online/profile.html'
+}
+});
+}
+</script>
 </div>
 
 
@@ -35,4 +47,5 @@ else window.location.href='admin.html';
 }
 </script>
 </body>
+
 </html>
