@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Register | Lan Games</title>
+</head>
+<body>
+<div class="auth">
+<h1>Create Account</h1>
+<input id="email" type="email" placeholder="Email" />
+<input id="password" type="password" placeholder="Password" />
+<button onclick="register()">Register</button>
+</div>
+
+
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script>
+const supabase = supabaseJs.createClient("https://YOUR_PROJECT_ID.supabase.co", "YOUR_PUBLIC_ANON_KEY");
+async function register(){
+const email=document.getElementById('email').value;
+const password=document.getElementById('password').value;
+const {error}=await supabase.auth.signUp({email,password});
+if(error) alert(error.message);
+else alert('Check your email to confirm your account');
+}
+</script>
+</body>
+</html>
+
+
+<!-- ================= ADMIN DASHBOARD (admin.html) ================= -->
+<!-- Save below as admin.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin Dashboard | Lan Games</title>
+<style>
+body{font-family:Segoe UI,Arial;background:#f8fafc}
+header{background:#0f172a;color:white;padding:1rem}
+main{padding:2rem;max-width:1000px;margin:auto}
+.card{background:white;padding:1.5rem;border-radius:1rem;margin-bottom:1.5rem;box-shadow:0 10px 25px rgba(0,0,0,.08)}
+button{background:#7c3aed;color:white;border:none;padding:.6rem 1.2rem;border-radius:.5rem}
+</style>
+</head>
+<body>
+<header>
+<h1>Lan Games Admin Dashboard</h1>
+</header>
+<main>
+<div class="card">
+<h2>Create Event</h2>
+<p>Manage LAN events, tournaments, and leagues.</p>
+<button>+ New Event</button>
+</div>
+<div class="card">
+<h2>Registered Players</h2>
+<p>View player profiles and registrations.</p>
+</div>
+</main>
+
+
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script>
+const supabase = supabaseJs.createClient("https://hyjglobgykckombyrjwv.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh5amdsb2JneWtja29tYnlyand2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2MTkxMDAsImV4cCI6MjA4NDE5NTEwMH0.trdoTTHuXJhkOt5CaNBZnXJyWhDLZ6Je8Xhy08wzDh8");
+supabase.auth.getUser().then(({data})=>{
+if(!data.user) window.location.href='login.html';
+});
+</html>
