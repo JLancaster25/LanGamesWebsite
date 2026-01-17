@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Voice Bingo Game</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script type="text/babel">
+    // ============================================
+    // CONFIGURATION - REPLACE WITH YOUR VALUES
+    // ============================================
+    const SUPABASE_URL = 'https://hyjglobgykckombyrjwv.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_kCKBV_0YCXm9McpEzqYfEQ_IIz2aIz7';
+    const GAME_ID = '00000000-0000-0000-0000-000000000001';
+
+    // Initialize Supabase client
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const BingoGame = () => {
+      // ============================================
+      // STATE MANAGEMENT
+      // ============================================
+      const [mode, setMode] = React.useState('player'); // 'player' or 'admin'
+      const [gameState, setGameState] = React.useState('lobby'); // 'lobby', 'playing'
+      const [playerName, setPlayerName] = React.useState('');
+      const [playerId, setPlayerId] = React.useState(null);
+      const [isRegistered, setIsRegistered] = React.useState(false);
+      const [bingoCard, setBingoCard] = React.useState([]);
+      const [calledNumbers, setCalledNumbers] = React.useState([]);
+      const [currentNumber, setCurrentNumber] = React.useState(null);
+      const [players, setPlayers] = React.useState([]);
+      const [winners, setWinners] = React.useState([]);
+      const [isAutoCall, setIsAutoCall] = React.useState(false);
+      const [voiceEnabled, setVoiceEnabled] = React.useState(true);
+      const [gameSpeed, setGameSpeed] = React.useState(3000);
+      const [markedCells, setMarkedCells] = React.useState([]);
+      const autoCallInterval = React.useRef(null);
+      const synth = React.useRef(window.speechSynthesis);
+
+      // ============================================
+      // HELPER FUNCTIONS
+      // ============================================
+      
+      // Generate random bingo card (5x5 grid)
+      const generateBingoCard = () => {
+        const card = [];
+        const ranges = {
+          B: [1, 15],
+          I: [16, 30],
+          N: [31, 45],
+          G: [46, 60],
+          O: [61, 75]
+        };
+
+        Object.keys(ranges).forEach((letter) => {
+          const [min, max] = ranges[letter];
+          const numbers = [];
+          while (numbers.length < 5) {
+            const num = Math.floor(Math.random() * (max - min + 1)) + min;
+            if (!numbers.includes(num)) {
+              numbers.push(num);
+            }
+          }
+          card.push(numbers);
+        });
+
+        // Set free space in center
+        card[2][2] = 'FREE';
+        return card;
+      };
+
+      // ============================================
+      // SUPABASE REALTIME SUBSCRIPTIONS
+      // ============================================
+      
+      React.useEffect(() => {
+        loadGameState();
+        loadPlayers();
+        loadWinners();
+
+        // Subscribe to game state changes
+        const gameChannel = supabase
+          .channel('game-changes')
+          .on('postgres_changes', 
+            { event: '*', schema: 'public', table: 'games', filter: `id=eq.${GAME_ID}` },
+            (payload) => {
+              if (payload.new) {
+                setGameState(payload.new.game_state);
+                setCurrentNumber(payload.new.current_number);
+                setCalledNumbers(payload.new.called_numbers || []);
+                setIsAutoCall(payload.new.is_auto_call);
+                setGameSpeed(payload.new.game_speed);
+                setVoiceEnabled(payload.new.voice_enabled);
+              }
+            }
+          )
+          .subscribe();
+
+        // Subscribe to player changes
+        const playersChannel = supabase
+          .channel('players-changes')
+          .on('postgres_changes',
+            { event: '*', schema: 'public', table: 'players' },
+            () => {
+              loadPlayers();
+            }
+          )
+          .subscribe();
+
+        // Subscribe to winner changes
+        const winnersChannel = supabase
+          .channel('winners-changes')
+          .on('postgres_changes',
+            { event: '*', schema: 'public', table: 'winners' },
+            () => {
+              loadWinners();
+            }
+          )
+          .subscribe();
+
+        return () => {
+          supabase.removeChannel(gameChannel);
+          supabase.removeChannel(playersChannel);
+          supabase.removeChannel(winnersChannel);
+        };
+      }, []);
+
+      // ============================================
+      // DATA LOADING FUNCTIONS
+      // ============================================
+      
+      const loadGameState = async () => {
+        const { data } = await supabase
+          .from('games')
+          .select('*')
+          .eq('id', GAME_ID)
+          .single();
+
+        if (data) {
+          setGameState(data.game_state);
+          setCurrentNumber(data.current_number);
+          setCalledNumbers(data.called_numbers || []);
+          setIsAutoCall(data.is_auto_call);
+          setGameSpeed(data.game_speed);
+          setVoiceEnabled(data.voice_enabled);
+        }
+      };
+
+      const loadPlayers = async () => {
+        const { data } = await supabase
+          .from('players')
+          .select('*')
+          .eq('game_id', GAME_ID);
+
+        if (data) {
+          setPlayers(data);
+        }
+      };
+
+      const loadWinners = async () => {
+        const { data } = await supabase
+          .from('winners')
+          .select('*')
+          .eq('game_id', GAME_ID);
+
+        if (data) {
+          setWinners(data);
+        }
+      };
+
+      // ============================================
+      // PLAYER FUNCTIONS
+      // ============================================
+      
+      // Register a new player
+      const registerPlayer = async () => {
+        if (!playerName.trim()) return;
+
+        const card = generateBingoCard();
+        const { data, error } = await supabase
+          .from('players')
+          .insert({
+            game_id: GAME_ID,
+            name: playerName,
+            bingo_card: card
+          })
+          .select()
+          .single();
+
+        if (data && !error) {
+          setPlayerId(data.id);
+          setBingoCard(card);
+          setIsRegistered(true);
+        }
+      };
+
+      // Load player data when playerId changes
+      React.useEffect(() => {
+        if (playerId) {
+          loadPlayerData();
+        }
+      }, [playerId]);
+
+      const loadPlayerData = async () => {
+        const { data } = await supabase
+          .from('players')
+          .select('*')
+          .eq('id', playerId)
+          .single();
+
+        if (data) {
+          setBingoCard(data.bingo_card);
+          setMarkedCells(data.marked_cells || []);
+        }
+      };
+
+      // Toggle a cell on the bingo card
+      const toggleCell = async (col, row) => {
+        const key = `${col}-${row}`;
+        let newMarkedCells;
+        
+        if (markedCells.includes(key)) {
+          newMarkedCells = markedCells.filter(k => k !== key);
+        } else {
+          newMarkedCells = [...markedCells, key];
+        }
+
+        setMarkedCells(newMarkedCells);
+
+        await supabase
+          .from('players')
+          .update({ marked_cells: newMarkedCells })
+          .eq('id', playerId);
+      };
+
+      // Check if player has bingo
+      const checkBingo = () => {
+        if (!bingoCard.length) return false;
+
+        // Check rows
+        for (let row = 0; row < 5; row++) {
+          let winningRow = true;
+          for (let col = 0; col < 5; col++) {
+            const key = `${col}-${row}`;
+            const value = bingoCard[col][row];
+            if (value !== 'FREE' && !markedCells.includes(key)) {
+              winningRow = false;
+              break;
+            }
+          }
+          if (winningRow) return true;
+        }
+
+        // Check columns
+        for (let col = 0; col < 5; col++) {
+          let winningCol = true;
+          for (let row = 0; row < 5; row++) {
+            const key = `${col}-${row}`;
+            const value = bingoCard[col][row];
+            if (value !== 'FREE' && !markedCells.includes(key)) {
+              winningCol = false;
+              break;
+            }
+          }
+          if (winningCol) return true;
+        }
+
+        // Check diagonals
+        let diagonal1 = true;
+        let diagonal2 = true;
+        for (let i = 0; i < 5; i++) {
+          const key1 = `${i}-${i}`;
+          const key2 = `${i}-${4-i}`;
+          const value1 = bingoCard[i][i];
+          const value2 = bingoCard[i][4-i];
+          
+          if (value1 !== 'FREE' && !markedCells.includes(key1)) diagonal1 = false;
+          if (value2 !== 'FREE' && !markedCells.includes(key2)) diagonal2 = false;
+        }
+
+        return diagonal1 || diagonal2;
+      };
+
+      // Player declares bingo
+      const declareBingo = async () => {
+        if (checkBingo()) {
+          await supabase.from('winners').insert({
+            game_id: GAME_ID,
+            player_id: playerId,
+            player_name: playerName
+          });
+
+          await supabase
+            .from('players')
+            .update({ is_winner: true })
+            .eq('id', playerId);
+
+          if (voiceEnabled) {
+            const utterance = new SpeechSynthesisUtterance(`Bingo! ${playerName} wins!`);
+            synth.current.speak(utterance);
+          }
+        } else {
+          alert('Not a valid BINGO yet! You need 5 in a row.');
+        }
+      };
+
+      // ============================================
+      // ADMIN FUNCTIONS
+      // ============================================
+      
+      // Call a random number
+      const callNumber = async () => {
+        const availableNumbers = [];
+        for (let i = 1; i <= 75; i++) {
+          if (!calledNumbers.includes(i)) {
+            availableNumbers.push(i);
+          }
+        }
+
+        if (availableNumbers.length === 0) return;
+
+        const randomIndex = Math.floor(Math.random() * availableNumbers.length);
+        const number = availableNumbers[randomIndex];
+        
+        const newCalledNumbers = [...calledNumbers, number];
+
+        await supabase
+          .from('games')
+          .update({
+            current_number: number,
+            called_numbers: newCalledNumbers
+          })
+          .eq('id', GAME_ID);
+
+        // Voice announcement
+        if (voiceEnabled) {
+          const letter = number <= 15 ? 'B' : number <= 30 ? 'I' : number <= 45 ? 'N' : number <= 60 ? 'G' : 'O';
+          const utterance = new SpeechSynthesisUtterance(`${letter} ${number}`);
+          utterance.rate = 0.9;
+          synth.current.speak(utterance);
+        }
+      };
+
+      // Auto-call functionality
+      React.useEffect(() => {
+        if (mode === 'admin' && isAutoCall && gameState === 'playing') {
+          autoCallInterval.current = setInterval(callNumber, gameSpeed);
+        } else {
+          if (autoCallInterval.current) {
+            clearInterval(autoCallInterval.current);
+          }
+        }
+
+        return () => {
+          if (autoCallInterval.current) {
+            clearInterval(autoCallInterval.current);
+          }
+        };
+      }, [mode, isAutoCall, gameState, calledNumbers, gameSpeed]);
+
+      // Start the game
+      const startGame = async () => {
+        await supabase
+          .from('games')
+          .update({ game_state: 'playing' })
+          .eq('id', GAME_ID);
+
+        if (voiceEnabled) {
+          const utterance = new SpeechSynthesisUtterance('Game starting! Good luck everyone!');
+          synth.current.speak(utterance);
+        }
+      };
+
+      // Reset the game
+      const resetGame = async () => {
+        await supabase.from('winners').delete().eq('game_id', GAME_ID);
+        await supabase.from('players').delete().eq('game_id', GAME_ID);
+        await supabase
+          .from('games')
+          .update({
+            game_state: 'lobby',
+            current_number: null,
+            called_numbers: [],
+            is_auto_call: false
+          })
+          .eq('id', GAME_ID);
+      };
+
+      // Toggle auto-call
+      const toggleAutoCall = async () => {
+        await supabase
+          .from('games')
+          .update({ is_auto_call: !isAutoCall })
+          .eq('id', GAME_ID);
+      };
+
+      // Update game speed
+      const updateGameSpeed = async (speed) => {
+        await supabase
+          .from('games')
+          .update({ game_speed: speed })
+          .eq('id', GAME_ID);
+      };
+
+      // Toggle voice
+      const toggleVoice = async () => {
+        await supabase
+          .from('games')
+          .update({ voice_enabled: !voiceEnabled })
+          .eq('id', GAME_ID);
+      };
+
+      // ============================================
+      // UI COMPONENTS
+      // ============================================
+      
+      // Player Registration Screen
+      const PlayerRegistration = () => (
+        <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+            <div className="text-center mb-8">
+              <div className="text-6xl mb-4">🎯</div>
+              <h1 className="text-4xl font-bold text-gray-800 mb-2">BINGO!</h1>
+              <p className="text-gray-600">Join the game and win big!</p>
+            </div>
+            
+            <div className="space-y-4">
+              <input
+                type="text"
+                placeholder="Enter your name"
+                value={playerName}
+                onChange={(e) => setPlayerName(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && registerPlayer()}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-600 focus:outline-none"
+              />
+              <button
+                onClick={registerPlayer}
+                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-lg font-semibold hover:shadow-lg transition"
+              >
+                Join Game
+              </button>
+              <button
+                onClick={() => setMode('admin')}
+                className="w-full border-2 border-purple-600 text-purple-600 py-3 rounded-lg font-semibold hover:bg-purple-50 transition"
+              >
+                Admin Control
+              </button>
+            </div>
+
+            <div className="mt-6 text-center text-sm text-gray-600">
+              <p>Players Online: {players.length}</p>
+            </div>
+          </div>
+        </div>
+      );
+
+      // Bingo Board Component
+      const BingoBoard = () => {
+        const letters = ['B', 'I', 'N', 'G', 'O'];
+        
+        return (
+          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-2xl mx-auto">
+            <div className="grid grid-cols-5 gap-2">
+              {/* Column Headers */}
+              {letters.map((letter, i) => (
+                <div key={i} className="bg-gradient-to-r from-purple-600 to-blue-600 text-white text-2xl font-bold py-3 text-center rounded-lg">
+                  {letter}
+                </div>
+              ))}
+              
+              {/* Bingo Numbers */}
+              {bingoCard.map((col, colIndex) =>
+                col.map((num, rowIndex) => {
+                  const key = `${colIndex}-${rowIndex}`;
+                  const isMarked = markedCells.includes(key);
+                  const isFree = num === 'FREE';
+                  const isCalled = calledNumbers.includes(num);
+                  
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => {
+                        if (gameState === 'playing' && (isCalled || isFree)) {
+                          toggleCell(colIndex, rowIndex);
+                        }
+                      }}
+                      disabled={gameState !== 'playing' || (!isCalled && !isFree)}
+                      className={`
+                        aspect-square text-2xl font-bold rounded-lg transition-all
+                        ${isMarked 
+                          ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg scale-95' 
+                          : isFree
+                          ? 'bg-gradient-to-br from-yellow-400 to-orange-500 text-white'
+                          : isCalled
+                          ? 'bg-blue-100 text-blue-900 hover:bg-blue-200'
+                          : 'bg-gray-100 text-gray-400'
+                        }
+                        ${gameState === 'playing' && (isCalled || isFree) && !isMarked ? 'hover:scale-105 cursor-pointer' : ''}
+                      `}
+                    >
+                      {num}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+            
+            {gameState === 'playing' && (
+              <button
+                onClick={declareBingo}
+                className="w-full mt-6 bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 rounded-lg font-bold text-xl hover:shadow-lg transition transform hover:scale-105"
+              >
+                🎉 BINGO! 🎉
+              </button>
+            )}
+          </div>
+        );
+      };
+
+      // Admin Control Panel
+      const AdminPanel = () => (
+        <div className="min-h-screen bg-gradient-to-br from-slate-800 to-slate-900 p-4">
+          <div className="max-w-6xl mx-auto">
+            <div className="bg-white rounded-2xl shadow-2xl p-6">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <h1 className="text-3xl font-bold text-gray-800">Admin Control Panel</h1>
+                <button
+                  onClick={() => setMode('player')}
+                  className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition"
+                >
+                  Exit Admin
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                {/* Game Controls */}
+                <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-6">
+                  <h2 className="text-xl font-bold mb-4">Game Controls</h2>
+                  
+                  <div className="space-y-3">
+                    {gameState === 'lobby' ? (
+                      <button
+                        onClick={startGame}
+                        className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition"
+                      >
+                        ▶ Start Game
+                      </button>
+                    ) : (
+                      <button
+                        onClick={resetGame}
+                        className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition"
+                      >
+                        🔄 Reset Game
+                      </button>
+                    )}
+
+                    <button
+                      onClick={callNumber}
+                      disabled={gameState !== 'playing'}
+                      className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400 transition"
+                    >
+                      📢 Call Number
+                    </button>
+
+                    <button
+                      onClick={toggleAutoCall}
+                      disabled={gameState !== 'playing'}
+                      className={`w-full py-3 rounded-lg font-semibold transition ${
+                        isAutoCall ? 'bg-orange-600 hover:bg-orange-700' : 'bg-purple-600 hover:bg-purple-700'
+                      } text-white disabled:bg-gray-400`}
+                    >
+                      {isAutoCall ? '⏸ Pause' : '▶'} Auto Call: {isAutoCall ? 'ON' : 'OFF'}
+                    </button>
+
+                    <div>
+                      <label className="block text-sm font-semibold mb-2">
+                        Speed: {(gameSpeed / 1000).toFixed(1)}s between calls
+                      </label>
+                      <input
+                        type="range"
+                        min="1000"
+                        max="10000"
+                        step="500"
+                        value={gameSpeed}
+                        onChange={(e) => updateGameSpeed(Number(e.target.value))}
+                        className="w-full"
+                      />
+                    </div>
+
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={voiceEnabled}
+                        onChange={toggleVoice}
+                        className="w-5 h-5"
+                      />
+                      <span className="font-semibold">🔊 Voice Announcements</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Current Number Display */}
+                <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-6">
+                  <h2 className="text-xl font-bold mb-4">Current Number</h2>
+                  <div className="bg-white rounded-xl p-8 text-center shadow-lg">
+                    {currentNumber ? (
+                      <>
+                        <div className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">
+                          {currentNumber <= 15 ? 'B' : currentNumber <= 30 ? 'I' : currentNumber <= 45 ? 'N' : currentNumber <= 60 ? 'G' : 'O'}
+                        </div>
+                        <div className="text-8xl font-bold text-gray-800 my-4">{currentNumber}</div>
+                      </>
+                    ) : (
+                      <div className="text-2xl text-gray-400 py-16">No number called yet</div>
+                    )}
+                  </div>
+                  <div className="mt-4 text-center">
+                    <span className="text-lg font-semibold">
+                      📊 Called: {calledNumbers.length}/75
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Called Numbers History */}
+              <div className="bg-gray-50 rounded-xl p-6 mb-6">
+                <h2 className="text-xl font-bold mb-4">Called Numbers Board</h2>
+                <div className="grid grid-cols-15 gap-1 sm:gap-2">
+                  {[...Array(75)].map((_, i) => {
+                    const num = i + 1;
+                    const isCalled = calledNumbers.includes(num);
+                    const isLast = num === currentNumber;
+                    return (
+                      <div
+                        key={num}
+                        className={`aspect-square rounded flex items-center justify-center font-bold text-xs sm:text-sm transition-all ${
+                          isLast 
+                            ? 'bg-yellow-400 text-gray-900 ring-4 ring-yellow-300 scale-110' 
+                            : isCalled 
+                            ? 'bg-green-500 text-white' 
+                            : 'bg-gray-200 text-gray-400'
+                        }`}
+                      >
+                        {num}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Players List */}
+              <div className="bg-gray-50 rounded-xl p-6">
+                <h2 className="text-xl font-bold mb-4">
+                  👥 Players ({players.length})
+                </h2>
+                {players.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">No players yet. Waiting for players to join...</p>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {players.map((player) => (
+                      <div key={player.id} className="flex items-center justify-between bg-white p-3 rounded-lg shadow">
+                        <span className="font-semibold">{player.name}</span>
+                        {player.is_winner && (
+                          <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                            🏆 WINNER
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+
+      // Player View Component
+      const PlayerView = () => {
+        const isWinner = players.find(p => p.id === playerId)?.is_winner;
+        
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 p-4">
+            <div className="max-w-4xl mx-auto">
+              {/* Player Header */}
+              <div className="text-center text-white mb-6">
+                <h1 className="text-4xl font-bold mb-2">Welcome, {playerName}!</h1>
+                <p className="text-xl">
+                  Status: <span className="font-bold">
+                    {gameState === 'lobby' ? '⏳ Waiting for game to start...' : '🎮 Playing'}
+                  </span>
+                </p>
+                {currentNumber && (
+                  <div className="mt-4 bg-white bg-opacity-20 backdrop-blur rounded-2xl p-6 inline-block">
+                    <p className="text-lg mb-2">Last Called</p>
+                    <div className="text-6xl font-bold">
+                      {currentNumber <= 15 ? 'B' : currentNumber <= 30 ? 'I' : currentNumber <= 45 ? 'N' : currentNumber <= 60 ? 'G' : 'O'}-{currentNumber}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Bingo Board */}
+              <BingoBoard />
+
+              {/* Winner Message */}
+              {isWinner && (
+                <div className="mt-6 bg-white rounded-2xl p-8 text-center animate-pulse">
+                  <div className="text-6xl mb-4">🎉</div>
+                  <h2 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-emerald-600">
+                    YOU WON!
+                  </h2>
+                  <p className="text-xl text-gray-600 mt-2">Congratulations, {playerName}!</p>
+                </div>
+              )}
+
+              {/* Leave Game Button */}
+              <button
+                onClick={async () => {
+                  await supabase.from('players').delete().eq('id', playerId);
+                  setIsRegistered(false);
+                  setPlayerName('');
+                  setPlayerId(null);
+                }}
+                className="w-full mt-6 bg-white text-purple-600 py-3 rounded-lg font-semibold hover:shadow-lg transition"
+              >
+                Leave Game
+              </button>
+            </div>
+          </div>
+        );
+      };
+
+      // ============================================
+      // MAIN RENDER
+      // ============================================
+      
+      if (mode === 'admin') {
+        return <AdminPanel />;
+      }
+
+      if (!isRegistered) {
+        return <PlayerRegistration />;
+      }
+
+      return <PlayerView />;
+    };
+
+    // Render the app
+    ReactDOM.render(<BingoGame />, document.getElementById('root'));
+  </script>
+</body>
+</html>
