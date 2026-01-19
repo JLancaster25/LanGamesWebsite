@@ -1,0 +1,161 @@
+:root {
+  --purple: #7c3aed;
+  --azure: #0ea5e9;
+  --dark: #020617;
+  --light: #f1f5f9;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: Inter, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: var(--light);
+  color: var(--dark);
+}
+
+/* NAVBAR */
+.navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: white;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,.08);
+  z-index: 10000;
+}
+
+.logo {
+  font-weight: 900;
+  font-size: 1.4rem;
+  color: var(--purple);
+}
+
+.menu-btn {
+  font-size: 1.6rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.menu {
+  position: fixed;            /* ✅ WAS absolute */
+  top: 70px;
+  right: 20px;
+
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 20px 40px rgba(0,0,0,.15);
+
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+
+  z-index: 9999;
+
+  /* animation-safe visibility */
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.menu.hidden {
+  display: none;
+}
+
+.menu a {
+  padding: 1rem;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--purple);
+}
+
+.menu a:hover {
+  background: #eef2ff;
+}
+
+.hidden {
+  display: none;
+}
+
+/* HERO */
+.hero {
+  height: 100vh;
+  background: linear-gradient(135deg, var(--purple), var(--azure));
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+/* BUTTONS */
+.btn {
+  padding: 0.7rem 1.4rem;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.primary {
+  background: white;
+  color: var(--purple);
+}
+
+.secondary {
+  background: var(--azure);
+  color: white;
+}
+
+.danger {
+  background: crimson;
+  color: white;
+}
+
+/* SECTIONS */
+section {
+  padding: 6rem 2rem;
+  text-align: center;
+}
+
+.features, .games {
+  background: #eef2ff;
+}
+
+.feature-grid, .game-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+  gap: 2rem;
+  margin-top: 3rem;
+}
+
+.card, .game-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 20px;
+  box-shadow: 0 15px 30px rgba(0,0,0,.1);
+}
+
+/* AUTH */
+.auth input {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  margin: 0.6rem auto;
+  padding: 0.7rem;
+  border-radius: 8px;
+  border: 1px solid #c7d2fe;
+}
+
+/* FOOTER */
+footer {
+  background: var(--dark);
+  color: white;
+  padding: 1.5rem;
+}
