@@ -1,131 +1,71 @@
 (() => {
   'use strict';
 
-  /*************************************************
-   * NAMESPACE (nothing leaks globally)
-   *************************************************/
-  const BingoApp = {};
+  /**************** CONFIG ****************/
+  const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
+  const SUPABASE_KEY = 'YOUR_PUBLIC_ANON_KEY';
 
-  /*************************************************
-   * CONFIG
-   *************************************************/
-  const SUPABASE_URL = 'https://kppgmvfdfuhmtuaukkdn.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_e4AhlY9ZIgdlsG8rl111Fg_tWghrBW4';
   const GAME_ID = '00000000-0000-0000-0000-000000000001';
 
-  BingoApp.supabase = window.supabase.createClient(
+  const sb = window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_KEY
   );
 
   const synth = window.speechSynthesis;
 
-  /*************************************************
-   * STATE (scoped safely)
-   *************************************************/
-  BingoApp.state = {
+  /**************** STATE ****************/
+  const App = {
     user: null,
     game: null,
     player: null,
-    players: [],
-    winners: [],
     marked: ['2-2']
   };
 
-  /*************************************************
-   * HELPERS
-   *************************************************/
-  BingoApp.qs = id => document.getElementById(id);
+  /**************** HELPERS ****************/
+  const qs = id => document.getElementById(id);
 
-  BingoApp.speak = text => {
-    if (!BingoApp.state.game?.voice_enabled) return;
+  const speak = text => {
+    if (!App.game?.voice_enabled) return;
     synth.cancel();
     synth.speak(new SpeechSynthesisUtterance(text));
   };
 
-  /*************************************************
-   * AUTH
-   *************************************************/
-  BingoApp.initAuth = async () => {
-    const { data } = await BingoApp.supabase.auth.getUser();
-    BingoApp.state.user = data.user;
-  };
+  /**************** AUTH ****************/
+  async function loadUser() {
+    const { data } = await sb.auth.getUser();
+    App.user = data.user;
+  }
 
-  /*************************************************
-   * GAME LOADERS
-   *************************************************/
-  BingoApp.loadGame = async () => {
-    const { data } = await BingoApp.supabase
+  /**************** GAME BOOTSTRAP (FIX) ****************/
+  async function ensureGameExists() {
+    const { data } = await sb
       .from('games')
       .select('*')
       .eq('id', GAME_ID)
-      .single();
-    BingoApp.state.game = data;
-  };
+      .maybeSingle();
 
-  BingoApp.loadPlayers = async () => {
-    const { data } = await BingoApp.supabase
-      .from('players')
-      .select('*')
-      .eq('game_id', GAME_ID);
-    BingoApp.state.players = data || [];
-  };
+    if (data) {
+      App.game = data;
+      return;
+    }
 
-  BingoApp.loadWinners = async () => {
-    const { data } = await BingoApp.supabase
-      .from('winners')
-      .select('*')
-      .eq('game_id', GAME_ID);
-    BingoApp.state.winners = data || [];
-  };
-
-  /*************************************************
-   * PLAYER ACTIONS
-   *************************************************/
-  BingoApp.joinGame = async name => {
-    const { data } = await BingoApp.supabase
-      .from('players')
+    // 🔥 FIX: auto-create game row
+    const { data: created } = await sb
+      .from('games')
       .insert({
-        game_id: GAME_ID,
-        name,
-        bingo_card: BingoApp.generateCard(),
-        marked_cells: ['2-2']
+        id: GAME_ID,
+        game_state: 'lobby',
+        game_modes: ['normal']
       })
       .select()
       .single();
 
-    BingoApp.state.player = data;
-    BingoApp.state.marked = data.marked_cells;
-    BingoApp.render();
-  };
+    App.game = created;
+  }
 
-  BingoApp.toggleCell = async (c, r) => {
-    const key = `${c}-${r}`;
-    if (!BingoApp.state.marked.includes(key)) {
-      BingoApp.state.marked.push(key);
-    }
-
-    await BingoApp.supabase
-      .from('players')
-      .update({ marked_cells: BingoApp.state.marked })
-      .eq('id', BingoApp.state.player.id);
-  };
-
-  BingoApp.declareBingo = async () => {
-    const { data } = await BingoApp.supabase.rpc('check_and_declare_bingo', {
-      p_game_id: GAME_ID,
-      p_player_id: BingoApp.state.player.id
-    });
-
-    if (!data) {
-      alert('❌ No valid bingo yet');
-    }
-  };
-
-  /*************************************************
-   * CARD
-   *************************************************/
-  BingoApp.generateCard = () => {
+  /**************** CARD ****************/
+  function generateCard() {
     const ranges = [[1,15],[16,30],[31,45],[46,60],[61,75]];
     const card = ranges.map(([min,max]) => {
       const s = new Set();
@@ -135,55 +75,105 @@
     });
     card[2][2] = 'FREE';
     return card;
-  };
+  }
 
-  /*************************************************
-   * REALTIME
-   *************************************************/
-  BingoApp.realtime = () => {
-    BingoApp.supabase.channel('game')
-      .on('postgres_changes',
-        { table: 'games', event: '*', filter: `id=eq.${GAME_ID}` },
-        p => { BingoApp.state.game = p.new; BingoApp.render(); }
-      ).subscribe();
+  /**************** PLAYER ****************/
+  async function joinGame(name) {
+    const { data } = await sb
+      .from('players')
+      .insert({
+        game_id: GAME_ID,
+        name,
+        bingo_card: generateCard(),
+        marked_cells: ['2-2']
+      })
+      .select()
+      .single();
 
-    BingoApp.supabase.channel('players')
-      .on('postgres_changes',
-        { table: 'players', event: '*', filter: `game_id=eq.${GAME_ID}` },
-        () => BingoApp.loadPlayers().then(BingoApp.render)
-      ).subscribe();
+    App.player = data;
+    App.marked = data.marked_cells;
+    render();
+  }
 
-    BingoApp.supabase.channel('winners')
-      .on('postgres_changes',
-        { table: 'winners', event: 'INSERT', filter: `game_id=eq.${GAME_ID}` },
-        p => {
-          BingoApp.speak(`Bingo! ${p.new.player_name} wins`);
-          BingoApp.loadWinners().then(BingoApp.render);
-        }
-      ).subscribe();
-  };
+  async function toggleCell(c, r) {
+    const key = `${c}-${r}`;
+    if (!App.marked.includes(key)) App.marked.push(key);
 
-  /*************************************************
-   * UI
-   *************************************************/
-  BingoApp.render = () => {
-    const app = BingoApp.qs('app');
-    app.innerHTML = '<div class="text-white text-center">Bingo App Loaded</div>';
-  };
+    await sb
+      .from('players')
+      .update({ marked_cells: App.marked })
+      .eq('id', App.player.id);
+  }
 
-  /*************************************************
-   * INIT
-   *************************************************/
-  BingoApp.init = async () => {
-    await BingoApp.initAuth();
-    await BingoApp.loadGame();
-    await BingoApp.loadPlayers();
-    await BingoApp.loadWinners();
-    BingoApp.realtime();
-    BingoApp.render();
-  };
+  async function declareBingo() {
+    const { data } = await sb.rpc('check_and_declare_bingo', {
+      p_game_id: GAME_ID,
+      p_player_id: App.player.id
+    });
 
-  BingoApp.init();
+    if (!data) alert('❌ No valid bingo');
+  }
 
+  /**************** UI ****************/
+  function render() {
+    const el = qs('app');
+    el.innerHTML = '';
+
+    if (!App.user) {
+      el.innerHTML = `
+        <div class="flex h-screen justify-center items-center text-white">
+          <a href="/login" class="bg-white text-purple-600 px-6 py-3 rounded-xl">
+            Login to Play
+          </a>
+        </div>`;
+      return;
+    }
+
+    if (!App.player) {
+      el.innerHTML = `
+        <div class="p-6 bg-white rounded-xl max-w-md mx-auto mt-20">
+          <h2 class="text-xl mb-4">Join Bingo</h2>
+          <input id="name" class="border p-2 w-full mb-4" placeholder="Your name">
+          <button id="join" class="bg-purple-600 text-white w-full py-2 rounded">
+            Join Game
+          </button>
+        </div>`;
+      qs('join').onclick = () =>
+        joinGame(qs('name').value);
+      return;
+    }
+
+    el.innerHTML = `
+      <div class="text-white text-center p-4">
+        <h1 class="text-4xl font-bold mb-4">BINGO</h1>
+
+        <div class="bingo-grid">
+          ${App.player.bingo_card.map((col,c)=>
+            col.map((v,r)=>{
+              const k=`${c}-${r}`;
+              const m=App.marked.includes(k);
+              return `
+                <button class="bingo-cell ${m?'bg-green-500':'bg-white text-black'}"
+                  onclick="(${toggleCell})(${c},${r})">
+                  ${v}
+                </button>`;
+            }).join('')
+          ).join('')}
+        </div>
+
+        <button onclick="(${declareBingo})()"
+          class="mt-6 bg-green-600 px-6 py-3 rounded-xl font-bold">
+          BINGO!
+        </button>
+      </div>`;
+  }
+
+  /**************** INIT ****************/
+  async function init() {
+    await loadUser();
+    await ensureGameExists(); // 🔥 critical fix
+    render();
+  }
+
+  init();
 })();
-
