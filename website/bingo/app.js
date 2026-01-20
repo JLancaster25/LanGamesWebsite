@@ -1,12 +1,52 @@
 /*********************************************************
  * CONFIG
  *********************************************************/
-const SUPABASE_URL = 'https://kppgmvfdfuhmtuaukkdn.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_e4AhlY9ZIgdlsG8rl111Fg_tWghrBW4';
-const GAME_ID = '00000000-0000-0000-0000-000000000001';
+(() => {
+  'use strict';
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const synth = window.speechSynthesis;
+  /*********************************************************
+   * CONFIG
+   *********************************************************/
+  const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
+  const SUPABASE_KEY = 'YOUR_PUBLIC_ANON_KEY';
+  const GAME_ID = '00000000-0000-0000-0000-000000000001';
+
+  // 👇 scoped to this file only
+  const bingoSupabase = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+  const synth = window.speechSynthesis;
+
+  /*********************************************************
+   * STATE
+   *********************************************************/
+  const state = {
+    user: null,
+    game: null,
+    player: null,
+    players: [],
+    winners: [],
+    marked: ['2-2'],
+  };
+
+  /* 🔽 REPLACE ALL `supabase` REFERENCES 🔽 */
+  // supabase → bingoSupabase
+
+  async function initAuth() {
+    const { data } = await bingoSupabase.auth.getUser();
+    state.user = data.user;
+  }
+
+  async function loadGame() {
+    const { data } = await bingoSupabase
+      .from('games')
+      .select('*')
+      .eq('id', GAME_ID)
+      .single();
+    state.game = data;
+  }
 
 /*********************************************************
  * STATE
@@ -217,4 +257,5 @@ async function init() {
 }
 
 init();
+
 
