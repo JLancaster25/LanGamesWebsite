@@ -1,0 +1,18 @@
+.bingo-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+  max-width: 95vw;
+  margin: auto;
+}
+
+.bingo-cell {
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: clamp(1rem, 5vw, 1.6rem);
+}
+
+.bingo-cell:disabled {
+  opacity: 0.5;
+}
