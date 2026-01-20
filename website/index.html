@@ -2,76 +2,67 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>LANGames</title>
-  <link rel="stylesheet" href="style.css"/>
+  <title>LAN Games</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Supabase config -->
+  <script>
+    window.SUPABASE_URL = "https://kppgmvfdfuhmtuaukkdn.supabase.co";
+    window.SUPABASE_ANON_KEY = "sb_publishable_e4AhlY9ZIgdlsG8rl111Fg_tWghrBW4";
+  </script>
 </head>
 <body>
-  
-<script>
-  window.SUPABASE_URL = "https://kppgmvfdfuhmtuaukkdn.supabase.co";
-  window.SUPABASE_ANON_KEY = "sb_publishable_e4AhlY9ZIgdlsG8rl111Fg_tWghrBW4";
-</script>
-<script type="module" src="script.js"></script>
-  
+
 <header class="navbar">
   <div class="logo">LAN Games</div>
   <button class="menu-btn" id="menuBtn">☰</button>
 
   <nav id="menu" class="menu hidden">
-  <a data-target="home">Home</a>
-  <a data-target="features">Features</a>
-  <a data-target="games">Games</a>
-  <a data-target="bingo">Bingo</a>
-  <a data-target="tictactoe">Tic-Tac-Toe</a>
-  <a data-target="auth">Account</a>
-
-  <hr />
-
-  <button id="themeToggle" class="theme-toggle">🌙 Dark Mode</button>
-</nav>
-
+    <a data-target="home">Home</a>
+    <a data-target="features">Features</a>
+    <a data-target="games">Games</a>
+    <a data-target="auth">Account</a>
+    <hr />
+    <button id="themeToggle" class="theme-toggle">🌙 Dark Mode</button>
+  </nav>
 </header>
 
 <section id="home" class="hero">
   <h1>LAN Games</h1>
-  <p>Your New Community Bingo Night Coming Soon</p>
-  <button class="btn primary" data-target="auth">Join Now</button>
-</section>
-
-<section id="features" class="features">
-  <h2>Features</h2>
-  <div class="feature-grid">
-    <div class="card">⚡ Fast</div>
-    <div class="card">🎮 LAN Ready</div>
-    <div class="card">🔐 Secure Accounts</div>
-  </div>
-</section>
-
-<section id="games" class="games">
-  <h2>Games</h2>
-  <div class="game-grid">
-    <div class="game-card">🕹️ Arcade Mode</div>
-    <a href="/bingo/" class="game-card btn secondary">Play Bingo!</a>
-    <div class="game-card">⚔️ Battle Zone</div>
-    <a href="/tictactoe/" class="game-card btn secondary">🎲 Play Tic-Tac-Toe</a>
-  </div>
+  <p>Community Game Night Platform</p>
 </section>
 
 <section id="auth" class="auth">
   <h2>Account</h2>
 
+  <!-- AUTH FORMS -->
   <div id="authForms">
     <input id="email" type="email" placeholder="Email" />
     <input id="password" type="password" placeholder="Password" />
 
-    <button class="btn primary" id="loginBtn">Login</button>
-    <button class="btn secondary" id="registerBtn">Register</button>
+    <button class="btn primary" onclick="login()">Login</button>
+    <button class="btn secondary" onclick="register()">Register</button>
+
+    <button class="btn oauth" onclick="oauthLogin('google')">
+      Continue with Google
+    </button>
+
+    <button class="btn oauth" onclick="oauthLogin('discord')">
+      Continue with Discord
+    </button>
+
+    <button class="link" onclick="resetPassword()">
+      Forgot password?
+    </button>
   </div>
 
+  <!-- USER PANEL -->
   <div id="userPanel" class="hidden">
     <p id="userEmail"></p>
-    <button class="btn danger" id="logoutBtn">Logout</button>
+    <p id="userRole"></p>
+    <button class="btn danger" onclick="logout()">Logout</button>
   </div>
 
   <p id="authStatus"></p>
@@ -84,10 +75,3 @@
 <script type="module" src="script.js"></script>
 </body>
 </html>
-
-
-
-
-
-
-

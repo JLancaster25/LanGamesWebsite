@@ -1,7 +1,6 @@
 :root {
   --purple: #7c3aed;
   --azure: #0ea5e9;
-
   --bg: #f1f5f9;
   --bg-alt: #eef2ff;
   --text: #020617;
@@ -24,7 +23,6 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  transition: background 0.3s, color 0.3s;
 }
 
 /* NAVBAR */
@@ -36,26 +34,10 @@ body {
   padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;
-  align-items: center;
   box-shadow: 0 4px 20px rgba(0,0,0,.1);
-  z-index: 10000;
+  z-index: 1000;
 }
 
-.logo {
-  font-weight: 900;
-  font-size: 1.4rem;
-  color: var(--purple);
-}
-
-.menu-btn {
-  font-size: 1.6rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text);
-}
-
-/* MENU */
 .menu {
   position: fixed;
   top: 70px;
@@ -63,88 +45,10 @@ body {
   background: var(--card);
   border-radius: 14px;
   box-shadow: 0 20px 40px rgba(0,0,0,.2);
-  min-width: 200px;
-  display: flex;
-  flex-direction: column;
-  z-index: 9999;
 }
 
-.menu.hidden {
+.hidden {
   display: none;
-}
-
-.menu a {
-  padding: 1rem;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.menu a:hover {
-  background: var(--bg-alt);
-}
-
-.menu hr {
-  border: none;
-  height: 1px;
-  background: #c7d2fe;
-}
-
-/* HERO */
-.hero {
-  height: 100vh;
-  background: linear-gradient(135deg, var(--purple), var(--azure));
-  color: white;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-}
-
-/* BUTTONS */
-.btn {
-  padding: 0.7rem 1.4rem;
-  border-radius: 999px;
-  border: none;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.primary {
-  background: white;
-  color: var(--purple);
-}
-
-.secondary {
-  background: var(--azure);
-  color: white;
-}
-
-/* SECTIONS */
-section {
-  padding: 6rem 2rem;
-  text-align: center;
-}
-
-.features,
-.games {
-  background: var(--bg-alt);
-}
-
-.feature-grid,
-.game-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
-  gap: 2rem;
-  margin-top: 3rem;
-}
-
-.card,
-.game-card {
-  background: var(--card);
-  padding: 2rem;
-  border-radius: 20px;
-  box-shadow: 0 15px 30px rgba(0,0,0,.15);
 }
 
 /* AUTH */
@@ -158,20 +62,29 @@ section {
   border: 1px solid #c7d2fe;
 }
 
-/* THEME TOGGLE */
-.theme-toggle {
-  margin: 1rem;
-  padding: 0.6rem;
-  border-radius: 10px;
+.btn {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  margin: 0.4rem auto;
+  padding: 0.7rem;
+  border-radius: 999px;
   border: none;
   cursor: pointer;
-  font-weight: 600;
-  background: linear-gradient(135deg, var(--purple), var(--azure));
-  color: white;
+  font-weight: bold;
 }
 
-/* FOOTER */
-footer {
-  background: var(--card);
-  padding: 1.5rem;
+.primary { background: var(--purple); color: white; }
+.secondary { background: var(--azure); color: white; }
+.oauth { background: #e5e7eb; }
+
+.link {
+  background: none;
+  border: none;
+  color: var(--azure);
+  cursor: pointer;
+}
+
+.admin {
+  outline: 4px solid gold;
 }
