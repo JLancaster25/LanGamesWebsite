@@ -8,11 +8,7 @@
 
 .bingo-cell {
   aspect-ratio: 1 / 1;
-  border-radius: 12px;
-  font-weight: bold;
   font-size: clamp(1rem, 5vw, 1.6rem);
-}
-
-.bingo-cell:disabled {
-  opacity: 0.5;
+  font-weight: bold;
+  border-radius: 12px;
 }
