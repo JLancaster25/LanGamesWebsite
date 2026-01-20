@@ -1,8 +1,8 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
 // 🔑 REPLACE THESE
-const SUPABASE_URL = "https://kppgmvfdfuhmtuaukkdn.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_e4AhlY9ZIgdlsG8rl111Fg_tWghrBW4";
+const SUPABASE_URL = import.meta.env.SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.SUPABASE_ANON_KEY;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -234,4 +234,5 @@ const LanGamesAPI = {
       console.error('Error reporting game end:', error);
     }
   }
+
 };
