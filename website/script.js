@@ -51,18 +51,30 @@ document.querySelectorAll("[data-target]").forEach(el => {
 /* ================================
    DARK MODE
 ================================ */
-if (localStorage.getItem("theme") === "dark") {
-  document.body.classList.add("dark");
-  themeToggle.textContent = "☀️ Light Mode";
-}
+document.addEventListener("DOMContentLoaded", () => {
+  const themeToggle = document.getElementById("themeToggle");
 
-themeToggle.addEventListener("click", (e) => {
-  e.stopPropagation();
-  document.body.classList.toggle("dark");
+  if (!themeToggle) {
+    console.warn("Theme toggle not found");
+    return;
+  }
 
-  const isDark = document.body.classList.contains("dark");
-  localStorage.setItem("theme", isDark ? "dark" : "light");
-  themeToggle.textContent = isDark ? "☀️ Light Mode" : "🌙 Dark Mode";
+  // Load saved theme
+  const savedTheme = localStorage.getItem("theme");
+  if (savedTheme === "dark") {
+    document.body.classList.add("dark");
+    themeToggle.textContent = "☀️ Light Mode";
+  }
+
+  themeToggle.addEventListener("click", (e) => {
+    e.stopPropagation();
+
+    document.body.classList.toggle("dark");
+    const isDark = document.body.classList.contains("dark");
+
+    localStorage.setItem("theme", isDark ? "dark" : "light");
+    themeToggle.textContent = isDark ? "☀️ Light Mode" : "🌙 Dark Mode";
+  });
 });
 
 /* ================================
@@ -187,3 +199,4 @@ supabase.auth.getSession().then(({ data }) => {
 window.login = login;
 window.register = register;
 window.logout = logout;
+
