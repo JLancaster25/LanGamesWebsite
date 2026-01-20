@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>LAN Games</title>
+  <title>LANGames</title>
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
@@ -23,8 +23,8 @@
 </header>
 
 <section id="home" class="hero">
-  <h1>LAN Games</h1>
-  <p>Your Bingo Gaming Platform</p>
+  <h1>LANGames</h1>
+  <p>Purple × Azure Gaming Platform</p>
   <button class="btn primary" data-target="auth">Join Now</button>
 </section>
 
@@ -47,4 +47,28 @@
 </section>
 
 <section id="auth" class="auth">
-  <h2
+  <h2>Account</h2>
+
+  <div id="authForms">
+    <input id="email" type="email" placeholder="Email" />
+    <input id="password" type="password" placeholder="Password" />
+
+    <button class="btn primary" id="loginBtn">Login</button>
+    <button class="btn secondary" id="registerBtn">Register</button>
+  </div>
+
+  <div id="userPanel" class="hidden">
+    <p id="userEmail"></p>
+    <button class="btn danger" id="logoutBtn">Logout</button>
+  </div>
+
+  <p id="authStatus"></p>
+</section>
+
+<footer>
+  <p>© 2026 LANGames</p>
+</footer>
+
+<script type="module" src="script.js"></script>
+</body>
+</html>
