@@ -1,238 +1,189 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-// 🔑 REPLACE THESE
+/* ================================
+   SUPABASE CONFIG
+================================ */
 const SUPABASE_URL = window.SUPABASE_URL;
 const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-/* ELEMENTS */
+/* ================================
+   DOM ELEMENTS
+================================ */
 const menu = document.getElementById("menu");
 const menuBtn = document.getElementById("menuBtn");
+const themeToggle = document.getElementById("themeToggle");
 
-const authStatus = document.getElementById("authStatus");
 const authForms = document.getElementById("authForms");
+const authStatus = document.getElementById("authStatus");
 const userPanel = document.getElementById("userPanel");
 const userEmail = document.getElementById("userEmail");
 
-/* MENU LOGIC */
-/* MENU LOGIC */
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
+
+/* ADMIN PANEL (OPTIONAL SECTION) */
+const adminPanel = document.getElementById("adminPanel");
+
+/* ================================
+   MENU LOGIC
+================================ */
 menuBtn.addEventListener("click", (e) => {
-  e.stopPropagation(); // ⛔ prevent document click
+  e.stopPropagation();
   menu.classList.toggle("hidden");
 });
 
-/* Close menu when clicking outside */
 document.addEventListener("click", (e) => {
-  const clickedInsideMenu = menu.contains(e.target);
-  const clickedMenuButton = menuBtn.contains(e.target);
-
-  if (!clickedInsideMenu && !clickedMenuButton) {
+  if (!menu.contains(e.target) && !menuBtn.contains(e.target)) {
     menu.classList.add("hidden");
   }
 });
 
-/* Menu item navigation */
 document.querySelectorAll("[data-target]").forEach(el => {
   el.addEventListener("click", () => {
-    const target = el.getAttribute("data-target");
+    const target = el.dataset.target;
     menu.classList.add("hidden");
     document.getElementById(target).scrollIntoView({ behavior: "smooth" });
   });
 });
 
+/* ================================
+   DARK MODE
+================================ */
+if (localStorage.getItem("theme") === "dark") {
+  document.body.classList.add("dark");
+  themeToggle.textContent = "☀️ Light Mode";
+}
 
-document.querySelectorAll("[data-target]").forEach(el => {
-  el.addEventListener("click", () => {
-    const target = el.getAttribute("data-target");
-    menu.classList.add("hidden");
-    document.getElementById(target).scrollIntoView({ behavior: "smooth" });
-  });
+themeToggle.addEventListener("click", (e) => {
+  e.stopPropagation();
+  document.body.classList.toggle("dark");
+
+  const isDark = document.body.classList.contains("dark");
+  localStorage.setItem("theme", isDark ? "dark" : "light");
+  themeToggle.textContent = isDark ? "☀️ Light Mode" : "🌙 Dark Mode";
 });
 
-/* AUTH */
-document.getElementById("registerBtn").addEventListener("click", async () => {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+/* ================================
+   AUTH FUNCTIONS
+================================ */
+async function register() {
+  const email = emailInput.value.trim();
+  const password = passwordInput.value.trim();
 
-  const { error } = await supabase.auth.signUp({ email, password });
-  authStatus.textContent = error ? error.message : "✔️ Registered!";
-});
+  if (!email || !password) {
+    authStatus.textContent = "❗ Missing email or password";
+    return;
+  }
 
-document.getElementById("loginBtn").addEventListener("click", async () => {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signUp({ email, password });
 
   if (error) {
     authStatus.textContent = error.message;
-  } else {
-    showUser(data.user.email);
+    return;
   }
-});
-document.getElementById("logoutBtn").addEventListener("click", async () => {
-  await supabase.auth.signOut();
-  authForms.classList.remove("hidden");
-  userPanel.classList.add("hidden");
-});
 
-/* SESSION */
-function showUser(email) {
-  authForms.classList.add("hidden");
-  userPanel.classList.remove("hidden");
-  userEmail.textContent = `Logged in as ${email}`;
+  authStatus.textContent = "✔️ Registration successful. Check email.";
 }
 
-supabase.auth.getSession().then(({ data }) => {
-  if (data.session) showUser(data.session.user.email);
-});
+async function login() {
+  const email = emailInput.value.trim();
+  const password = passwordInput.value.trim();
 
-const LanGamesAPI = {
-  baseUrl: 'https://api.langames.online/v1',
-  apiKey: 'YOUR_LANGAMES_API_KEY', // Replace with your key
-  
-  async publishGame() {
-    try {
-      const gameData = {
-        name: "AI Voice Bingo",
-        description: "Real-time multiplayer bingo game with AI voice announcements. Features multiple game modes including Normal (5 in a row), Four Corners, and Blackout. Includes user authentication, admin controls, and real-time synchronization across all players.",
-        version: "1.0.0",
-        category: "board-games",
-        tags: ["bingo", "multiplayer", "voice", "realtime", "party-game"],
-        minPlayers: 2,
-        maxPlayers: 100,
-        estimatedDuration: 15,
-        difficulty: "easy",
-        ageRating: "everyone",
-        gameUrl: window.location.origin,
-        features: [
-          "Real-time multiplayer synchronization",
-          "AI voice number calling with Web Speech API",
-          "Three game modes: Normal, 4-Corners, Blackout",
-          "Secure user authentication",
-          "Admin control panel with auto-call feature",
-          "Mobile responsive design",
-          "Real-time winner detection",
-          "Customizable game speed"
-        ],
-        technology: {
-          framework: "react",
-          backend: "supabase",
-          realtime: true,
-          authentication: true,
-          voice: true
-        },
-        pricing: {
-          model: "free",
-          iapEnabled: false
-        }
-      };
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password
+  });
 
-      const response = await fetch(`${this.baseUrl}/games/publish`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`
-        },
-        body: JSON.stringify(gameData)
-      });
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log('Game published successfully:', result);
-      return result;
-    } catch (error) {
-      console.error('Error publishing game:', error);
-      throw error;
-    }
-  },
-
-  async updateGame(gameId, updates) {
-    try {
-      const response = await fetch(`${this.baseUrl}/games/${gameId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`
-        },
-        body: JSON.stringify(updates)
-      });
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error updating game:', error);
-      throw error;
-    }
-  },
-
-  async getStats(gameId) {
-    try {
-      const response = await fetch(`${this.baseUrl}/games/${gameId}/stats`, {
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-      throw error;
-    }
-  },
-
-  async reportGameStart() {
-    // Track when a game session starts
-    try {
-      await fetch(`${this.baseUrl}/events/game-start`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`
-        },
-        body: JSON.stringify({
-          gameId: 'bingo-ai-voice-12345',
-          timestamp: new Date().toISOString(),
-          players: players.length,
-          gameMode: gameType
-        })
-      });
-    } catch (error) {
-      console.error('Error reporting game start:', error);
-    }
-  },
-
-  async reportGameEnd(winner) {
-    // Track when a game session ends
-    try {
-      await fetch(`${this.baseUrl}/events/game-end`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`
-        },
-        body: JSON.stringify({
-          gameId: 'bingo-ai-voice-12345',
-          timestamp: new Date().toISOString(),
-          duration: Math.floor((Date.now() - gameStartTime) / 1000),
-          winner: winner,
-          gameMode: gameType
-        })
-      });
-    } catch (error) {
-      console.error('Error reporting game end:', error);
-    }
+  if (error) {
+    authStatus.textContent = error.message;
+    return;
   }
 
-};
+  await handleUserSession(data.user);
+}
+
+async function logout() {
+  await supabase.auth.signOut();
+  resetUI();
+}
+
+/* ================================
+   SESSION HANDLING
+================================ */
+async function handleUserSession(user) {
+  authForms.classList.add("hidden");
+  userPanel.classList.remove("hidden");
+  userEmail.textContent = `Logged in as ${user.email}`;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (profile?.role === "admin") {
+    enableAdminPanel();
+  }
+}
+
+function resetUI() {
+  authForms.classList.remove("hidden");
+  userPanel?.classList.add("hidden");
+  adminPanel?.classList.add("hidden");
+  authStatus.textContent = "";
+}
+
+/* ================================
+   ADMIN PANEL
+================================ */
+function enableAdminPanel() {
+  if (!adminPanel) return;
+
+  adminPanel.classList.remove("hidden");
+  adminPanel.innerHTML = `
+    <h2>Admin Panel</h2>
+    <p>Welcome, administrator.</p>
+    <button id="refreshUsers" class="btn secondary">Refresh Users</button>
+    <ul id="userList"></ul>
+  `;
+
+  document
+    .getElementById("refreshUsers")
+    .addEventListener("click", loadUsers);
+}
+
+async function loadUsers() {
+  const list = document.getElementById("userList");
+  list.innerHTML = "Loading...";
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("email, role");
+
+  if (error) {
+    list.innerHTML = "Error loading users";
+    return;
+  }
+
+  list.innerHTML = data
+    .map(u => `<li>${u.email} — ${u.role}</li>`)
+    .join("");
+}
+
+/* ================================
+   INIT SESSION ON LOAD
+================================ */
+supabase.auth.getSession().then(({ data }) => {
+  if (data.session?.user) {
+    handleUserSession(data.session.user);
+  }
+});
+
+/* ================================
+   EXPOSE AUTH BUTTONS
+================================ */
+window.login = login;
+window.register = register;
+window.logout = logout;
