@@ -3,17 +3,54 @@
 <head>
   <meta charset="UTF-8" />
   <title>Bingo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <meta name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <link rel="stylesheet" href="/bingo/styles.css" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
-<body class="bg-gradient-to-br from-purple-600 to-blue-600 min-h-screen">
-  <div id="app"></div>
-  <script src="/bingo/app.js"></script>
+<body>
+
+<header class="topbar">
+  <h1>BINGO</h1>
+  <a href="../index.html" class="back">← Home</a>
+</header>
+
+<main>
+  <div class="caller">
+    <div id="currentCall" class="current-call">—</div>
+
+    <div class="caller-controls">
+      <button id="callBtn">Call Number</button>
+      <button id="autoBtn">Auto Call</button>
+      <button id="stopBtn" disabled>Stop</button>
+    </div>
+  </div>
+
+<div class="game-layout">
+  <div class="board-wrapper">
+    <div class="labels">
+      <span>B</span><span>I</span><span>N</span><span>G</span><span>O</span>
+    </div>
+    <div id="bingo-board" class="board"></div>
+  </div>
+
+  <!-- 🔥 Call history panel -->
+  <aside class="history">
+    <h3>Call History</h3>
+    <div id="calledList" class="called-list"></div>
+  </aside>
+</div>
+
+  <div class="controls">
+    <button id="bingoBtn">BINGO!</button>
+    <button id="resetBtn">New Card</button>
+  </div>
+
+  <div class="called">
+    <h3>Called Numbers</h3>
+    <div id="calledList" class="called-list"></div>
+  </div>
+</main>
+
+<script src="app.js"></script>
 </body>
 </html>

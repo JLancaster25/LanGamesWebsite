@@ -1,179 +1,216 @@
 (() => {
   'use strict';
 
-  /**************** CONFIG ****************/
-  const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
-  const SUPABASE_KEY = 'YOUR_PUBLIC_ANON_KEY';
+  const boardEl = document.getElementById('bingo-board');
+  const callBtn = document.getElementById('callBtn');
+  const autoBtn = document.getElementById('autoBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const bingoBtn = document.getElementById('bingoBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const currentCallEl = document.getElementById('currentCall');
+  const calledListEl = document.getElementById('calledList');
 
-  const GAME_ID = '00000000-0000-0000-0000-000000000001';
+  let autoInterval = null;
 
-  const sb = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-  );
-
-  const synth = window.speechSynthesis;
-
-  /**************** STATE ****************/
-  const App = {
-    user: null,
-    game: null,
-    player: null,
-    marked: ['2-2']
+  const state = {
+    card: [],
+    marked: new Set(['2-2']),
+    called: [],
+    remaining: []
   };
 
-  /**************** HELPERS ****************/
-  const qs = id => document.getElementById(id);
+  /* ===============================
+     CARD GENERATION (CORRECT BINGO)
+  =============================== */
+function generateCard() {
+  const ranges = [
+    [1, 15],   // B
+    [16, 30],  // I
+    [31, 45],  // N
+    [46, 60],  // G
+    [61, 75]   // O
+  ];
 
-  const speak = text => {
-    if (!App.game?.voice_enabled) return;
-    synth.cancel();
-    synth.speak(new SpeechSynthesisUtterance(text));
-  };
+  // Create empty 5x5 grid (rows)
+  const card = Array.from({ length: 5 }, () => Array(5).fill(null));
 
-  /**************** AUTH ****************/
-  async function loadUser() {
-    const { data } = await sb.auth.getUser();
-    App.user = data.user;
-  }
-
-  /**************** GAME BOOTSTRAP (FIX) ****************/
-  async function ensureGameExists() {
-    const { data } = await sb
-      .from('games')
-      .select('*')
-      .eq('id', GAME_ID)
-      .maybeSingle();
-
-    if (data) {
-      App.game = data;
-      return;
+  // Generate each column correctly
+  ranges.forEach(([min, max], col) => {
+    const nums = new Set();
+    while (nums.size < 5) {
+      nums.add(Math.floor(Math.random() * (max - min + 1)) + min);
     }
-
-    // 🔥 FIX: auto-create game row
-    const { data: created } = await sb
-      .from('games')
-      .insert({
-        id: GAME_ID,
-        game_state: 'lobby',
-        game_modes: ['normal']
-      })
-      .select()
-      .single();
-
-    App.game = created;
-  }
-
-  /**************** CARD ****************/
-  function generateCard() {
-    const ranges = [[1,15],[16,30],[31,45],[46,60],[61,75]];
-    const card = ranges.map(([min,max]) => {
-      const s = new Set();
-      while (s.size < 5)
-        s.add(Math.floor(Math.random()*(max-min+1))+min);
-      return [...s];
+    [...nums].forEach((num, row) => {
+      card[row][col] = num;
     });
-    card[2][2] = 'FREE';
-    return card;
+  });
+
+  // Free space
+  card[2][2] = 'FREE';
+
+  return card;
+}
+
+  /* ===============================
+     CALLER (AI)
+  =============================== */
+  function initCaller() {
+    state.remaining = [];
+    for (let i = 1; i <= 75; i++) state.remaining.push(i);
+    shuffle(state.remaining);
+    state.called = [];
+    currentCallEl.textContent = '—';
+    renderCalled();
   }
 
-  /**************** PLAYER ****************/
-  async function joinGame(name) {
-    const { data } = await sb
-      .from('players')
-      .insert({
-        game_id: GAME_ID,
-        name,
-        bingo_card: generateCard(),
-        marked_cells: ['2-2']
-      })
-      .select()
-      .single();
+  function callNumber() {
+    if (!state.remaining.length) return;
 
-    App.player = data;
-    App.marked = data.marked_cells;
-    render();
+    const num = state.remaining.pop();
+    state.called.push(num);
+    currentCallEl.textContent = formatCall(num);
+    renderCalled();
   }
 
-  async function toggleCell(c, r) {
-    const key = `${c}-${r}`;
-    if (!App.marked.includes(key)) App.marked.push(key);
-
-    await sb
-      .from('players')
-      .update({ marked_cells: App.marked })
-      .eq('id', App.player.id);
+  function formatCall(num) {
+    if (num <= 15) return `B ${num}`;
+    if (num <= 30) return `I ${num}`;
+    if (num <= 45) return `N ${num}`;
+    if (num <= 60) return `G ${num}`;
+    return `O ${num}`;
   }
 
-  async function declareBingo() {
-    const { data } = await sb.rpc('check_and_declare_bingo', {
-      p_game_id: GAME_ID,
-      p_player_id: App.player.id
+  function renderCalled() {
+    calledListEl.innerHTML = state.called
+      .map(n => `<span>${formatCall(n)}</span>`)
+      .join('');
+  }
+
+  /* ===============================
+     AUTO CALL
+  =============================== */
+  function startAuto() {
+    autoBtn.disabled = true;
+    stopBtn.disabled = false;
+
+    autoInterval = setInterval(() => {
+      if (!state.remaining.length) stopAuto();
+      callNumber();
+    }, 3000);
+  }
+
+  function stopAuto() {
+    clearInterval(autoInterval);
+    autoInterval = null;
+    autoBtn.disabled = false;
+    stopBtn.disabled = true;
+  }
+
+  /* ===============================
+     BOARD
+  =============================== */
+ function renderBoard() {
+  boardEl.innerHTML = '';
+
+  state.card.forEach((row, r) => {
+    row.forEach((val, c) => {
+      const key = `${c}-${r}`;
+      const cell = document.createElement('div');
+
+      cell.className = 'cell';
+      if (state.marked.has(key)) cell.classList.add('marked');
+      if (key === '2-2') cell.classList.add('free');
+
+      cell.textContent = val === 'FREE' ? '★' : val;
+      cell.onclick = () => {
+  // FREE space allowed
+		if (val === 'FREE') {
+			toggleMark(key);
+		return;
+		}
+  // 🔒 Enforce called-number rule
+		if (!isNumberCalled(val)) {
+			alert(`❌ ${formatCall(val)} has not been called yet`);
+		return;
+	}
+
+  toggleMark(key);
+};
+
+      boardEl.appendChild(cell);
     });
+  });
+}
 
-    if (!data) alert('❌ No valid bingo');
+function isNumberCalled(value) {
+  // FREE space always allowed
+  if (value === 'FREE') return true;
+
+  return state.called.includes(value);
+}
+
+  function toggleMark(key) {
+    if (key === '2-2') return;
+    state.marked.has(key)
+      ? state.marked.delete(key)
+      : state.marked.add(key);
+    renderBoard();
   }
 
-  /**************** UI ****************/
-  function render() {
-    const el = qs('app');
-    el.innerHTML = '';
+  /* ===============================
+     BINGO CHECK
+  =============================== */
+  function has(cells) {
+    return cells.every(c => state.marked.has(c));
+  }
 
-    if (!App.user) {
-      el.innerHTML = `
-        <div class="flex h-screen justify-center items-center text-white">
-          <a href="/login" class="bg-white text-purple-600 px-6 py-3 rounded-xl">
-            Login to Play
-          </a>
-        </div>`;
-      return;
+  function checkBingo() {
+    const wins = [];
+
+    for (let i = 0; i < 5; i++) {
+      if (has([`${i}-0`,`${i}-1`,`${i}-2`,`${i}-3`,`${i}-4`])) wins.push('Row');
+      if (has([`0-${i}`,`1-${i}`,`2-${i}`,`3-${i}`,`4-${i}`])) wins.push('Column');
     }
 
-    if (!App.player) {
-      el.innerHTML = `
-        <div class="p-6 bg-white rounded-xl max-w-md mx-auto mt-20">
-          <h2 class="text-xl mb-4">Join Bingo</h2>
-          <input id="name" class="border p-2 w-full mb-4" placeholder="Your name">
-          <button id="join" class="bg-purple-600 text-white w-full py-2 rounded">
-            Join Game
-          </button>
-        </div>`;
-      qs('join').onclick = () =>
-        joinGame(qs('name').value);
-      return;
+    if (has(['0-0','1-1','2-2','3-3','4-4'])) wins.push('Diagonal');
+    if (has(['4-0','3-1','2-2','1-3','0-4'])) wins.push('Diagonal');
+    if (has(['0-0','4-0','0-4','4-4'])) wins.push('4 Corners');
+    if (
+      has(['2-0','2-1','2-2','2-3','2-4']) ||
+      has(['0-2','1-2','2-2','3-2','4-2'])
+    ) wins.push('Cross');
+
+    if (state.marked.size === 25) wins.push('Blackout');
+
+    alert(wins.length ? `🎉 BINGO! (${wins.join(', ')})` : '❌ No Bingo yet');
+  }
+
+  /* ===============================
+     UTILS
+  =============================== */
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
     }
-
-    el.innerHTML = `
-      <div class="text-white text-center p-4">
-        <h1 class="text-4xl font-bold mb-4">BINGO</h1>
-
-        <div class="bingo-grid">
-          ${App.player.bingo_card.map((col,c)=>
-            col.map((v,r)=>{
-              const k=`${c}-${r}`;
-              const m=App.marked.includes(k);
-              return `
-                <button class="bingo-cell ${m?'bg-green-500':'bg-white text-black'}"
-                  onclick="(${toggleCell})(${c},${r})">
-                  ${v}
-                </button>`;
-            }).join('')
-          ).join('')}
-        </div>
-
-        <button onclick="(${declareBingo})()"
-          class="mt-6 bg-green-600 px-6 py-3 rounded-xl font-bold">
-          BINGO!
-        </button>
-      </div>`;
   }
 
-  /**************** INIT ****************/
-  async function init() {
-    await loadUser();
-    await ensureGameExists(); // 🔥 critical fix
-    render();
+  /* ===============================
+     INIT
+  =============================== */
+  function resetGame() {
+    stopAuto();
+    state.card = generateCard();
+    state.marked = new Set(['2-2']);
+    initCaller();
+    renderBoard();
   }
 
-  init();
+  callBtn.onclick = callNumber;
+  autoBtn.onclick = startAuto;
+  stopBtn.onclick = stopAuto;
+  bingoBtn.onclick = checkBingo;
+  resetBtn.onclick = resetGame;
+
+  resetGame();
 })();
