@@ -2,8 +2,10 @@ const cells = document.querySelectorAll(".cell");
 const status = document.getElementById("status");
 const resetBtn = document.getElementById("reset");
 
+const HUMAN = "X";
+const AI = "O";
+
 let board = Array(9).fill(null);
-let current = "X";
 let active = true;
 
 const wins = [
@@ -12,46 +14,129 @@ const wins = [
   [0,4,8],[2,4,6]
 ];
 
-function clickCell(e) {
-  const i = e.target.dataset.index;
-  if (!active || board[i]) return;
+/* ================================
+   GAME FLOW
+================================ */
+function handleHumanMove(e) {
+  const index = e.target.dataset.index;
+  if (!active || board[index]) return;
 
-  board[i] = current;
-  e.target.textContent = current;
+  makeMove(index, HUMAN);
 
-  if (wins.some(w => w.every(x => board[x] === current))) {
-    status.textContent = `🎉 ${current} wins!`;
+  if (checkEnd(HUMAN)) return;
+
+  status.textContent = "AI thinking…";
+
+  setTimeout(() => {
+    const aiMove = getBestMove();
+    makeMove(aiMove, AI);
+    checkEnd(AI);
+  }, 300); // slight delay feels natural
+}
+
+function makeMove(index, player) {
+  board[index] = player;
+  cells[index].textContent = player;
+}
+
+function checkEnd(player) {
+  if (isWinner(board, player)) {
+    status.textContent = `🎉 ${player === HUMAN ? "You win!" : "AI wins!"}`;
     active = false;
-    return;
+    return true;
   }
 
   if (board.every(Boolean)) {
-    status.textContent = "🤝 Draw!";
+    status.textContent = "🤝 It's a draw!";
     active = false;
-    return;
+    return true;
   }
 
-  current = current === "X" ? "O" : "X";
-  status.textContent = `${current}'s turn`;
+  status.textContent = player === HUMAN ? "AI's turn" : "Your turn";
+  return false;
 }
 
-function reset() {
+/* ================================
+   AI LOGIC (MINIMAX)
+================================ */
+function getBestMove() {
+  let bestScore = -Infinity;
+  let move;
+
+  board.forEach((cell, index) => {
+    if (!cell) {
+      board[index] = AI;
+      let score = minimax(board, 0, false);
+      board[index] = null;
+
+      if (score > bestScore) {
+        bestScore = score;
+        move = index;
+      }
+    }
+  });
+
+  return move;
+}
+
+function minimax(boardState, depth, isMaximizing) {
+  if (isWinner(boardState, AI)) return 10 - depth;
+  if (isWinner(boardState, HUMAN)) return depth - 10;
+  if (boardState.every(Boolean)) return 0;
+
+  if (isMaximizing) {
+    let best = -Infinity;
+    boardState.forEach((cell, i) => {
+      if (!cell) {
+        boardState[i] = AI;
+        best = Math.max(best, minimax(boardState, depth + 1, false));
+        boardState[i] = null;
+      }
+    });
+    return best;
+  } else {
+    let best = Infinity;
+    boardState.forEach((cell, i) => {
+      if (!cell) {
+        boardState[i] = HUMAN;
+        best = Math.min(best, minimax(boardState, depth + 1, true));
+        boardState[i] = null;
+      }
+    });
+    return best;
+  }
+}
+
+function isWinner(boardState, player) {
+  return wins.some(combo =>
+    combo.every(i => boardState[i] === player)
+  );
+}
+
+/* ================================
+   RESET
+================================ */
+function resetGame() {
   board.fill(null);
-  current = "X";
   active = true;
-  status.textContent = "X's turn";
-  cells.forEach(c => c.textContent = "");
+  cells.forEach(c => (c.textContent = ""));
+  status.textContent = "Your turn";
 }
 
-cells.forEach(c => {
-  c.addEventListener("click", clickCell);
-  c.addEventListener("keydown", e => {
+/* ================================
+   EVENTS
+================================ */
+cells.forEach(cell => {
+  cell.addEventListener("click", handleHumanMove);
+  cell.addEventListener("keydown", e => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
-      c.click();
+      cell.click();
     }
   });
 });
 
-resetBtn.addEventListener("click", reset);
-status.textContent = "X's turn";
+resetBtn.addEventListener("click", resetGame);
+
+/* INIT */
+status.textContent = "Your turn";
