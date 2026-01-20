@@ -2,16 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>LAN Games</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <link rel="stylesheet" href="style.css" />
-
-  <!-- Supabase config -->
-  <script>
-    window.SUPABASE_URL = "https://kppgmvfdfuhmtuaukkdn.supabase.co";
-    window.SUPABASE_ANON_KEY = "sb_publishable_e4AhlY9ZIgdlsG8rl111Fg_tWghrBW4";
-  </script>
 </head>
 <body>
 
@@ -31,38 +25,22 @@
 
 <section id="home" class="hero">
   <h1>LAN Games</h1>
-  <p>Community Game Night Platform</p>
+  <p>Your Community Game Night</p>
 </section>
 
 <section id="auth" class="auth">
   <h2>Account</h2>
 
-  <!-- AUTH FORMS -->
   <div id="authForms">
     <input id="email" type="email" placeholder="Email" />
     <input id="password" type="password" placeholder="Password" />
-
     <button class="btn primary" onclick="login()">Login</button>
     <button class="btn secondary" onclick="register()">Register</button>
-
-    <button class="btn oauth" onclick="oauthLogin('google')">
-      Continue with Google
-    </button>
-
-    <button class="btn oauth" onclick="oauthLogin('discord')">
-      Continue with Discord
-    </button>
-
-    <button class="link" onclick="resetPassword()">
-      Forgot password?
-    </button>
   </div>
 
-  <!-- USER PANEL -->
   <div id="userPanel" class="hidden">
     <p id="userEmail"></p>
-    <p id="userRole"></p>
-    <button class="btn danger" onclick="logout()">Logout</button>
+    <button class="btn secondary" onclick="logout()">Logout</button>
   </div>
 
   <p id="authStatus"></p>
@@ -72,6 +50,6 @@
   <p>© 2026 LAN Games</p>
 </footer>
 
-<script type="module" src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
