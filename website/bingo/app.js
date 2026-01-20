@@ -7,8 +7,8 @@
   /*********************************************************
    * CONFIG
    *********************************************************/
-  const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
-  const SUPABASE_KEY = 'YOUR_PUBLIC_ANON_KEY';
+  const SUPABASE_URL = 'https://kppgmvfdfuhmtuaukkdn.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_e4AhlY9ZIgdlsG8rl111Fg_tWghrBW4';
   const GAME_ID = '00000000-0000-0000-0000-000000000001';
 
   // 👇 scoped to this file only
@@ -257,5 +257,6 @@ async function init() {
 }
 
 init();
+
 
 
