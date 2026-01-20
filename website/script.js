@@ -1,136 +1,152 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
 /* ================================
-   SUPABASE
+   SUPABASE CONFIG
 ================================ */
-const supabase = createClient(
-  window.SUPABASE_URL,
-  window.SUPABASE_ANON_KEY
-);
+const SUPABASE_URL = window.SUPABASE_URL;
+const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY;
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ================================
-   DOM
+   DOM ELEMENTS
 ================================ */
 const menu = document.getElementById("menu");
 const menuBtn = document.getElementById("menuBtn");
 const themeToggle = document.getElementById("themeToggle");
 
 const authForms = document.getElementById("authForms");
+const authStatus = document.getElementById("authStatus");
 const userPanel = document.getElementById("userPanel");
 const userEmail = document.getElementById("userEmail");
-const userRole = document.getElementById("userRole");
-const authStatus = document.getElementById("authStatus");
 
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 
+/* ADMIN PANEL (OPTIONAL SECTION) */
+const adminPanel = document.getElementById("adminPanel");
+
 /* ================================
-   MENU
+   MENU LOGIC
 ================================ */
-menuBtn.addEventListener("click", () => {
+menuBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
   menu.classList.toggle("hidden");
 });
 
-document.addEventListener("click", e => {
+document.addEventListener("click", (e) => {
   if (!menu.contains(e.target) && !menuBtn.contains(e.target)) {
     menu.classList.add("hidden");
   }
 });
 
+document.querySelectorAll("[data-target]").forEach(el => {
+  el.addEventListener("click", () => {
+    const target = el.dataset.target;
+    menu.classList.add("hidden");
+    document.getElementById(target).scrollIntoView({ behavior: "smooth" });
+  });
+});
+
 /* ================================
    DARK MODE
 ================================ */
-const savedTheme = localStorage.getItem("theme");
-if (savedTheme === "dark") document.body.classList.add("dark");
+document.addEventListener("DOMContentLoaded", () => {
+  const themeToggle = document.getElementById("themeToggle");
 
-themeToggle.addEventListener("click", () => {
-  document.body.classList.toggle("dark");
-  localStorage.setItem(
-    "theme",
-    document.body.classList.contains("dark") ? "dark" : "light"
-  );
+  if (!themeToggle) {
+    console.warn("Theme toggle not found");
+    return;
+  }
+
+  const savedTheme = localStorage.getItem("theme");
+  if (savedTheme === "dark") {
+    document.body.classList.add("dark");
+    themeToggle.textContent = "☀️ Light Mode";
+  }
+
+  themeToggle.addEventListener("click", (e) => {
+    e.stopPropagation();
+
+    document.body.classList.toggle("dark");
+    const isDark = document.body.classList.contains("dark");
+
+    localStorage.setItem("theme", isDark ? "dark" : "light");
+    themeToggle.textContent = isDark ? "☀️ Light Mode" : "🌙 Dark Mode";
+  });
 });
 
 /* ================================
    AUTH FUNCTIONS
 ================================ */
 async function register() {
-  const { error } = await supabase.auth.signUp({
-    email: emailInput.value.trim(),
-    password: passwordInput.value.trim(),
-    options: { emailRedirectTo: window.location.origin }
-  });
+  const email = emailInput.value.trim();
+  const password = passwordInput.value.trim();
 
-  authStatus.textContent = error
-    ? error.message
-    : "✔ Check your email to verify your account";
+  if (!email || !password) {
+    authStatus.textContent = "❗ Missing email or password";
+    return;
+  }
+
+  const { data, error } = await supabase.auth.signUp({ email, password });
+
+  if (error) {
+    authStatus.textContent = error.message;
+    return;
+  }
+
+  authStatus.textContent = "✔️ Registration successful. Check email.";
 }
 
 async function login() {
-  const { error } = await supabase.auth.signInWithPassword({
-    email: emailInput.value.trim(),
-    password: passwordInput.value.trim()
+  const email = emailInput.value.trim();
+  const password = passwordInput.value.trim();
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password
   });
 
-  authStatus.textContent = error ? error.message : "✔ Logged in";
+  if (error) {
+    authStatus.textContent = error.message;
+    return;
+  }
+
+  await handleUserSession(data.user);
 }
 
 async function logout() {
   await supabase.auth.signOut();
-}
-
-async function resetPassword() {
-  const email = emailInput.value.trim();
-  if (!email) return;
-
-  await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin
-  });
-
-  authStatus.textContent = "✔ Password reset email sent";
-}
-
-async function oauthLogin(provider) {
-  await supabase.auth.signInWithOAuth({
-    provider,
-    options: { redirectTo: window.location.origin }
-  });
+  resetUI();
 }
 
 /* ================================
-   SESSION HANDLING (FIXED)
+   SESSION HANDLING
 ================================ */
-supabase.auth.onAuthStateChange(async (_event, session) => {
-  if (!session?.user) {
-    authForms.classList.remove("hidden");
-    userPanel.classList.add("hidden");
-    document.body.classList.remove("admin");
-    return;
-  }
-
+async function handleUserSession(user) {
   authForms.classList.add("hidden");
   userPanel.classList.remove("hidden");
+  userEmail.textContent = `Logged in as ${user.email}`;
+}
 
-  userEmail.textContent = session.user.email;
+function resetUI() {
+  authForms.classList.remove("hidden");
+  userPanel?.classList.add("hidden");
+  authStatus.textContent = "";
+}
 
-  const { data } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", session.user.id)
-    .single();
-
-  userRole.textContent = `Role: ${data?.role ?? "user"}`;
-
-  if (data?.role === "admin") {
-    document.body.classList.add("admin");
+/* ================================
+   INIT SESSION ON LOAD
+================================ */
+supabase.auth.getSession().then(({ data }) => {
+  if (data.session?.user) {
+    handleUserSession(data.session.user);
   }
 });
 
 /* ================================
-   EXPOSE FUNCTIONS
+   EXPOSE AUTH BUTTONS
 ================================ */
 window.login = login;
 window.register = register;
 window.logout = logout;
-window.resetPassword = resetPassword;
-window.oauthLogin = oauthLogin;
