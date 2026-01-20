@@ -1,0 +1,64 @@
+:root {
+  --purple: #7c3aed;
+  --azure: #0ea5e9;
+  --bg: #020617;
+  --card: #0f172a;
+  --text: #f8fafc;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  text-align: center;
+}
+
+.topbar {
+  padding: 1rem;
+  background: linear-gradient(135deg, var(--purple), var(--azure));
+}
+
+.back {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 100px);
+  gap: 12px;
+  justify-content: center;
+  margin: 2rem auto;
+}
+
+.cell {
+  width: 100px;
+  height: 100px;
+  font-size: 2.5rem;
+  font-weight: bold;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  background: var(--card);
+  color: var(--text);
+}
+
+.cell:focus {
+  outline: 3px solid var(--azure);
+}
+
+.btn {
+  padding: 0.6rem 1.4rem;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  background: linear-gradient(135deg, var(--purple), var(--azure));
+  color: white;
+}
