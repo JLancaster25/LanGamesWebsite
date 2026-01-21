@@ -2,21 +2,21 @@ body {
   font-family: system-ui;
   background: #111;
   color: white;
-  text-align: center;
+  margin: 0;
 }
 
-button {
-  padding: 0.6rem 1.2rem;
-  margin: 0.3rem;
-  font-weight: bold;
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
 }
 
 .board {
   display: grid;
-  grid-template-columns: repeat(5,1fr);
+  grid-template-columns: repeat(5, 1fr);
+  width: min(90vw, 320px);
   gap: 6px;
-  max-width: 320px;
-  margin: 1rem auto;
 }
 
 .cell {
@@ -24,10 +24,9 @@ button {
   color: black;
   aspect-ratio: 1;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   font-weight: bold;
-  cursor: pointer;
 }
 
 .cell.marked {
@@ -35,13 +34,25 @@ button {
   color: white;
 }
 
-.hidden {
-  display: none;
+.cell.winner {
+  outline: 3px solid gold;
 }
 
-#banner {
-  background: gold;
-  color: black;
-  font-size: 2rem;
-  padding: 1rem;
+#current {
+  font-size: 3rem;
+  font-weight: bold;
+}
+
+header {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+}
+
+#calls {
+  max-width: 320px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  text-align: center;
 }
