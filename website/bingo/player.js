@@ -64,3 +64,16 @@ function generate(){
   c[2][2]='FREE';
   return c;
 }
+const { data, error } = await supabase
+  .from('games')
+  .select('*')
+  .eq('code', code)
+  .maybeSingle();
+
+if (error || !data) {
+  alert('Game not found. Make sure the host has started the game.');
+  throw new Error('Game not found');
+}
+
+gameId = data.id;
+
