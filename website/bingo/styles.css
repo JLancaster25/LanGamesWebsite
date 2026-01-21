@@ -114,8 +114,24 @@ button:disabled {
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  animation: drop 0.4s ease;
+
+  cursor: pointer;              /* ✅ restore */
+  pointer-events: auto;         /* ✅ restore */
+  user-select: none;
+
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
+
+.cell:hover {
+  transform: scale(1.05);
+}
+
+/* ❌ Prevent clicking uncalled numbers visually */
+.cell.locked {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 
 .cell.marked {
   background: var(--marked);
@@ -166,3 +182,4 @@ button:disabled {
   padding: 0.6rem 1.4rem;
   border-radius: 16px;
 }
+
