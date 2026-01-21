@@ -17,8 +17,6 @@ if (!game) {
 }
 
 const gameId = game.id;
-let called = new Set();
-let marked = new Set(['2-2']);
 const board = document.getElementById('board');
 const callsEl = document.getElementById('calls');
 const banner = document.getElementById('banner');
@@ -138,6 +136,7 @@ supabase.channel('winners')
     }
   })
   .subscribe();
+
 
 
 
