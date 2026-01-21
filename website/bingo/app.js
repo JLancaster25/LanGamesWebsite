@@ -5,58 +5,52 @@
   const callBtn = document.getElementById('callBtn');
   const autoBtn = document.getElementById('autoBtn');
   const stopBtn = document.getElementById('stopBtn');
-  const bingoBtn = document.getElementById('bingoBtn');
   const resetBtn = document.getElementById('resetBtn');
   const currentCallEl = document.getElementById('currentCall');
   const calledListEl = document.getElementById('calledList');
 
-  let autoInterval = null;
+  const synth = window.speechSynthesis;
+  let autoTimer = null;
 
   const state = {
     card: [],
     marked: new Set(['2-2']),
     called: [],
-    remaining: []
+    remaining: [],
+    hasBingo: false,
+    winningCells: new Set()
   };
 
-  /* ===============================
-     CARD GENERATION (CORRECT BINGO)
-  =============================== */
-function generateCard() {
-  const ranges = [
-    [1, 15],   // B
-    [16, 30],  // I
-    [31, 45],  // N
-    [46, 60],  // G
-    [61, 75]   // O
-  ];
+  /* VOICE */
+  function speak(text) {
+    synth.cancel();
+    synth.speak(new SpeechSynthesisUtterance(text));
+  }
 
-  // Create empty 5x5 grid (rows)
-  const card = Array.from({ length: 5 }, () => Array(5).fill(null));
+  function speakCall(num) {
+    speak(formatCall(num));
+  }
 
-  // Generate each column correctly
-  ranges.forEach(([min, max], col) => {
-    const nums = new Set();
-    while (nums.size < 5) {
-      nums.add(Math.floor(Math.random() * (max - min + 1)) + min);
-    }
-    [...nums].forEach((num, row) => {
-      card[row][col] = num;
+  /* CARD */
+  function generateCard() {
+    const ranges = [[1,15],[16,30],[31,45],[46,60],[61,75]];
+    const card = Array.from({ length: 5 }, () => Array(5));
+
+    ranges.forEach(([min,max], col) => {
+      const nums = new Set();
+      while (nums.size < 5) {
+        nums.add(Math.floor(Math.random()*(max-min+1))+min);
+      }
+      [...nums].forEach((n,row)=>card[row][col]=n);
     });
-  });
 
-  // Free space
-  card[2][2] = 'FREE';
+    card[2][2] = 'FREE';
+    return card;
+  }
 
-  return card;
-}
-
-  /* ===============================
-     CALLER (AI)
-  =============================== */
+  /* CALLER */
   function initCaller() {
-    state.remaining = [];
-    for (let i = 1; i <= 75; i++) state.remaining.push(i);
+    state.remaining = Array.from({ length: 75 }, (_, i) => i + 1);
     shuffle(state.remaining);
     state.called = [];
     currentCallEl.textContent = '—';
@@ -64,144 +58,113 @@ function generateCard() {
   }
 
   function callNumber() {
-    if (!state.remaining.length) return;
+    if (!state.remaining.length || state.hasBingo) return;
 
     const num = state.remaining.pop();
     state.called.push(num);
+
     currentCallEl.textContent = formatCall(num);
     renderCalled();
+    speakCall(num);
+
+    autoCheckBingo();
   }
 
-  function formatCall(num) {
-    if (num <= 15) return `B ${num}`;
-    if (num <= 30) return `I ${num}`;
-    if (num <= 45) return `N ${num}`;
-    if (num <= 60) return `G ${num}`;
-    return `O ${num}`;
+  function formatCall(n) {
+    return n<=15?`B ${n}`:n<=30?`I ${n}`:n<=45?`N ${n}`:n<=60?`G ${n}`:`O ${n}`;
   }
 
   function renderCalled() {
     calledListEl.innerHTML = state.called
+      .slice().reverse()
       .map(n => `<span>${formatCall(n)}</span>`)
       .join('');
   }
 
-  /* ===============================
-     AUTO CALL
-  =============================== */
+  /* AUTO */
   function startAuto() {
     autoBtn.disabled = true;
     stopBtn.disabled = false;
-
-    autoInterval = setInterval(() => {
-      if (!state.remaining.length) stopAuto();
-      callNumber();
-    }, 3000);
+    autoTimer = setInterval(callNumber, 3000);
   }
 
   function stopAuto() {
-    clearInterval(autoInterval);
-    autoInterval = null;
+    clearInterval(autoTimer);
+    autoTimer = null;
     autoBtn.disabled = false;
     stopBtn.disabled = true;
   }
 
-  /* ===============================
-     BOARD
-  =============================== */
- function renderBoard() {
-  boardEl.innerHTML = '';
+  /* BOARD */
+  function renderBoard() {
+    boardEl.innerHTML = '';
 
-  state.card.forEach((row, r) => {
-    row.forEach((val, c) => {
-      const key = `${c}-${r}`;
-      const cell = document.createElement('div');
+    state.card.forEach((row,r)=>{
+      row.forEach((val,c)=>{
+        const key = `${c}-${r}`;
+        const cell = document.createElement('div');
+        cell.className = 'cell';
 
-      cell.className = 'cell';
-      if (state.marked.has(key)) cell.classList.add('marked');
-      if (key === '2-2') cell.classList.add('free');
+        if (state.marked.has(key)) cell.classList.add('marked');
+        if (state.winningCells.has(key)) cell.classList.add('win');
+        if (key === '2-2') cell.classList.add('free');
+        if (val !== 'FREE' && !state.called.includes(val)) cell.classList.add('disabled');
 
-      cell.textContent = val === 'FREE' ? '★' : val;
-      cell.onclick = () => {
-  // FREE space allowed
-		if (val === 'FREE') {
-			toggleMark(key);
-		return;
-		}
-  // 🔒 Enforce called-number rule
-		if (!isNumberCalled(val)) {
-			alert(`❌ ${formatCall(val)} has not been called yet`);
-		return;
-	}
+        cell.textContent = val === 'FREE' ? '★' : val;
 
-  toggleMark(key);
-};
+        cell.onclick = () => {
+          if (val !== 'FREE' && !state.called.includes(val)) return;
+          state.marked.has(key)
+            ? state.marked.delete(key)
+            : state.marked.add(key);
+          renderBoard();
+          autoCheckBingo();
+        };
 
-      boardEl.appendChild(cell);
+        boardEl.appendChild(cell);
+      });
     });
-  });
-}
-
-function isNumberCalled(value) {
-  // FREE space always allowed
-  if (value === 'FREE') return true;
-
-  return state.called.includes(value);
-}
-
-  function toggleMark(key) {
-    if (key === '2-2') return;
-    state.marked.has(key)
-      ? state.marked.delete(key)
-      : state.marked.add(key);
-    renderBoard();
   }
 
-  /* ===============================
-     BINGO CHECK
-  =============================== */
-  function has(cells) {
-    return cells.every(c => state.marked.has(c));
-  }
+  /* BINGO */
+  function autoCheckBingo() {
+    if (state.hasBingo) return;
 
-  function checkBingo() {
+    const has = cells => cells.every(c => state.marked.has(c));
     const wins = [];
 
-    for (let i = 0; i < 5; i++) {
-      if (has([`${i}-0`,`${i}-1`,`${i}-2`,`${i}-3`,`${i}-4`])) wins.push('Row');
-      if (has([`0-${i}`,`1-${i}`,`2-${i}`,`3-${i}`,`4-${i}`])) wins.push('Column');
+    for (let i=0;i<5;i++) {
+      if (has([`0-${i}`,`1-${i}`,`2-${i}`,`3-${i}`,`4-${i}`])) wins.push('Row');
+      if (has([`${i}-0`,`${i}-1`,`${i}-2`,`${i}-3`,`${i}-4`])) wins.push('Column');
     }
 
     if (has(['0-0','1-1','2-2','3-3','4-4'])) wins.push('Diagonal');
     if (has(['4-0','3-1','2-2','1-3','0-4'])) wins.push('Diagonal');
-    if (has(['0-0','4-0','0-4','4-4'])) wins.push('4 Corners');
-    if (
-      has(['2-0','2-1','2-2','2-3','2-4']) ||
-      has(['0-2','1-2','2-2','3-2','4-2'])
-    ) wins.push('Cross');
 
-    if (state.marked.size === 25) wins.push('Blackout');
-
-    alert(wins.length ? `🎉 BINGO! (${wins.join(', ')})` : '❌ No Bingo yet');
-  }
-
-  /* ===============================
-     UTILS
-  =============================== */
-  function shuffle(arr) {
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
+    if (wins.length) {
+      state.hasBingo = true;
+      stopAuto();
+      state.winningCells = new Set([...state.marked]);
+      renderBoard();
+      speak('Bingo!');
+      alert('🎉 BINGO!');
     }
   }
 
-  /* ===============================
-     INIT
-  =============================== */
+  function shuffle(a) {
+    for (let i=a.length-1;i>0;i--) {
+      const j=Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+  }
+
+  /* INIT */
   function resetGame() {
     stopAuto();
-    state.card = generateCard();
+    state.hasBingo = false;
+    state.winningCells.clear();
     state.marked = new Set(['2-2']);
+    state.card = generateCard();
     initCaller();
     renderBoard();
   }
@@ -209,7 +172,6 @@ function isNumberCalled(value) {
   callBtn.onclick = callNumber;
   autoBtn.onclick = startAuto;
   stopBtn.onclick = stopAuto;
-  bingoBtn.onclick = checkBingo;
   resetBtn.onclick = resetGame;
 
   resetGame();

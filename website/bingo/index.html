@@ -1,56 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8" />
   <title>Bingo</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
-<header class="topbar">
-  <h1>BINGO</h1>
-  <a href="../index.html" class="back">← Home</a>
-</header>
+<h1>BINGO</h1>
 
-<main>
-  <div class="caller">
-    <div id="currentCall" class="current-call">—</div>
+<button onclick="window.open('host.html','_blank')">Host Game</button>
+<button onclick="location.href='player.html'">Player</button>
 
-    <div class="caller-controls">
-      <button id="callBtn">Call Number</button>
-      <button id="autoBtn">Auto Call</button>
-      <button id="stopBtn" disabled>Stop</button>
-    </div>
-  </div>
-
-<div class="game-layout">
-  <div class="board-wrapper">
-    <div class="labels">
-      <span>B</span><span>I</span><span>N</span><span>G</span><span>O</span>
-    </div>
-    <div id="bingo-board" class="board"></div>
-  </div>
-
-  <!-- 🔥 Call history panel -->
-  <aside class="history">
-    <h3>Call History</h3>
-    <div id="calledList" class="called-list"></div>
-  </aside>
-</div>
-
-  <div class="controls">
-    <button id="bingoBtn">BINGO!</button>
-    <button id="resetBtn">New Card</button>
-  </div>
-
-  <div class="called">
-    <h3>Called Numbers</h3>
-    <div id="calledList" class="called-list"></div>
-  </div>
-</main>
-
-<script src="app.js"></script>
 </body>
 </html>
