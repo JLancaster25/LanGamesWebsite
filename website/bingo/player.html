@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Bingo Player</title>
@@ -8,29 +8,49 @@
 <body>
 
 <header>
-  <a href="index.html" class="home">Home</a>
-  <button id="themeToggle">🌙</button>
+  <a href="index.html">← Home</a>
 </header>
 
-<div id="banner" class="hidden">BINGO</div>
-  
-<div class="bingo-letters">
-  <div>B</div>
-  <div>I</div>
-  <div>N</div>
-  <div>G</div>
-  <div>O</div>
-</div>
+<main class="app">
 
-<div class="board" id="board"></div>
+  <!-- GAME CONTAINER -->
+  <div class="game-shell">
 
-<h3>Calls</h3>
-<div id="calls"></div>
+    <!-- LEFT: CARD -->
+    <div class="card-area">
 
-<button id="claimBtn">Claim Bingo</button>
+      <!-- CURRENT CALLED BALL -->
+      <div id="currentBall" class="current-ball hidden"></div>
+
+      <!-- BINGO HEADERS -->
+      <div class="bingo-letters">
+        <div>B</div>
+        <div>I</div>
+        <div>N</div>
+        <div>G</div>
+        <div>O</div>
+      </div>
+
+      <!-- BOARD -->
+      <div id="board" class="board"></div>
+    </div>
+
+    <!-- RIGHT: CALL HISTORY -->
+    <div class="history-panel">
+      <h3>Call History</h3>
+      <div id="calls" class="call-history"></div>
+    </div>
+
+  </div>
+
+  <!-- BINGO BUTTON -->
+  <button id="claimBtn" class="bingo-btn">BINGO!</button>
+
+  <!-- BINGO BANNER -->
+  <div id="banner" class="hidden">BINGO</div>
+
+</main>
 
 <script type="module" src="player.js"></script>
 </body>
 </html>
-
-
