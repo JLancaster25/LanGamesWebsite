@@ -9,7 +9,6 @@ let autoTimer = null;
 
 /* LOAD OR CREATE GAME */
 // Always define modes explicitly
-const modes = ['normal']; // later you’ll read this from checkboxes
 
 let gameId;
 
@@ -108,6 +107,7 @@ window.addEventListener('beforeunload', async () => {
     .update({ host_connected: false })
     .eq('id', gameId);
 });
+
 
 
 
