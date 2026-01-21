@@ -25,12 +25,10 @@ const card = generateCard();
 
 /* CALL LISTENER */
 supabase.channel('calls')
-  .on('postgres_changes',{event:'INSERT',table:'calls'}, p => {
+  .on('postgres_changes', { event:'INSERT', table:'calls' }, p => {
     if (p.new.game_id !== gameId) return;
     called.add(p.new.number);
-    const span = document.createElement('span');
-    span.textContent = p.new.number;
-    callsEl.prepend(span);
+    render(); // ✅ CRITICAL
   })
   .subscribe();
 
@@ -119,6 +117,7 @@ supabase.channel('winners')
     }
   })
   .subscribe();
+
 
 
 
