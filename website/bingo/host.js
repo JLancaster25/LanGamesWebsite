@@ -1,15 +1,15 @@
 import { supabase } from './supabase.js';
 
 const code = prompt('Game code');
-let modes = ['normal'] // extendable
 
-let gameId;
+let modes = ['normal']; // later wired to checkboxes
+let gameId = null;
 let called = new Set();
 let autoTimer = null;
 
-/* LOAD OR CREATE GAME */
-
-// 1. Try to load existing game
+/* ===============================
+   LOAD OR CREATE GAME (SAFE)
+================================ */
 const { data: existingGame, error: loadError } = await supabase
   .from('games')
   .select('*')
@@ -17,21 +17,19 @@ const { data: existingGame, error: loadError } = await supabase
   .maybeSingle();
 
 if (loadError) {
-  console.error(loadError);
+  console.error('Load game failed:', loadError);
   alert('Failed to load game');
-  throw loadError;
+  throw new Error(loadError.message);
 }
 
 if (existingGame) {
-  // Game already exists → host reconnect
   gameId = existingGame.id;
 } else {
-  // 2. Create new game
   const { data: newGame, error: insertError } = await supabase
     .from('games')
     .insert({
       code,
-      modes,            // ✅ REQUIRED
+      modes,
       status: 'active',
       host_connected: true
     })
@@ -39,74 +37,103 @@ if (existingGame) {
     .single();
 
   if (insertError) {
-    console.error(insertError);
-    alert('Failed to create game. Check console.');
-    throw insertError;
+    console.error('Insert game failed:', insertError);
+    alert(insertError.message);
+    throw new Error(insertError.message);
   }
 
   gameId = newGame.id;
 }
 
-// 3. Reset game state safely
-await supabase.rpc('start_game', { p_game_id: gameId });
-
-/* MARK HOST CONNECTED */
-await supabase
+/* ===============================
+   MARK HOST CONNECTED (SAFE)
+================================ */
+const { error: updateError } = await supabase
   .from('games')
   .update({ host_connected: true })
   .eq('id', gameId);
 
-/* RESET GAME SAFELY */
-await supabase.rpc('start_game', { p_game_id: gameId });
+if (updateError) {
+  console.error('Host connect update failed:', updateError);
+  alert(updateError.message);
+  throw new Error(updateError.message);
+}
 
-/* CALL NUMBER */
+/* ===============================
+   RESET GAME STATE (SAFE)
+================================ */
+const { error: resetError } = await supabase.rpc('start_game', {
+  p_game_id: gameId
+});
+
+if (resetError) {
+  console.error('Game reset failed:', resetError);
+  alert(resetError.message);
+  throw new Error(resetError.message);
+}
+
+/* ===============================
+   CALLING LOGIC
+================================ */
 function nextNumber() {
   for (let i = 1; i <= 75; i++) {
     if (!called.has(i)) return i;
   }
+  return null;
 }
 
 document.getElementById('callBtn').onclick = async () => {
   const n = nextNumber();
   if (!n) return;
+
   called.add(n);
   document.getElementById('current').textContent = n;
-  await supabase.from('calls').insert({ game_id: gameId, number: n });
+
+  const { error } = await supabase
+    .from('calls')
+    .insert({ game_id: gameId, number: n });
+
+  if (error) console.error(error);
 };
 
 document.getElementById('autoBtn').onclick = () => {
+  clearInterval(autoTimer);
   autoTimer = setInterval(
     document.getElementById('callBtn').onclick,
     document.getElementById('speed').value * 1000
   );
 };
 
-document.getElementById('stopBtn').onclick = () => clearInterval(autoTimer);
+document.getElementById('stopBtn').onclick = () => {
+  clearInterval(autoTimer);
+};
 
-/* CLAIM LISTENER */
+/* ===============================
+   CLAIM LISTENER
+================================ */
 supabase.channel('claims')
-  .on('postgres_changes',{event:'INSERT',table:'claims'}, async p => {
+  .on('postgres_changes', { event: 'INSERT', table: 'claims' }, async p => {
     if (p.new.game_id !== gameId) return;
+
     await supabase.from('winners').insert({
       game_id: gameId,
       player_name: p.new.player_name,
       pattern: 'BINGO'
     });
+
     document.getElementById('winners').innerHTML +=
-      `<li>${p.new.player_name}</li>`;
+      `<li>${p.new.player_name} — BINGO</li>`;
+
     clearInterval(autoTimer);
   })
   .subscribe();
 
-/* CLEAN DISCONNECT */
-window.addEventListener('beforeunload', async () => {
-  await supabase.from('games')
+/* ===============================
+   CLEAN DISCONNECT
+================================ */
+window.addEventListener('beforeunload', () => {
+  supabase
+    .from('games')
     .update({ host_connected: false })
     .eq('id', gameId);
 });
-
-
-
-
-
-
