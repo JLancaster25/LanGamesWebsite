@@ -96,6 +96,30 @@ button:disabled {
 }
 
 /* =========================
+   BINGO COLUMN HEADERS
+========================= */
+.bingo-letters {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+  width: fit-content;
+  margin-bottom: 0.3rem;
+}
+
+.bingo-letters div {
+  width: 56px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 1.2rem;
+  letter-spacing: 0.15rem;
+  color: #fff;
+}
+
+
+/* =========================
    BOARD
 ========================= */
 .board {
@@ -218,4 +242,5 @@ button:disabled {
   padding: 0.6rem 1.4rem;
   border-radius: 16px;
 }
+
 
