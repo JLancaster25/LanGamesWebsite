@@ -8,22 +8,51 @@ let called = new Set();
 let autoTimer = null;
 
 /* LOAD OR CREATE GAME */
-let { data: game } = await supabase
+// Always define modes explicitly
+const modes = ['normal']; // later you’ll read this from checkboxes
+
+let gameId;
+
+// 1. Try to load existing game
+const { data: existingGame, error: loadError } = await supabase
   .from('games')
   .select('*')
   .eq('code', code)
   .maybeSingle();
 
-if (!game) {
-  const res = await supabase
-    .from('games')
-    .insert({ code, modes })
-    .select()
-    .single();
-  game = res.data;
+if (loadError) {
+  console.error(loadError);
+  alert('Failed to load game');
+  throw loadError;
 }
 
-gameId = game.id;
+if (existingGame) {
+  // Game already exists → host reconnect
+  gameId = existingGame.id;
+} else {
+  // 2. Create new game
+  const { data: newGame, error: insertError } = await supabase
+    .from('games')
+    .insert({
+      code,
+      modes,            // ✅ REQUIRED
+      status: 'active',
+      host_connected: true
+    })
+    .select()
+    .single();
+
+  if (insertError) {
+    console.error(insertError);
+    alert('Failed to create game. Check console.');
+    throw insertError;
+  }
+
+  gameId = newGame.id;
+}
+
+// 3. Reset game state safely
+await supabase.rpc('start_game', { p_game_id: gameId });
 
 /* MARK HOST CONNECTED */
 await supabase
@@ -79,3 +108,4 @@ window.addEventListener('beforeunload', async () => {
     .update({ host_connected: false })
     .eq('id', gameId);
 });
+
