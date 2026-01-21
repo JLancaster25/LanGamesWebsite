@@ -1,175 +1,75 @@
-/* =========================
-   THEME VARIABLES
-========================= */
-:root {
-  --bg-gradient: linear-gradient(135deg, #6a4ce6, #4a8fe7);
-  --text: #ffffff;
-  --panel: rgba(255,255,255,0.15);
-  --cell-bg: #ffffff;
-  --cell-text: #222;
-  --marked: #4caf50;
-  --accent: #ffcc33;
-}
-
-body.light {
-  --bg-gradient: linear-gradient(135deg, #f4f7ff, #dce6ff);
-  --text: #222;
-  --panel: #ffffff;
-  --cell-bg: #f5f5f5;
-  --cell-text: #222;
-  --marked: #4caf50;
-  --accent: #ff9800;
-}
-
-/* =========================
-   GLOBAL
-========================= */
+/* ===== RESET ===== */
 * { box-sizing: border-box; }
 
 html, body {
   margin: 0;
   height: 100%;
   font-family: system-ui, sans-serif;
-  background: var(--bg-gradient);
-  color: var(--text);
+  background: linear-gradient(135deg, #5f5be3, #4a7fe0);
+  color: #fff;
 }
 
+/* ===== HEADER ===== */
+header {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+}
+
+header a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* ===== APP ===== */
 .app {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
-  padding: 1rem;
 }
 
-/* =========================
-   HEADER
-========================= */
-header {
-  position: fixed;
-  top: 16px;
-  right: 16px;
+/* ===== GAME SHELL ===== */
+.game-shell {
   display: flex;
-  gap: 0.6rem;
+  gap: 1.5rem;
+  background: linear-gradient(135deg, #5f5be3, #4a7fe0);
+  padding: 1.5rem;
+  border-radius: 28px;
+  align-items: flex-start;
 }
 
-header button {
-  background: var(--panel);
-  color: var(--text);
-  border-radius: 999px;
-  padding: 0.4rem 0.8rem;
-  border: none;
-  cursor: pointer;
+/* ===== CARD AREA ===== */
+.card-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-/* =========================
-   CURRENT CALL (GLOW)
-========================= */
-.current-call {
-  font-size: 3.8rem;
-  font-weight: 900;
-  animation: glow 1.5s infinite alternate;
-}
-
-@keyframes glow {
-  from { text-shadow: 0 0 8px var(--accent); }
-  to   { text-shadow: 0 0 24px var(--accent); }
-}
-
-/* =========================
-   BUTTONS
-========================= */
-button {
+/* ===== CURRENT BALL ===== */
+.current-ball {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
   background: #fff;
-  color: #222;
-  border: none;
-  border-radius: 999px;
-  padding: 0.7rem 1.6rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-button:disabled {
-  opacity: 0.5;
-}
-
-/* =========================
-   BINGO COLUMN HEADERS
-========================= */
-.bingo-letters {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 0.5rem;
-  width: fit-content;
-  margin-bottom: 0.3rem;
-}
-
-.bingo-letters div {
-  width: 56px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: #111;
+  font-size: 2.2rem;
   font-weight: 900;
-  font-size: 1.2rem;
-  letter-spacing: 0.15rem;
-  color: #fff;
-}
-
-
-/* =========================
-   BOARD
-========================= */
-.board {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 0.5rem;
-}
-
-.cell {
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
-  background: white;
-  color: #020617;
-  aspect-ratio:1/1;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-
-  cursor: pointer;              /* ✅ restore */
-  pointer-events: auto;         /* ✅ restore */
-  user-select: none;
-
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  margin-bottom: 0.6rem;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+  animation: ballDrop 0.4s ease;
 }
 
-.cell:hover {
-  transform: scale(1.05);
+.current-ball.hidden {
+  display: none;
 }
 
-/* ❌ Prevent clicking uncalled numbers visually */
-.cell.locked {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-
-.cell.marked {
-  background: #22c55e;
-  color: white;
-}
-
-.cell.free {
-  background: var(--accent);
-  color: #fff;
-  font-size: 1.4rem;
-}
-
-@keyframes drop {
+@keyframes ballDrop {
   from {
     transform: translateY(-40px) scale(0.6);
     opacity: 0;
@@ -180,67 +80,110 @@ button:disabled {
   }
 }
 
-/* =========================
-   CALL HISTORY
-========================= */
-/* HISTORY PANEL */
-.history {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 14px;
-  padding: 0.8rem;
-  width: 140px;
-  max-height: 360px;
-  overflow-y: auto;
+/* ===== BINGO HEADERS ===== */
+.bingo-letters {
+  display: grid;
+  grid-template-columns: repeat(5, 56px);
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
-.history h3 {
-  margin: 0 0 0.5rem;
+.bingo-letters div {
   text-align: center;
-  font-size: 0.9rem;
-}
-
-/* CALLED NUMBERS */
-.called {
-  margin-top: 1.5rem;
-  text-align: center;
-}
-
-.called-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  justify-content: center;
-}
-
-.called-list span {
-  background: rgba(255,255,255,.2);
-  padding: 0.3rem 0.6rem;
-  border-radius: 8px;
-  font-weight: bold;
-}
-
-/* MOBILE */
-@media (max-width: 600px) {
-  .game-layout {
-    flex-direction: column;
-  }
-
-  .history {
-    width: 100%;
-    max-height: 120px;
-  }
-}
-
-/* =========================
-   BINGO BANNER
-========================= */
-#banner {
-  background: var(--accent);
-  color: #222;
-  font-size: 2.2rem;
   font-weight: 900;
-  padding: 0.6rem 1.4rem;
+  font-size: 1.2rem;
+  letter-spacing: 0.2rem;
+}
+
+/* ===== BOARD ===== */
+.board {
+  display: grid;
+  grid-template-columns: repeat(5, 56px);
+  gap: 10px;
+}
+
+.cell {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #fff;
+  color: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.cell.locked {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.cell.marked {
+  background: #4caf50;
+  color: #fff;
+}
+
+.cell.free {
+  background: #f7c948;
+  color: #fff;
+  font-size: 1.4rem;
+}
+
+/* ===== HISTORY ===== */
+.history-panel {
+  background: rgba(255,255,255,0.18);
+  border-radius: 20px;
+  padding: 1rem;
+  width: 200px;
+}
+
+.history-panel h3 {
+  margin: 0 0 0.8rem;
+  text-align: center;
+  font-weight: 700;
+}
+
+.call-history {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+.call-history span {
+  background: rgba(255,255,255,0.25);
+  border-radius: 12px;
+  padding: 0.4rem 0;
+  text-align: center;
+  font-weight: 700;
+}
+
+/* ===== BINGO BUTTON ===== */
+.bingo-btn {
+  margin-top: 1.5rem;
+  background: #fff;
+  color: #111;
+  font-size: 1.2rem;
+  font-weight: 900;
+  padding: 0.8rem 2.5rem;
+  border-radius: 999px;
+  border: none;
+}
+
+/* ===== BANNER ===== */
+#banner {
+  margin-top: 1rem;
+  background: #f7c948;
+  color: #111;
+  font-size: 2rem;
+  font-weight: 900;
+  padding: 0.6rem 1.6rem;
   border-radius: 16px;
 }
 
-
+.hidden {
+  display: none;
+}
