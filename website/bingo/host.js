@@ -1,7 +1,7 @@
 import { supabase } from './supabase.js';
 
 const code = prompt('Game code');
-const modes = ['normal']; // extendable
+let modes = []; // extendable
 
 let gameId;
 let called = new Set();
@@ -108,4 +108,5 @@ window.addEventListener('beforeunload', async () => {
     .update({ host_connected: false })
     .eq('id', gameId);
 });
+
 
