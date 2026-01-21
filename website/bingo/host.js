@@ -1,7 +1,7 @@
 import { supabase } from './supabase.js';
 
 const code = prompt('Game code');
-const modes = ['normal']; // extendable
+let modes = ['normal'] // extendable
 
 let gameId;
 let called = new Set();
@@ -9,7 +9,7 @@ let autoTimer = null;
 
 /* LOAD OR CREATE GAME */
 // Always define modes explicitly
-let modes = ['normal']; // later you’ll read this from checkboxes
+const modes = ['normal']; // later you’ll read this from checkboxes
 
 let gameId;
 
@@ -108,6 +108,7 @@ window.addEventListener('beforeunload', async () => {
     .update({ host_connected: false })
     .eq('id', gameId);
 });
+
 
 
 
