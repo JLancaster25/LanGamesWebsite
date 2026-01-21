@@ -2,100 +2,83 @@ import { supabase } from './supabase.js';
 
 const code = prompt('Game code');
 
-let modes = ['normal']; // later wired to checkboxes
-let gameId = null;
+let gameId;
 let called = new Set();
 let autoTimer = null;
 
 /* ===============================
-   LOAD OR CREATE GAME (SAFE)
+   LOAD OR CREATE GAME
 ================================ */
-const { data: existingGame, error: loadError } = await supabase
+const { data: game } = await supabase
   .from('games')
   .select('*')
   .eq('code', code)
   .maybeSingle();
 
-if (loadError) {
-  console.error('Load game failed:', loadError);
-  alert('Failed to load game');
-  throw new Error(loadError.message);
-}
-
-if (existingGame) {
-  gameId = existingGame.id;
+if (game) {
+  gameId = game.id;
 } else {
-  const { data: newGame, error: insertError } = await supabase
+  const res = await supabase
     .from('games')
     .insert({
       code,
-      modes,
-      status: 'active',
-      host_connected: true
+      modes: getSelectedModes()
     })
     .select()
     .single();
 
-  if (insertError) {
-    console.error('Insert game failed:', insertError);
-    alert(insertError.message);
-    throw new Error(insertError.message);
-  }
-
-  gameId = newGame.id;
+  gameId = res.data.id;
 }
 
-/* ===============================
-   MARK HOST CONNECTED (SAFE)
-================================ */
-const { error: updateError } = await supabase
-  .from('games')
-  .update({ host_connected: true })
-  .eq('id', gameId);
-
-if (updateError) {
-  console.error('Host connect update failed:', updateError);
-  alert(updateError.message);
-  throw new Error(updateError.message);
-}
+/* RESET GAME */
+await supabase.rpc('start_game', { p_game_id: gameId });
 
 /* ===============================
-   RESET GAME STATE (SAFE)
+   RANDOM CALL (FIXED)
 ================================ */
-const { error: resetError } = await supabase.rpc('start_game', {
-  p_game_id: gameId
-});
-
-if (resetError) {
-  console.error('Game reset failed:', resetError);
-  alert(resetError.message);
-  throw new Error(resetError.message);
-}
-
-/* ===============================
-   CALLING LOGIC
-================================ */
-function nextNumber() {
+function randomCall() {
+  const remaining = [];
   for (let i = 1; i <= 75; i++) {
-    if (!called.has(i)) return i;
+    if (!called.has(i)) remaining.push(i);
   }
-  return null;
+  if (!remaining.length) return null;
+  return remaining[Math.floor(Math.random() * remaining.length)];
 }
 
+/* ===============================
+   AI VOICE CALLER
+================================ */
+function speakCall(n) {
+  const letter =
+    n <= 15 ? 'B' :
+    n <= 30 ? 'I' :
+    n <= 45 ? 'N' :
+    n <= 60 ? 'G' : 'O';
+
+  const msg = new SpeechSynthesisUtterance(`${letter} ${n}`);
+  msg.rate = 0.9;
+  msg.pitch = 1.1;
+  speechSynthesis.speak(msg);
+}
+
+/* ===============================
+   CALL BUTTON
+================================ */
 document.getElementById('callBtn').onclick = async () => {
-  const n = nextNumber();
+  const n = randomCall();
   if (!n) return;
 
   called.add(n);
   document.getElementById('current').textContent = n;
+  speakCall(n);
 
-  const { error } = await supabase
-    .from('calls')
-    .insert({ game_id: gameId, number: n });
-
-  if (error) console.error(error);
+  await supabase.from('calls').insert({
+    game_id: gameId,
+    number: n
+  });
 };
 
+/* AUTO CALL */
 document.getElementById('autoBtn').onclick = () => {
   clearInterval(autoTimer);
   autoTimer = setInterval(
@@ -104,36 +87,68 @@ document.getElementById('autoBtn').onclick = () => {
   );
 };
 
-document.getElementById('stopBtn').onclick = () => {
-  clearInterval(autoTimer);
-};
+document.getElementById('stopBtn').onclick = () => clearInterval(autoTimer);
 
 /* ===============================
-   CLAIM LISTENER
+   CLAIM VALIDATION (MODES)
 ================================ */
 supabase.channel('claims')
   .on('postgres_changes', { event: 'INSERT', table: 'claims' }, async p => {
     if (p.new.game_id !== gameId) return;
 
+    const win = validateClaim(p.new.marked, game.modes);
+    if (!win) return;
+
     await supabase.from('winners').insert({
       game_id: gameId,
       player_name: p.new.player_name,
-      pattern: 'BINGO'
+      pattern: win
     });
 
     document.getElementById('winners').innerHTML +=
-      `<li>${p.new.player_name} — BINGO</li>`;
+      `<li>${p.new.player_name} — ${win}</li>`;
 
     clearInterval(autoTimer);
   })
   .subscribe();
 
 /* ===============================
-   CLEAN DISCONNECT
+   GAME MODES
 ================================ */
-window.addEventListener('beforeunload', () => {
-  supabase
-    .from('games')
-    .update({ host_connected: false })
-    .eq('id', gameId);
-});
+function getSelectedModes() {
+  return [...document.querySelectorAll('input[type=checkbox]:checked')]
+    .map(c => c.value);
+}
+
+function validateClaim(markedArr, modes) {
+  const s = new Set(markedArr);
+
+  if (modes.includes('blackout') && s.size === 25) return 'Blackout';
+
+  if (modes.includes('corners')) {
+    const corners = ['0-0','4-0','0-4','4-4'];
+    if (corners.every(c => s.has(c))) return '4 Corners';
+  }
+
+  if (modes.includes('cross')) {
+    const cross = [
+      '2-0','2-1','2-2','2-3','2-4',
+      '0-2','1-2','3-2','4-2'
+    ];
+    if (cross.every(c => s.has(c))) return 'Cross';
+  }
+
+  if (modes.includes('normal')) {
+    for (let i = 0; i < 5; i++) {
+      const row = [`0-${i}`,`1-${i}`,`2-${i}`,`3-${i}`,`4-${i}`];
+      const col = [`${i}-0`,`${i}-1`,`${i}-2`,`${i}-3`,`${i}-4`];
+      if (row.every(c => s.has(c)) || col.every(c => s.has(c))) {
+        return 'Normal';
+      }
+    }
+    if (['0-0','1-1','2-2','3-3','4-4'].every(c=>s.has(c))) return 'Diagonal';
+    if (['4-0','3-1','2-2','1-3','0-4'].every(c=>s.has(c))) return 'Diagonal';
+  }
+
+  return null;
+}
