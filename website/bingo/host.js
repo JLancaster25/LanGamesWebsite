@@ -6,6 +6,19 @@ let gameId;
 let called = new Set();
 let autoTimer = null;
 
+const themeBtn = document.getElementById('themeToggle');
+
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'light') document.body.classList.add('light');
+
+themeBtn.onclick = () => {
+  document.body.classList.toggle('light');
+  localStorage.setItem(
+    'theme',
+    document.body.classList.contains('light') ? 'light' : 'dark'
+  );
+};
+
 /* ===============================
    LOAD OR CREATE GAME
 ================================ */
@@ -69,7 +82,11 @@ document.getElementById('callBtn').onclick = async () => {
   if (!n) return;
 
   called.add(n);
-  document.getElementById('current').textContent = n;
+  const current = document.getElementById('current');
+  current.textContent = n;
+  current.classList.remove('current-call');
+  void current.offsetWidth; // restart animation
+  current.classList.add('current-call');
   speakCall(n);
 
   await supabase.from('calls').insert({
@@ -152,3 +169,4 @@ function validateClaim(markedArr, modes) {
 
   return null;
 }
+
