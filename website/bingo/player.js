@@ -2,8 +2,6 @@ import { supabase } from './supabase.js';
 
 const code = prompt('Game code');
 const name = prompt('Your name');
-let called = new Set();
-let marked = new Set(['2-2']);
 
 const { data: game } = await supabase
   .from('games')
@@ -13,17 +11,22 @@ const { data: game } = await supabase
 
 if (!game) {
   alert('Game not found');
-  throw new Error();
+  throw new Error('Game not found');
 }
 
 const gameId = game.id;
+
+let called = new Set();
+let marked = new Set(['2-2']);
+
 const board = document.getElementById('board');
 const callsEl = document.getElementById('calls');
 const banner = document.getElementById('banner');
+const currentBall = document.getElementById('currentBall');
 
 const card = generateCard();
 
-/* CALL LISTENER */
+/* ===== REALTIME CALLS ===== */
 supabase.channel('player-calls')
   .on(
     'postgres_changes',
@@ -32,30 +35,40 @@ supabase.channel('player-calls')
       if (payload.new.game_id !== gameId) return;
 
       const num = payload.new.number;
-      console.log('[PLAYER] Call received:', num);
-
       called.add(num);
 
-      addCalledNumber(num);
-      render(); // 🔑 THIS UNLOCKS CELLS
+      const letter =
+        num <= 15 ? 'B' :
+        num <= 30 ? 'I' :
+        num <= 45 ? 'N' :
+        num <= 60 ? 'G' : 'O';
+
+      currentBall.textContent = `${letter} ${num}`;
+      currentBall.classList.remove('hidden');
+
+      currentBall.style.animation = 'none';
+      currentBall.offsetHeight;
+      currentBall.style.animation = '';
+
+      addCalledNumber(letter, num);
+      render();
     }
   )
   .subscribe();
-function addCalledNumber(num) {
-  const list = document.getElementById('calls');
-  const span = document.createElement('span');
-  span.textContent = num;
-  list.prepend(span);
-}
-/* WIN LISTENER */
-supabase.channel('winners')
-  .on('postgres_changes',{event:'INSERT',table:'winners'}, p => {
-    if (p.new.game_id === gameId) banner.classList.remove('hidden');
-  })
+
+/* ===== REALTIME WIN ===== */
+supabase.channel('player-winners')
+  .on(
+    'postgres_changes',
+    { event: 'INSERT', schema: 'public', table: 'winners' },
+    payload => {
+      if (payload.new.game_id !== gameId) return;
+      banner.classList.remove('hidden');
+    }
+  )
   .subscribe();
 
-render();
-
+/* ===== CLAIM ===== */
 document.getElementById('claimBtn').onclick = async () => {
   await supabase.from('claims').insert({
     game_id: gameId,
@@ -64,6 +77,7 @@ document.getElementById('claimBtn').onclick = async () => {
   });
 };
 
+/* ===== RENDER ===== */
 function render() {
   board.innerHTML = '';
 
@@ -73,7 +87,6 @@ function render() {
       const cell = document.createElement('div');
       cell.className = 'cell';
 
-      // FREE cell
       if (value === 'FREE') {
         cell.textContent = '★';
         cell.classList.add('free', 'marked');
@@ -83,25 +96,15 @@ function render() {
 
       cell.textContent = value;
 
-      const isCalled = called.has(value);
-      const isMarked = marked.has(key);
-
-      if (!isCalled) {
-        cell.classList.add('locked');
-      }
-
-      if (isMarked) {
-        cell.classList.add('marked');
-      }
+      if (!called.has(value)) cell.classList.add('locked');
+      if (marked.has(key)) cell.classList.add('marked');
 
       cell.onclick = () => {
         if (!called.has(value)) return;
 
-        if (marked.has(key)) {
-          marked.delete(key);
-        } else {
-          marked.add(key);
-        }
+        marked.has(key)
+          ? marked.delete(key)
+          : marked.add(key);
 
         render();
       };
@@ -111,31 +114,26 @@ function render() {
   });
 }
 
-function generateCard() {
-  const r=[[1,15],[16,30],[31,45],[46,60],[61,75]];
-  const c=Array.from({length:5},()=>Array(5));
-  r.forEach(([a,b],x)=>{
-    const s=new Set();
-    while(s.size<5)s.add(Math.floor(Math.random()*(b-a+1))+a);
-    [...s].forEach((n,y)=>c[y][x]=n);
-  });
-  c[2][2]='FREE';
-  return c;
+/* ===== HELPERS ===== */
+function addCalledNumber(letter, num) {
+  const span = document.createElement('span');
+  span.textContent = `${letter} ${num}`;
+  callsEl.prepend(span);
 }
 
-supabase.channel('winners')
-  .on('postgres_changes', { event:'INSERT', table:'winners' }, p => {
-    if (p.new.game_id === gameId) {
-      banner.classList.remove('hidden');
-      document.querySelectorAll('.cell.marked')
-        .forEach(c => c.classList.add('winner'));
-    }
-  })
-  .subscribe();
+function generateCard() {
+  const ranges = [[1,15],[16,30],[31,45],[46,60],[61,75]];
+  const grid = Array.from({ length: 5 }, () => Array(5));
 
+  ranges.forEach(([min,max], x) => {
+    const nums = new Set();
+    while (nums.size < 5)
+      nums.add(Math.floor(Math.random()*(max-min+1))+min);
+    [...nums].forEach((n,y) => grid[y][x] = n);
+  });
 
+  grid[2][2] = 'FREE';
+  return grid;
+}
 
-
-
-
-
+render();
