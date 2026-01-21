@@ -76,3 +76,14 @@ function generateCard() {
   c[2][2]='FREE';
   return c;
 }
+
+supabase.channel('winners')
+  .on('postgres_changes', { event:'INSERT', table:'winners' }, p => {
+    if (p.new.game_id === gameId) {
+      banner.classList.remove('hidden');
+      document.querySelectorAll('.cell.marked')
+        .forEach(c => c.classList.add('winner'));
+    }
+  })
+  .subscribe();
+
