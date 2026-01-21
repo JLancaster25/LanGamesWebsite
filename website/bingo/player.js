@@ -51,10 +51,11 @@ render();
 /* ===============================
    REALTIME: CALLS
 ================================ */
-console.log('[PLAYER] Subscribing to calls for game:', gameId);
+console.log('[PLAYER] Subscribing to calls…');
 
-supabase
-  .channel('player-calls')
+const callsChannel = supabase.channel('calls');
+
+callsChannel
   .on(
     'postgres_changes',
     {
@@ -63,19 +64,18 @@ supabase
       table: 'calls'
     },
     payload => {
+      console.log('[PLAYER] CALL EVENT RECEIVED:', payload);
+
+      if (!payload.new) return;
       if (payload.new.game_id !== gameId) return;
 
       const num = payload.new.number;
-      console.log('[PLAYER] Call received:', num);
 
-      // Update state
+      console.log('[PLAYER] ACCEPTED CALL:', num);
+
       called.add(num);
-
-      // Update UI
       updateCurrentBall(num);
       addCalledNumber(num);
-
-      // Unlock cells
       render();
     }
   )
@@ -232,3 +232,4 @@ function generateCard() {
   grid[2][2] = 'FREE';
   return grid;
 }
+
