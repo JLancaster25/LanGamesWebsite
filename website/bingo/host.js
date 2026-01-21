@@ -8,9 +8,6 @@ let called = new Set();
 let autoTimer = null;
 
 /* LOAD OR CREATE GAME */
-// Always define modes explicitly
-
-let gameId;
 
 // 1. Try to load existing game
 const { data: existingGame, error: loadError } = await supabase
@@ -107,6 +104,7 @@ window.addEventListener('beforeunload', async () => {
     .update({ host_connected: false })
     .eq('id', gameId);
 });
+
 
 
 
