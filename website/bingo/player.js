@@ -2,6 +2,8 @@ import { supabase } from './supabase.js';
 
 const code = prompt('Game code');
 const name = prompt('Your name');
+let called = new Set();
+let marked = new Set(['2-2']);
 
 const { data: game } = await supabase
   .from('games')
@@ -24,13 +26,30 @@ const banner = document.getElementById('banner');
 const card = generateCard();
 
 /* CALL LISTENER */
-supabase.channel('calls')
-  .on('postgres_changes', { event:'INSERT', table:'calls' }, p => {
-    if (p.new.game_id !== gameId) return;
-    called.add(p.new.number);
-    render(); // ✅ CRITICAL
-  })
+const callsChannel = supabase.channel('player-calls');
+
+callsChannel
+  .on(
+    'postgres_changes',
+    { event: 'INSERT', schema: 'public', table: 'calls' },
+    payload => {
+      if (payload.new.game_id !== gameId) return;
+
+      console.log('CALL RECEIVED:', payload.new.number);
+
+      called.add(payload.new.number);
+
+      addToCallHistory(payload.new.number);
+
+      render(); // ✅ THIS IS THE KEY
+    }
+  )
   .subscribe();
+function addToCallHistory(num) {
+  const span = document.createElement('span');
+  span.textContent = num;
+  callsEl.prepend(span);
+}
 
 /* WIN LISTENER */
 supabase.channel('winners')
@@ -58,7 +77,6 @@ function render() {
       const cell = document.createElement('div');
       cell.className = 'cell';
 
-      // FREE cell
       if (value === 'FREE') {
         cell.textContent = '★';
         cell.classList.add('free', 'marked');
@@ -72,7 +90,7 @@ function render() {
       const isMarked = marked.has(key);
 
       if (!isCalled) {
-        cell.classList.add('locked'); // 🔒 visual lock
+        cell.classList.add('locked');
       }
 
       if (isMarked) {
@@ -80,13 +98,16 @@ function render() {
       }
 
       cell.onclick = () => {
-        if (!isCalled) return; // ❌ enforce rules
+        console.log('CLICK', value, 'called?', isCalled);
+
+        if (!called.has(value)) return;
 
         if (marked.has(key)) {
           marked.delete(key);
         } else {
           marked.add(key);
         }
+
         render();
       };
 
@@ -117,6 +138,7 @@ supabase.channel('winners')
     }
   })
   .subscribe();
+
 
 
 
