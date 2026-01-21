@@ -4,12 +4,29 @@ const code = prompt('Game code');
 const modes = [...document.querySelectorAll('input[type=checkbox]:checked')]
   .map(c => c.value);
 
-const game = await supabase.from('games')
-  .insert({ code, modes })
-  .select()
-  .single();
+let { data: game, error } = await supabase
+  .from('games')
+  .select('*')
+  .eq('code', code)
+  .maybeSingle();
 
-const gameId = game.data.id;
+if (!game) {
+  // 2. Create game if it doesn't exist
+  const res = await supabase
+    .from('games')
+    .insert({ code, modes })
+    .select()
+    .single();
+
+  if (res.error) {
+    alert('Failed to create game');
+    throw res.error;
+  }
+
+  game = res.data;
+}
+
+const gameId = game.id;
 let called = new Set();
 let autoTimer;
 
@@ -57,3 +74,4 @@ function validate(marked) {
 
   return lines.some(l => l.every(c => s.has(c)));
 }
+
