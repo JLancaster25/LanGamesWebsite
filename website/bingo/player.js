@@ -24,31 +24,29 @@ const banner = document.getElementById('banner');
 const card = generateCard();
 
 /* CALL LISTENER */
-const callsChannel = supabase.channel('player-calls');
-
-callsChannel
+supabase.channel('player-calls')
   .on(
     'postgres_changes',
     { event: 'INSERT', schema: 'public', table: 'calls' },
     payload => {
       if (payload.new.game_id !== gameId) return;
 
-      console.log('CALL RECEIVED:', payload.new.number);
+      const num = payload.new.number;
+      console.log('[PLAYER] Call received:', num);
 
-      called.add(payload.new.number);
+      called.add(num);
 
-      addToCallHistory(payload.new.number);
-
-      render(); // ✅ THIS IS THE KEY
+      addCalledNumber(num);
+      render(); // 🔑 THIS UNLOCKS CELLS
     }
   )
   .subscribe();
-function addToCallHistory(num) {
+function addCalledNumber(num) {
+  const list = document.getElementById('calls');
   const span = document.createElement('span');
   span.textContent = num;
-  callsEl.prepend(span);
+  list.prepend(span);
 }
-
 /* WIN LISTENER */
 supabase.channel('winners')
   .on('postgres_changes',{event:'INSERT',table:'winners'}, p => {
@@ -75,6 +73,7 @@ function render() {
       const cell = document.createElement('div');
       cell.className = 'cell';
 
+      // FREE cell
       if (value === 'FREE') {
         cell.textContent = '★';
         cell.classList.add('free', 'marked');
@@ -96,8 +95,6 @@ function render() {
       }
 
       cell.onclick = () => {
-        console.log('CLICK', value, 'called?', isCalled);
-
         if (!called.has(value)) return;
 
         if (marked.has(key)) {
@@ -113,7 +110,6 @@ function render() {
     });
   });
 }
-
 
 function generateCard() {
   const r=[[1,15],[16,30],[31,45],[46,60],[61,75]];
@@ -136,6 +132,7 @@ supabase.channel('winners')
     }
   })
   .subscribe();
+
 
 
 
