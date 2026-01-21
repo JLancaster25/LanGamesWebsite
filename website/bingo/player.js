@@ -52,20 +52,51 @@ document.getElementById('claimBtn').onclick = async () => {
 };
 
 function render() {
-  board.innerHTML='';
-  card.forEach((r,y)=>r.forEach((v,x)=>{
-    const k=`${x}-${y}`;
-    const d=document.createElement('div');
-    d.className='cell';
-    if(marked.has(k))d.classList.add('marked');
-    d.textContent=v==='FREE'?'★':v;
-    d.onclick=()=>{ if(v!=='FREE'&&!called.has(v))return;
-      marked.has(k)?marked.delete(k):marked.add(k);
-      render();
-    };
-    board.appendChild(d);
-  }));
+  board.innerHTML = '';
+
+  card.forEach((row, y) => {
+    row.forEach((value, x) => {
+      const key = `${x}-${y}`;
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+
+      // FREE cell
+      if (value === 'FREE') {
+        cell.textContent = '★';
+        cell.classList.add('free', 'marked');
+        board.appendChild(cell);
+        return;
+      }
+
+      cell.textContent = value;
+
+      const isCalled = called.has(value);
+      const isMarked = marked.has(key);
+
+      if (!isCalled) {
+        cell.classList.add('locked'); // 🔒 visual lock
+      }
+
+      if (isMarked) {
+        cell.classList.add('marked');
+      }
+
+      cell.onclick = () => {
+        if (!isCalled) return; // ❌ enforce rules
+
+        if (marked.has(key)) {
+          marked.delete(key);
+        } else {
+          marked.add(key);
+        }
+        render();
+      };
+
+      board.appendChild(cell);
+    });
+  });
 }
+
 
 function generateCard() {
   const r=[[1,15],[16,30],[31,45],[46,60],[61,75]];
@@ -88,5 +119,6 @@ supabase.channel('winners')
     }
   })
   .subscribe();
+
 
 
