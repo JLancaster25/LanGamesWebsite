@@ -28,7 +28,9 @@ supabase.channel('calls')
   .on('postgres_changes',{event:'INSERT',table:'calls'}, p => {
     if (p.new.game_id !== gameId) return;
     called.add(p.new.number);
-    callsEl.textContent += p.new.number + ' ';
+    const span = document.createElement('span');
+    span.textContent = p.new.number;
+    callsEl.prepend(span);
   })
   .subscribe();
 
@@ -86,4 +88,5 @@ supabase.channel('winners')
     }
   })
   .subscribe();
+
 
