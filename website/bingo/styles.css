@@ -107,9 +107,10 @@ button:disabled {
 .cell {
   width: 56px;
   height: 56px;
-  border-radius: 50%;
-  background: var(--cell-bg);
-  color: var(--cell-text);
+  border-radius: 12px;
+  background: white;
+  color: #020617;
+  aspect-ratio:1/1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -134,8 +135,8 @@ button:disabled {
 
 
 .cell.marked {
-  background: var(--marked);
-  color: #fff;
+  background: #22c55e;
+  color: white;
 }
 
 .cell.free {
@@ -158,17 +159,52 @@ button:disabled {
 /* =========================
    CALL HISTORY
 ========================= */
-.call-history {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.4rem;
+/* HISTORY PANEL */
+.history {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  padding: 0.8rem;
+  width: 140px;
+  max-height: 360px;
+  overflow-y: auto;
 }
 
-.call-history span {
-  background: var(--panel);
-  padding: 0.4rem;
+.history h3 {
+  margin: 0 0 0.5rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+/* CALLED NUMBERS */
+.called {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.called-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: center;
+}
+
+.called-list span {
+  background: rgba(255,255,255,.2);
+  padding: 0.3rem 0.6rem;
   border-radius: 8px;
-  animation: drop 0.3s ease;
+  font-weight: bold;
+}
+
+/* MOBILE */
+@media (max-width: 600px) {
+  .game-layout {
+    flex-direction: column;
+  }
+
+  .history {
+    width: 100%;
+    max-height: 120px;
+  }
 }
 
 /* =========================
