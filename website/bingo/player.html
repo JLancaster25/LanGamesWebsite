@@ -30,10 +30,25 @@
         <div>G</div>
         <div>O</div>
       </div>
+<div class="card-area">
 
-      <!-- BOARD -->
-      <div id="board" class="board"></div>
-    </div>
+  <!-- CURRENT CALLED BALL -->
+  <div id="currentBall" class="current-ball hidden"></div>
+
+  <!-- HEADERS -->
+  <div class="bingo-letters">
+    <div>B</div><div>I</div><div>N</div><div>G</div><div>O</div>
+  </div>
+
+  <!-- BOARD -->
+  <div id="board" class="board"></div>
+
+  <!-- ✅ STATIC BINGO BUTTON -->
+  <button id="bingoBtn" class="bingo-btn">
+    BINGO!
+  </button>
+
+</div>
 
     <!-- RIGHT: CALL HISTORY -->
     <div class="history-panel">
@@ -43,9 +58,6 @@
 
   </div>
 
-  <!-- BINGO BUTTON -->
-  <button id="claimBtn" class="bingo-btn">BINGO!</button>
-
   <!-- BINGO BANNER -->
   <div id="banner" class="hidden">BINGO</div>
 
@@ -54,3 +66,4 @@
 <script type="module" src="player.js"></script>
 </body>
 </html>
+
