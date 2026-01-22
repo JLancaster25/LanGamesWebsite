@@ -43,7 +43,11 @@ async function updateModes() {
     modeInputs[0].checked = true;
     modes.push('normal');
   }
-
+modeInputs.forEach(input => {
+      input.onchange = updateModes;
+});
+ await updateModes();
+   
   await supabase
     .from('games')
     .update({ modes })
@@ -247,6 +251,7 @@ document.getElementById('newBtn').onclick = async () => {
 
   await supabase.rpc('start_game', { p_game_id: gameId });
 };
+
 
 
 
