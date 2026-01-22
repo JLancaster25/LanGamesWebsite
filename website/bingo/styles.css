@@ -48,6 +48,15 @@ header a {
   align-items: center;
 }
 
+.card-title {
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: var(--text-color, #fff);
+}
+
+
 /* ===== CURRENT BALL ===== */
 .current-ball {
   width: 96px;
@@ -196,4 +205,5 @@ header a {
 .hidden {
   display: none;
 }
+
 
