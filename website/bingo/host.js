@@ -5,14 +5,11 @@ import { supabase } from './supabase.js';
 ================================ */
 function speak(text) {
   if (!('speechSynthesis' in window)) return;
-
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = 0.9;
-  utterance.pitch = 1.1;
-  utterance.volume = 1;
-
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate = 0.9;
+  u.pitch = 1.1;
   speechSynthesis.cancel();
-  speechSynthesis.speak(utterance);
+  speechSynthesis.speak(u);
 }
 
 /* ===============================
@@ -31,23 +28,26 @@ function generateCode() {
 const roomCode = generateCode();
 document.getElementById('roomCode').textContent = roomCode;
 
-let called = new Set();
-let autoTimer = null;
 let gameId;
+let autoTimer = null;
+let calledLocal = new Set();
 
 /* ===============================
    CREATE GAME
 ================================ */
 const { data: game } = await supabase
   .from('games')
-  .insert({ code: roomCode, status: 'lobby' })
+  .insert({
+    code: roomCode,
+    status: 'active'
+  })
   .select()
   .single();
 
 gameId = game.id;
 
 /* ===============================
-   MODE CONTROL
+   MODE CONTROL (LOCKED AFTER START)
 ================================ */
 const modeInputs = document.querySelectorAll('.modes input');
 
@@ -64,22 +64,17 @@ async function updateModes() {
   await supabase.from('games').update({ modes }).eq('id', gameId);
 }
 
-modeInputs.forEach(i => i.onchange = updateModes);
+modeInputs.forEach(i => (i.onchange = updateModes));
 await updateModes();
+modeInputs.forEach(i => (i.disabled = true));
 
 /* ===============================
-   START GAME (LOCK MODES)
-================================ */
-await supabase.from('games').update({ status: 'active' }).eq('id', gameId);
-modeInputs.forEach(i => i.disabled = true);
-
-/* ===============================
-   CALL LOGIC
+   CALLING LOGIC
 ================================ */
 function nextNumber() {
   const remaining = [];
   for (let i = 1; i <= 75; i++) {
-    if (!called.has(i)) remaining.push(i);
+    if (!calledLocal.has(i)) remaining.push(i);
   }
   return remaining.length
     ? remaining[Math.floor(Math.random() * remaining.length)]
@@ -90,7 +85,7 @@ document.getElementById('callBtn').onclick = async () => {
   const n = nextNumber();
   if (!n) return;
 
-  called.add(n);
+  calledLocal.add(n);
 
   const letter =
     n <= 15 ? 'B' :
@@ -99,7 +94,6 @@ document.getElementById('callBtn').onclick = async () => {
     n <= 60 ? 'G' : 'O';
 
   const spoken = `${letter} ${n}`;
-
   document.getElementById('current').textContent = spoken;
   speak(spoken);
 
@@ -107,6 +101,8 @@ document.getElementById('callBtn').onclick = async () => {
     game_id: gameId,
     number: n
   });
+
+  await checkForBingo(); // 🔥 AUTO-DETECT
 };
 
 document.getElementById('autoBtn').onclick = () => {
@@ -123,11 +119,132 @@ document.getElementById('stopBtn').onclick = () => {
 
 document.getElementById('newBtn').onclick = async () => {
   clearInterval(autoTimer);
-  called.clear();
+  calledLocal.clear();
   document.getElementById('current').textContent = '—';
 
-  modeInputs.forEach(i => i.disabled = false);
-
   await supabase.rpc('start_game', { p_game_id: gameId });
-  await supabase.from('games').update({ status: 'lobby' }).eq('id', gameId);
+  await supabase.from('games').update({ status: 'active' }).eq('id', gameId);
 };
+
+/* ===============================
+   AUTO BINGO DETECTION
+================================ */
+async function checkForBingo() {
+  // Load called numbers
+  const { data: calls } = await supabase
+    .from('calls')
+    .select('number')
+    .eq('game_id', gameId);
+
+  const called = new Set(calls.map(c => c.number));
+
+  // Load game modes
+  const { data: game } = await supabase
+    .from('games')
+    .select('modes, status')
+    .eq('id', gameId)
+    .single();
+
+  if (game.status !== 'active') return;
+
+  // Load players
+  const { data: players } = await supabase
+    .from('players')
+    .select('name, card')
+    .eq('game_id', gameId);
+
+  for (const player of players) {
+    const allMarks = getMarksFromCalled(player.card, called);
+
+    if (validateBingo(player.card, allMarks, called, game.modes)) {
+      await endGame(player.name);
+      break;
+    }
+  }
+}
+
+/* ===============================
+   END GAME
+================================ */
+async function endGame(winnerName) {
+  clearInterval(autoTimer);
+
+  await supabase.from('winners').insert({
+    game_id: gameId,
+    player_name: winnerName,
+    pattern: 'BINGO'
+  });
+
+  await supabase
+    .from('games')
+    .update({ status: 'finished' })
+    .eq('id', gameId);
+}
+
+/* ===============================
+   BINGO VALIDATION ENGINE
+================================ */
+function validateBingo(card, marked, called, modes) {
+  const marks = new Set(marked);
+
+  const isMarked = (x, y) => {
+    const v = card[y][x];
+    return v === 'FREE' || (called.has(v) && marks.has(`${x}-${y}`));
+  };
+
+  // Normal
+  if (modes.includes('normal')) {
+    for (let i = 0; i < 5; i++) {
+      if ([0,1,2,3,4].every(x => isMarked(x, i))) return true;
+      if ([0,1,2,3,4].every(y => isMarked(i, y))) return true;
+    }
+    if ([0,1,2,3,4].every(i => isMarked(i, i))) return true;
+    if ([0,1,2,3,4].every(i => isMarked(4 - i, i))) return true;
+  }
+
+  // Four corners
+  if (modes.includes('four_corners')) {
+    if (
+      isMarked(0,0) &&
+      isMarked(4,0) &&
+      isMarked(0,4) &&
+      isMarked(4,4)
+    ) return true;
+  }
+
+  // Cross
+  if (modes.includes('cross')) {
+    if (
+      [0,1,2,3,4].every(i => isMarked(2, i)) &&
+      [0,1,2,3,4].every(i => isMarked(i, 2))
+    ) return true;
+  }
+
+  // Blackout
+  if (modes.includes('blackout')) {
+    for (let y = 0; y < 5; y++) {
+      for (let x = 0; x < 5; x++) {
+        if (!isMarked(x, y)) return false;
+      }
+    }
+    return true;
+  }
+
+  return false;
+}
+
+/* ===============================
+   MARK HELPER
+================================ */
+function getMarksFromCalled(card, called) {
+  const marks = [];
+  for (let y = 0; y < 5; y++) {
+    for (let x = 0; x < 5; x++) {
+      const v = card[y][x];
+      if (v === 'FREE' || called.has(v)) {
+        marks.push(`${x}-${y}`);
+      }
+    }
+  }
+  return marks;
+}
