@@ -66,13 +66,24 @@ supabase.channel(`calls-${gameId}`)
    BINGO CLAIM (NO VALIDATION)
 ================================ */
 document.getElementById('bingoBtn').onclick = async () => {
+  if (marked.size === 0) {
+    alert('You must mark at least one number before calling Bingo');
+    return;
+  }
+
   document.getElementById('bingoBtn').disabled = true;
 
-  await supabase.from('claims').insert({
+  const { error } = await supabase.from('claims').insert({
     game_id: gameId,
     player_name: name,
     marked: [...marked]
   });
+
+  if (error) {
+    console.error('[CLAIM ERROR]', error);
+    alert('Unable to submit Bingo claim');
+    document.getElementById('bingoBtn').disabled = false;
+  }
 };
 
 /* ===============================
@@ -119,3 +130,4 @@ function generateCard(){
   g[2][2]='FREE';
   return g;
 }
+
