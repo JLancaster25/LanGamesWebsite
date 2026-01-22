@@ -5,6 +5,8 @@ import { supabase } from './supabase.js';
 ================================ */
 const code = prompt('Room code');
 const name = prompt('Your name');
+const bingoBtn = document.getElementById('bingoBtn');
+
 
 const { data: game } = await supabase
   .from('games')
@@ -167,4 +169,5 @@ function generateCard() {
   grid[2][2] = 'FREE';
   return grid;
 }
+
 
