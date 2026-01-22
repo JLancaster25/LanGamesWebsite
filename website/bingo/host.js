@@ -51,6 +51,11 @@ gameId = game.id;
 ================================ */
 await supabase.rpc('start_game', { p_game_id: gameId });
 
+await supabase
+  .from('games')
+  .update({ status: 'active' })
+  .eq('id', gameId);
+
 /* ===============================
    RANDOM CALL
 ================================ */
@@ -114,5 +119,6 @@ document.getElementById('newBtn').onclick = async () => {
 
   await supabase.rpc('start_game', { p_game_id: gameId });
 };
+
 
 
