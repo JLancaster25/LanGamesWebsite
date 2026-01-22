@@ -33,12 +33,10 @@ header a {
 
 /* ===== GAME SHELL ===== */
 .game-shell {
-  display: flex;
-  gap: 1.5rem;
-  background: linear-gradient(135deg, #5f5be3, #4a7fe0);
-  padding: 1.5rem;
-  border-radius: 28px;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 1rem;
+  align-items: start;
 }
 
 /* ===== CARD AREA ===== */
@@ -212,11 +210,16 @@ header a {
 }
 
 @media (max-width: 600px) {
+  .game-shell {
+    grid-template-columns: 1fr;
+  }
+
   .call-history {
     grid-template-columns: repeat(3, 1fr);
     max-height: 300px;
   }
 }
+
 
 
 
