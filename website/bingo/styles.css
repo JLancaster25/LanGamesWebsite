@@ -194,6 +194,17 @@ header a {
   cursor: not-allowed;
 }
 
+.modes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.modes label {
+  cursor: pointer;
+}
+
 /* ===== BANNER ===== */
 #banner {
   margin-top: 1rem;
@@ -219,6 +230,7 @@ header a {
     max-height: 300px;
   }
 }
+
 
 
 
