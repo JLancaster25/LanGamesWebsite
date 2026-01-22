@@ -10,6 +10,18 @@ function generateCode() {
   ).join('');
 }
 
+function speak(text) {
+  if (!('speechSynthesis' in window)) return;
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 0.9;
+  utterance.pitch = 1.1;
+  utterance.volume = 1;
+
+  speechSynthesis.cancel(); // stop overlap
+  speechSynthesis.speak(utterance);
+}
+
 /* ===============================
    GAME CREATION
 ================================ */
@@ -92,3 +104,4 @@ document.getElementById('newBtn').onclick = async () => {
 
   await supabase.rpc('start_game', { p_game_id: gameId });
 };
+
