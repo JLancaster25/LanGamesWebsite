@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js';
-
+let gameActive = false;
 /* ===============================
    AI VOICE CALLER
 ================================ */
@@ -101,7 +101,8 @@ startBtn.onclick = async () => {
         .from('games')
         .update({ status: 'active' })
         .eq('id', gameId);
-
+      gameActive = true;
+       
       callBtn.disabled = false;
       autoBtn.disabled = false;
       stopBtn.disabled = false;
@@ -123,6 +124,8 @@ function nextNumber() {
 }
 
 callBtn.onclick = async () => {
+  if (!gameActive) return;   // 🔒 HARD BLOCK
+
   const n = nextNumber();
   if (!n) return;
 
@@ -146,6 +149,7 @@ callBtn.onclick = async () => {
   await checkForBingo();
 };
 
+
 autoBtn.onclick = () => {
   clearInterval(autoTimer);
   autoTimer = setInterval(callBtn.onclick, speedInput.value * 1000);
@@ -158,6 +162,10 @@ stopBtn.onclick = () => clearInterval(autoTimer);
 ================================ */
 newBtn.onclick = async () => {
   clearInterval(autoTimer);
+  autoTimer = null;
+
+  gameActive = false;   // 🔁 reset
+
   calledLocal.clear();
   currentEl.textContent = '—';
 
@@ -209,7 +217,16 @@ async function checkForBingo() {
    END GAME
 ================================ */
 async function endGame(winner) {
+  // 🔴 HARD STOP
+  gameActive = false;
   clearInterval(autoTimer);
+  autoTimer = null;
+
+  callBtn.disabled = true;
+  autoBtn.disabled = true;
+  stopBtn.disabled = true;
+
+  speak('Bingo!');
 
   await supabase.from('winners').insert({
     game_id: gameId,
@@ -217,7 +234,10 @@ async function endGame(winner) {
     pattern: 'BINGO'
   });
 
-  await supabase.from('games').update({ status: 'finished' }).eq('id', gameId);
+  await supabase
+    .from('games')
+    .update({ status: 'finished' })
+    .eq('id', gameId);
 }
 
 /* ===============================
@@ -265,3 +285,4 @@ function getMarksFromCalled(card, called) {
   }
   return marks;
 }
+
