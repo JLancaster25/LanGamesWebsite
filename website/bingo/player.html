@@ -14,20 +14,30 @@
 <main class="app">
 
   <!-- GAME CONTAINER -->
-  <div class="game-shell">
+<div class="game-shell">
 
-    <!-- LEFT: CARD -->
-    <div class="card-area">
+  <!-- LEFT COLUMN -->
+  <div class="card-area">
+    <h2 id="cardTitle"></h2>
 
-      <!-- CURRENT CALLED BALL -->
-      <div id="currentBall" class="current-ball hidden"></div>
+    <div id="currentBall" class="current-ball hidden"></div>
 
-      <!-- BINGO HEADERS -->
-      <div class="card-area">
+    <div class="bingo-letters">
+      <div>B</div><div>I</div><div>N</div><div>G</div><div>O</div>
+    </div>
 
-      <h2 id="cardTitle" class="card-title"></h2>
-      
-<div class="card-area">
+    <div id="board" class="board"></div>
+
+    <button id="bingoBtn" class="bingo-btn">BINGO!</button>
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div class="history-panel">
+    <h3>Called Numbers</h3>
+    <div id="calls" class="call-history"></div>
+  </div>
+
+</div>
 
   <!-- CURRENT CALLED BALL -->
   <div id="currentBall" class="current-ball hidden"></div>
@@ -63,6 +73,7 @@
 <script type="module" src="player.js"></script>
 </body>
 </html>
+
 
 
 
