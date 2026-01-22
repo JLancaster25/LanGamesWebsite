@@ -57,7 +57,7 @@ const banner = document.getElementById('banner');
 /* ===============================
    REALTIME CALLS
 ================================ */
-supabase.channel('calls')
+supabase.channel(`calls-${gameId}`)
   .on(
     'postgres_changes',
     { event: 'INSERT', schema: 'public', table: 'calls' },
@@ -72,6 +72,27 @@ supabase.channel('calls')
     }
   )
   .subscribe();
+
+supabase.channel('game-reset')
+  .on(
+    'postgres_changes',
+    { event: 'UPDATE', schema: 'public', table: 'games' },
+    payload => {
+      if (payload.new.id !== gameId) return;
+
+      if (payload.new.status === 'active') {
+        // Reset local state
+        called.clear();
+        marked = new Set(['2-2']);
+        callsEl.innerHTML = '';
+        currentBall.classList.add('hidden');
+        banner.classList.add('hidden');
+        render();
+      }
+    }
+  )
+  .subscribe();
+
 
 /* ===============================
    RENDER
@@ -146,3 +167,4 @@ function generateCard() {
   grid[2][2] = 'FREE';
   return grid;
 }
+
