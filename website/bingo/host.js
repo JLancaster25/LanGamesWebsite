@@ -11,7 +11,7 @@ function generateCode() {
 }
 
 /* ===============================
-   GAME SETUP
+   GAME CREATION
 ================================ */
 const roomCode = generateCode();
 document.getElementById('roomCode').textContent = roomCode;
@@ -25,7 +25,10 @@ let autoTimer = null;
 ================================ */
 const { data: game } = await supabase
   .from('games')
-  .insert({ code: roomCode })
+  .insert({
+    code: roomCode,
+    status: 'active'
+  })
   .select()
   .single();
 
@@ -37,7 +40,7 @@ gameId = game.id;
 await supabase.rpc('start_game', { p_game_id: gameId });
 
 /* ===============================
-   CALL LOGIC
+   RANDOM CALL
 ================================ */
 function nextNumber() {
   const remaining = [];
@@ -48,6 +51,9 @@ function nextNumber() {
   return remaining[Math.floor(Math.random() * remaining.length)];
 }
 
+/* ===============================
+   CALL
+================================ */
 document.getElementById('callBtn').onclick = async () => {
   const n = nextNumber();
   if (!n) return;
@@ -61,6 +67,9 @@ document.getElementById('callBtn').onclick = async () => {
   });
 };
 
+/* ===============================
+   AUTO CALL
+================================ */
 document.getElementById('autoBtn').onclick = () => {
   clearInterval(autoTimer);
   autoTimer = setInterval(
@@ -73,6 +82,9 @@ document.getElementById('stopBtn').onclick = () => {
   clearInterval(autoTimer);
 };
 
+/* ===============================
+   NEW GAME
+================================ */
 document.getElementById('newBtn').onclick = async () => {
   clearInterval(autoTimer);
   called.clear();
