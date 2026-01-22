@@ -1,19 +1,8 @@
 import { supabase } from './supabase.js';
 
-/* ===============================
-   SETUP
-================================ */
-const code = prompt('Game code');
+const code = prompt('Room code');
 const name = prompt('Your name');
 
-if (!code || !name) {
-  alert('Game code and name are required');
-  throw new Error('Missing player info');
-}
-
-/* ===============================
-   LOAD GAME
-================================ */
 const { data: game } = await supabase
   .from('games')
   .select('*')
@@ -22,172 +11,119 @@ const { data: game } = await supabase
 
 if (!game) {
   alert('Game not found');
-  throw new Error('Game not found');
+  throw new Error();
 }
 
 const gameId = game.id;
 
 /* ===============================
+   LOAD OR CREATE PLAYER
+================================ */
+let { data: player } = await supabase
+  .from('players')
+  .select('*')
+  .eq('game_id', gameId)
+  .eq('name', name)
+  .maybeSingle();
+
+let card;
+
+if (player && player.card) {
+  card = player.card;
+} else {
+  card = generateCard();
+
+  await supabase.from('players').insert({
+    game_id: gameId,
+    name,
+    card
+  });
+}
+
+/* ===============================
    STATE
 ================================ */
 let called = new Set();
-let marked = new Set(['2-2']); // FREE space
+let marked = new Set(['2-2']);
 
-/* ===============================
-   DOM
-================================ */
 const board = document.getElementById('board');
 const callsEl = document.getElementById('calls');
-const banner = document.getElementById('banner');
 const currentBall = document.getElementById('currentBall');
-const claimBtn = document.getElementById('claimBtn');
+const banner = document.getElementById('banner');
 
 /* ===============================
-   CARD
+   REALTIME CALLS
 ================================ */
-const card = generateCard();
-render();
-
-/* ===============================
-   REALTIME: CALLS
-================================ */
-supabase
-  .channel('calls')
-  .on(
-    'postgres_changes',
-    { event: 'INSERT', schema: 'public', table: 'calls' },
-    payload => {
-      if (payload.new.game_id !== gameId) return;
-
-      const num = payload.new.number;
-      called.add(num);
-
-      updateCurrentBall(num);
-      addCalledNumber(num);
+supabase.channel('calls')
+  .on('postgres_changes',
+    { event:'INSERT', schema:'public', table:'calls' },
+    p => {
+      if (p.new.game_id !== gameId) return;
+      const n = p.new.number;
+      called.add(n);
+      updateCurrentBall(n);
+      addCalledNumber(n);
       render();
     }
   )
   .subscribe();
 
 /* ===============================
-   REALTIME: WINNER
-================================ */
-supabase
-  .channel('winners')
-  .on(
-    'postgres_changes',
-    { event: 'INSERT', schema: 'public', table: 'winners' },
-    payload => {
-      if (payload.new.game_id !== gameId) return;
-      banner.classList.remove('hidden');
-    }
-  )
-  .subscribe();
-
-/* ===============================
-   CLAIM BINGO
-================================ */
-claimBtn.onclick = async () => {
-  await supabase.from('claims').insert({
-    game_id: gameId,
-    player_name: name,
-    marked: [...marked]
-  });
-};
-
-/* ===============================
    RENDER
 ================================ */
 function render() {
   board.innerHTML = '';
-
-  card.forEach((row, y) => {
-    row.forEach((value, x) => {
+  card.forEach((row,y)=>{
+    row.forEach((v,x)=>{
       const key = `${x}-${y}`;
-      const cell = document.createElement('div');
-      cell.className = 'cell';
-
-      if (value === 'FREE') {
-        cell.textContent = '★';
-        cell.classList.add('free', 'marked');
-        board.appendChild(cell);
-        return;
+      const d = document.createElement('div');
+      d.className = 'cell';
+      if (v === 'FREE') {
+        d.textContent = '★';
+        d.classList.add('free','marked');
+      } else {
+        d.textContent = v;
+        if (!called.has(v)) d.classList.add('locked');
+        if (marked.has(key)) d.classList.add('marked');
+        d.onclick = ()=> {
+          if (!called.has(v)) return;
+          marked.has(key) ? marked.delete(key) : marked.add(key);
+          render();
+        };
       }
-
-      cell.textContent = value;
-
-      if (!called.has(value)) cell.classList.add('locked');
-      if (marked.has(key)) cell.classList.add('marked');
-
-      cell.onclick = () => {
-        if (!called.has(value)) return;
-
-        marked.has(key)
-          ? marked.delete(key)
-          : marked.add(key);
-
-        render();
-      };
-
-      board.appendChild(cell);
+      board.appendChild(d);
     });
   });
 }
 
-/* ===============================
-   UI HELPERS
-================================ */
-function updateCurrentBall(num) {
-  const letter =
-    num <= 15 ? 'B' :
-    num <= 30 ? 'I' :
-    num <= 45 ? 'N' :
-    num <= 60 ? 'G' : 'O';
+render();
 
-  currentBall.textContent = `${letter} ${num}`;
+/* ===============================
+   HELPERS
+================================ */
+function updateCurrentBall(n) {
+  const letter =
+    n<=15?'B':n<=30?'I':n<=45?'N':n<=60?'G':'O';
+  currentBall.textContent = `${letter} ${n}`;
   currentBall.classList.remove('hidden');
-
-  currentBall.style.animation = 'none';
-  currentBall.offsetHeight;
-  currentBall.style.animation = '';
 }
 
-function addCalledNumber(num) {
+function addCalledNumber(n) {
   const letter =
-    num <= 15 ? 'B' :
-    num <= 30 ? 'I' :
-    num <= 45 ? 'N' :
-    num <= 60 ? 'G' : 'O';
-
-  const span = document.createElement('span');
-  span.textContent = `${letter} ${num}`;
-  callsEl.prepend(span);
+    n<=15?'B':n<=30?'I':n<=45?'N':n<=60?'G':'O';
+  const s = document.createElement('span');
+  s.textContent = `${letter} ${n}`;
+  callsEl.prepend(s);
 }
 
-/* ===============================
-   CARD GENERATION
-================================ */
 function generateCard() {
-  const ranges = [
-    [1, 15],
-    [16, 30],
-    [31, 45],
-    [46, 60],
-    [61, 75]
-  ];
-
-  const grid = Array.from({ length: 5 }, () => Array(5));
-
-  ranges.forEach(([min, max], col) => {
-    const nums = new Set();
-    while (nums.size < 5) {
-      nums.add(Math.floor(Math.random() * (max - min + 1)) + min);
-    }
-    [...nums].forEach((num, row) => {
-      grid[row][col] = num;
-    });
+  const r=[[1,15],[16,30],[31,45],[46,60],[61,75]];
+  const g=[[],[],[],[],[]];
+  r.forEach(([a,b],x)=>{
+    const s=new Set();
+    while(s.size<5)s.add(Math.floor(Math.random()*(b-a+1))+a);
+    [...s].forEach((n,y)=>g[y][x]=n);
   });
-
-  grid[2][2] = 'FREE';
-  return grid;
+  g[2][2]='FREE';
+  return g;
 }
