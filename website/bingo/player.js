@@ -48,7 +48,7 @@ supabase.channel(`modes-${gameId}`)
   .subscribe();
 
 /* ===============================
-   CARD + CALLS (UNCHANGED)
+   CARD + CALLS
 ================================ */
 let called = new Set();
 let marked = new Set(['2-2']);
@@ -76,18 +76,7 @@ supabase.channel(`calls-${gameId}`)
   .subscribe();
 
 /* ===============================
-   BINGO CLAIM
-================================ */
-document.getElementById('bingoBtn').onclick = async () => {
-  await supabase.from('claims').insert({
-    game_id: gameId,
-    player_name: name,
-    marked: [...marked]
-  });
-};
-
-/* ===============================
-   RENDER HELPERS
+   RENDER
 ================================ */
 function render() {
   board.innerHTML = '';
@@ -103,6 +92,9 @@ function render() {
   }));
 }
 
+/* ===============================
+   HELPERS
+================================ */
 function updateCurrentBall(n){
   const l=n<=15?'B':n<=30?'I':n<=45?'N':n<=60?'G':'O';
   currentBall.textContent=`${l} ${n}`;
