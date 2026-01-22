@@ -211,6 +211,14 @@ header a {
   display: none;
 }
 
+@media (max-width: 600px) {
+  .call-history {
+    grid-template-columns: repeat(3, 1fr);
+    max-height: 300px;
+  }
+}
+
+
 
 
 
