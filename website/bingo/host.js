@@ -81,18 +81,23 @@ document.getElementById('callBtn').onclick = async () => {
   const n = randomCall();
   if (!n) return;
 
-  called.add(n);
-  const current = document.getElementById('current');
-  current.textContent = n;
-  current.classList.remove('current-call');
-  void current.offsetWidth; // restart animation
-  current.classList.add('current-call');
-  speakCall(n);
+  console.log('[HOST] Calling number:', n);
 
-  await supabase.from('calls').insert({
-    game_id: gameId,
-    number: n
-  });
+  const { data, error } = await supabase
+    .from('calls')
+    .insert({
+      game_id: gameId,
+      number: n
+    })
+    .select();
+
+  if (error) {
+    console.error('[HOST] Call insert failed:', error);
+    alert(error.message);
+    return;
+  }
+
+  console.log('[HOST] Call inserted:', data);
 };
 
 /* AUTO CALL */
@@ -169,4 +174,5 @@ function validateClaim(markedArr, modes) {
 
   return null;
 }
+
 
