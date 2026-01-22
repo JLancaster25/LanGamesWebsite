@@ -23,34 +23,45 @@ function generateCode() {
 }
 
 /* ===============================
-   GAME SETUP
+   ELEMENTS
 ================================ */
-const roomCode = generateCode();
-document.getElementById('roomCode').textContent = roomCode;
+const roomCodeEl = document.getElementById('roomCode');
+const countdownEl = document.getElementById('countdown');
+const currentEl = document.getElementById('current');
 
+const startBtn = document.getElementById('startBtn');
+const callBtn = document.getElementById('callBtn');
+const autoBtn = document.getElementById('autoBtn');
+const stopBtn = document.getElementById('stopBtn');
+const newBtn = document.getElementById('newBtn');
+const speedInput = document.getElementById('speed');
+
+const modeInputs = document.querySelectorAll('.modes input');
+
+/* ===============================
+   GAME STATE
+================================ */
 let gameId;
-let autoTimer = null;
 let calledLocal = new Set();
+let autoTimer = null;
 
 /* ===============================
    CREATE GAME
 ================================ */
+const roomCode = generateCode();
+roomCodeEl.textContent = roomCode;
+
 const { data: game } = await supabase
   .from('games')
-  .insert({
-    code: roomCode,
-    status: 'active'
-  })
+  .insert({ code: roomCode, status: 'lobby' })
   .select()
   .single();
 
 gameId = game.id;
 
 /* ===============================
-   MODE CONTROL (LOCKED AFTER START)
+   MODE CONTROL
 ================================ */
-const modeInputs = document.querySelectorAll('.modes input');
-
 async function updateModes() {
   const modes = [...modeInputs]
     .filter(i => i.checked)
@@ -66,10 +77,40 @@ async function updateModes() {
 
 modeInputs.forEach(i => (i.onchange = updateModes));
 await updateModes();
-modeInputs.forEach(i => (i.disabled = true));
 
 /* ===============================
-   CALLING LOGIC
+   START GAME + COUNTDOWN
+================================ */
+startBtn.onclick = async () => {
+  startBtn.disabled = true;
+  modeInputs.forEach(i => (i.disabled = true));
+
+  let count = 5;
+  countdownEl.textContent = count;
+  countdownEl.classList.remove('hidden');
+
+  const timer = setInterval(async () => {
+    count--;
+    countdownEl.textContent = count;
+
+    if (count === 0) {
+      clearInterval(timer);
+      countdownEl.classList.add('hidden');
+
+      await supabase
+        .from('games')
+        .update({ status: 'active' })
+        .eq('id', gameId);
+
+      callBtn.disabled = false;
+      autoBtn.disabled = false;
+      stopBtn.disabled = false;
+    }
+  }, 1000);
+};
+
+/* ===============================
+   CALLING
 ================================ */
 function nextNumber() {
   const remaining = [];
@@ -81,7 +122,7 @@ function nextNumber() {
     : null;
 }
 
-document.getElementById('callBtn').onclick = async () => {
+callBtn.onclick = async () => {
   const n = nextNumber();
   if (!n) return;
 
@@ -94,7 +135,7 @@ document.getElementById('callBtn').onclick = async () => {
     n <= 60 ? 'G' : 'O';
 
   const spoken = `${letter} ${n}`;
-  document.getElementById('current').textContent = spoken;
+  currentEl.textContent = spoken;
   speak(spoken);
 
   await supabase.from('calls').insert({
@@ -102,35 +143,39 @@ document.getElementById('callBtn').onclick = async () => {
     number: n
   });
 
-  await checkForBingo(); // 🔥 AUTO-DETECT
+  await checkForBingo();
 };
 
-document.getElementById('autoBtn').onclick = () => {
+autoBtn.onclick = () => {
   clearInterval(autoTimer);
-  autoTimer = setInterval(
-    document.getElementById('callBtn').onclick,
-    document.getElementById('speed').value * 1000
-  );
+  autoTimer = setInterval(callBtn.onclick, speedInput.value * 1000);
 };
 
-document.getElementById('stopBtn').onclick = () => {
-  clearInterval(autoTimer);
-};
+stopBtn.onclick = () => clearInterval(autoTimer);
 
-document.getElementById('newBtn').onclick = async () => {
+/* ===============================
+   NEW GAME
+================================ */
+newBtn.onclick = async () => {
   clearInterval(autoTimer);
   calledLocal.clear();
-  document.getElementById('current').textContent = '—';
+  currentEl.textContent = '—';
+
+  startBtn.disabled = false;
+  callBtn.disabled = true;
+  autoBtn.disabled = true;
+  stopBtn.disabled = true;
+
+  modeInputs.forEach(i => (i.disabled = false));
 
   await supabase.rpc('start_game', { p_game_id: gameId });
-  await supabase.from('games').update({ status: 'active' }).eq('id', gameId);
+  await supabase.from('games').update({ status: 'lobby' }).eq('id', gameId);
 };
 
 /* ===============================
    AUTO BINGO DETECTION
 ================================ */
 async function checkForBingo() {
-  // Load called numbers
   const { data: calls } = await supabase
     .from('calls')
     .select('number')
@@ -138,7 +183,6 @@ async function checkForBingo() {
 
   const called = new Set(calls.map(c => c.number));
 
-  // Load game modes
   const { data: game } = await supabase
     .from('games')
     .select('modes, status')
@@ -147,17 +191,15 @@ async function checkForBingo() {
 
   if (game.status !== 'active') return;
 
-  // Load players
   const { data: players } = await supabase
     .from('players')
     .select('name, card')
     .eq('game_id', gameId);
 
-  for (const player of players) {
-    const allMarks = getMarksFromCalled(player.card, called);
-
-    if (validateBingo(player.card, allMarks, called, game.modes)) {
-      await endGame(player.name);
+  for (const p of players) {
+    const marks = getMarksFromCalled(p.card, called);
+    if (validateBingo(p.card, marks, called, game.modes)) {
+      await endGame(p.name);
       break;
     }
   }
@@ -166,85 +208,60 @@ async function checkForBingo() {
 /* ===============================
    END GAME
 ================================ */
-async function endGame(winnerName) {
+async function endGame(winner) {
   clearInterval(autoTimer);
 
   await supabase.from('winners').insert({
     game_id: gameId,
-    player_name: winnerName,
+    player_name: winner,
     pattern: 'BINGO'
   });
 
-  await supabase
-    .from('games')
-    .update({ status: 'finished' })
-    .eq('id', gameId);
+  await supabase.from('games').update({ status: 'finished' }).eq('id', gameId);
 }
 
 /* ===============================
-   BINGO VALIDATION ENGINE
+   BINGO VALIDATION
 ================================ */
 function validateBingo(card, marked, called, modes) {
-  const marks = new Set(marked);
-
-  const isMarked = (x, y) => {
+  const m = new Set(marked);
+  const isMarked = (x,y) => {
     const v = card[y][x];
-    return v === 'FREE' || (called.has(v) && marks.has(`${x}-${y}`));
+    return v === 'FREE' || (called.has(v) && m.has(`${x}-${y}`));
   };
 
-  // Normal
   if (modes.includes('normal')) {
-    for (let i = 0; i < 5; i++) {
-      if ([0,1,2,3,4].every(x => isMarked(x, i))) return true;
-      if ([0,1,2,3,4].every(y => isMarked(i, y))) return true;
+    for (let i=0;i<5;i++) {
+      if ([0,1,2,3,4].every(x=>isMarked(x,i))) return true;
+      if ([0,1,2,3,4].every(y=>isMarked(i,y))) return true;
     }
-    if ([0,1,2,3,4].every(i => isMarked(i, i))) return true;
-    if ([0,1,2,3,4].every(i => isMarked(4 - i, i))) return true;
+    if ([0,1,2,3,4].every(i=>isMarked(i,i))) return true;
+    if ([0,1,2,3,4].every(i=>isMarked(4-i,i))) return true;
   }
 
-  // Four corners
   if (modes.includes('four_corners')) {
-    if (
-      isMarked(0,0) &&
-      isMarked(4,0) &&
-      isMarked(0,4) &&
-      isMarked(4,4)
-    ) return true;
+    if (isMarked(0,0)&&isMarked(4,0)&&isMarked(0,4)&&isMarked(4,4)) return true;
   }
 
-  // Cross
   if (modes.includes('cross')) {
-    if (
-      [0,1,2,3,4].every(i => isMarked(2, i)) &&
-      [0,1,2,3,4].every(i => isMarked(i, 2))
-    ) return true;
+    if ([0,1,2,3,4].every(i=>isMarked(2,i)) &&
+        [0,1,2,3,4].every(i=>isMarked(i,2))) return true;
   }
 
-  // Blackout
   if (modes.includes('blackout')) {
-    for (let y = 0; y < 5; y++) {
-      for (let x = 0; x < 5; x++) {
-        if (!isMarked(x, y)) return false;
-      }
-    }
+    for (let y=0;y<5;y++) for (let x=0;x<5;x++)
+      if (!isMarked(x,y)) return false;
     return true;
   }
 
   return false;
 }
 
-/* ===============================
-   MARK HELPER
-================================ */
 function getMarksFromCalled(card, called) {
-  const marks = [];
-  for (let y = 0; y < 5; y++) {
-    for (let x = 0; x < 5; x++) {
-      const v = card[y][x];
-      if (v === 'FREE' || called.has(v)) {
-        marks.push(`${x}-${y}`);
-      }
-    }
+  const marks=[];
+  for(let y=0;y<5;y++)for(let x=0;x<5;x++){
+    const v=card[y][x];
+    if(v==='FREE'||called.has(v))marks.push(`${x}-${y}`);
   }
   return marks;
 }
