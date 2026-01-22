@@ -35,19 +35,6 @@ function renderModes(modes) {
 renderModes(game.modes);
 
 /* ===============================
-   SUBSCRIBE MODE CHANGES
-================================ */
-supabase.channel(`modes-${gameId}`)
-  .on(
-    'postgres_changes',
-    { event: 'UPDATE', schema: 'public', table: 'games' },
-    p => {
-      if (p.new.id === gameId) renderModes(p.new.modes);
-    }
-  )
-  .subscribe();
-
-/* ===============================
    CARD + CALLS
 ================================ */
 let called = new Set();
@@ -74,6 +61,19 @@ supabase.channel(`calls-${gameId}`)
     }
   )
   .subscribe();
+
+/* ===============================
+   BINGO CLAIM (NO VALIDATION)
+================================ */
+document.getElementById('bingoBtn').onclick = async () => {
+  document.getElementById('bingoBtn').disabled = true;
+
+  await supabase.from('claims').insert({
+    game_id: gameId,
+    player_name: name,
+    marked: [...marked]
+  });
+};
 
 /* ===============================
    RENDER
