@@ -15,22 +15,22 @@
 
   <div class="game-shell">
 
-    <!-- LEFT -->
+    <!-- LEFT: CURRENT BALL -->
     <div class="card-area">
-      <div class="current-ball" id="current">—</div>
+      <div id="current" class="current-ball">—</div>
 
       <div class="bingo-letters">
         <div>B</div><div>I</div><div>N</div><div>G</div><div>O</div>
       </div>
 
-      <!-- Host sees called numbers grid (not clickable) -->
-      <div class="board" id="board"></div>
+      <!-- Called numbers board (visual only) -->
+      <div id="board" class="board"></div>
     </div>
 
-    <!-- RIGHT -->
+    <!-- RIGHT: CONTROLS -->
     <div class="history-panel">
       <h3>Room Code</h3>
-      <div class="room-code" id="roomCode"></div>
+      <div id="roomCode" class="room-code"></div>
 
       <h3 style="margin-top:1rem">Controls</h3>
       <button id="callBtn">Call</button>
@@ -38,7 +38,7 @@
       <button id="stopBtn">Stop</button>
       <button id="newBtn">New Game</button>
 
-      <label style="margin-top:1rem">Speed</label>
+      <label style="margin-top:1rem">Call Speed</label>
       <input type="range" id="speed" min="1" max="10" value="5" />
     </div>
 
