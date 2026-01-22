@@ -71,13 +71,23 @@ document.getElementById('callBtn').onclick = async () => {
   if (!n) return;
 
   called.add(n);
-  document.getElementById('current').textContent = n;
+
+  const letter =
+    n <= 15 ? 'B' :
+    n <= 30 ? 'I' :
+    n <= 45 ? 'N' :
+    n <= 60 ? 'G' : 'O';
+
+  document.getElementById('current').textContent = `${letter} ${n}`;
+
+  speak(`${letter} ${n}`);
 
   await supabase.from('calls').insert({
     game_id: gameId,
     number: n
   });
 };
+
 
 /* ===============================
    AUTO CALL
@@ -104,4 +114,5 @@ document.getElementById('newBtn').onclick = async () => {
 
   await supabase.rpc('start_game', { p_game_id: gameId });
 };
+
 
