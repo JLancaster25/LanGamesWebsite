@@ -23,6 +23,7 @@ if (name.length > 10) {
   alert('Name must be 10 characters or fewer');
   throw new Error('Name too long');
 }
+document.getElementById('cardTitle').textContent = `${name}'s card`;
 
 
 const { data: game } = await supabase
@@ -198,6 +199,7 @@ function generateCard() {
   grid[2][2] = 'FREE';
   return grid;
 }
+
 
 
 
