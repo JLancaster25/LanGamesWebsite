@@ -4,8 +4,25 @@ import { supabase } from './supabase.js';
    JOIN GAME
 ================================ */
 const code = prompt('Room code');
-const name = prompt('Your name');
 const bingoBtn = document.getElementById('bingoBtn');
+let name = prompt('Your name (max 10 characters)');
+
+if (!name) {
+  alert('Name is required');
+  throw new Error('Name required');
+}
+
+name = name.trim();
+
+if (name.length === 0) {
+  alert('Name cannot be empty');
+  throw new Error('Empty name');
+}
+
+if (name.length > 10) {
+  alert('Name must be 10 characters or fewer');
+  throw new Error('Name too long');
+}
 
 
 const { data: game } = await supabase
@@ -181,6 +198,7 @@ function generateCard() {
   grid[2][2] = 'FREE';
   return grid;
 }
+
 
 
 
