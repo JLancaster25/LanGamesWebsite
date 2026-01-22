@@ -1,7 +1,7 @@
 import { supabase } from './supabase.js';
 
 /* ===============================
-   BASIC SETUP
+   SETUP
 ================================ */
 const code = prompt('Game code');
 const name = prompt('Your name');
@@ -14,13 +14,13 @@ if (!code || !name) {
 /* ===============================
    LOAD GAME
 ================================ */
-const { data: game, error: gameError } = await supabase
+const { data: game } = await supabase
   .from('games')
   .select('*')
   .eq('code', code)
   .maybeSingle();
 
-if (gameError || !game) {
+if (!game) {
   alert('Game not found');
   throw new Error('Game not found');
 }
@@ -28,13 +28,13 @@ if (gameError || !game) {
 const gameId = game.id;
 
 /* ===============================
-   STATE (DECLARE ONCE)
+   STATE
 ================================ */
-let called = new Set();          // numbers called by host
-let marked = new Set(['2-2']);   // FREE space
+let called = new Set();
+let marked = new Set(['2-2']); // FREE space
 
 /* ===============================
-   DOM REFERENCES
+   DOM
 ================================ */
 const board = document.getElementById('board');
 const callsEl = document.getElementById('calls');
@@ -43,7 +43,7 @@ const currentBall = document.getElementById('currentBall');
 const claimBtn = document.getElementById('claimBtn');
 
 /* ===============================
-   GENERATE CARD
+   CARD
 ================================ */
 const card = generateCard();
 render();
@@ -51,62 +51,35 @@ render();
 /* ===============================
    REALTIME: CALLS
 ================================ */
-console.log('[PLAYER] Subscribing to calls…');
-
-const callsChannel = supabase.channel('calls');
-
-callsChannel
+supabase
+  .channel('calls')
   .on(
     'postgres_changes',
-    {
-      event: 'INSERT',
-      schema: 'public',
-      table: 'calls'
-    },
+    { event: 'INSERT', schema: 'public', table: 'calls' },
     payload => {
-      console.log('[PLAYER] CALL EVENT RECEIVED:', payload);
-
-      if (!payload.new) return;
       if (payload.new.game_id !== gameId) return;
 
       const num = payload.new.number;
-
-      console.log('[PLAYER] ACCEPTED CALL:', num);
-
       called.add(num);
+
       updateCurrentBall(num);
       addCalledNumber(num);
       render();
     }
   )
-  .subscribe(status => {
-    console.log('[PLAYER] Calls channel status:', status);
-  });
+  .subscribe();
 
 /* ===============================
-   REALTIME: WINNERS
+   REALTIME: WINNER
 ================================ */
 supabase
-  .channel('player-winners')
+  .channel('winners')
   .on(
     'postgres_changes',
-    {
-      event: 'INSERT',
-      schema: 'public',
-      table: 'winners'
-    },
+    { event: 'INSERT', schema: 'public', table: 'winners' },
     payload => {
       if (payload.new.game_id !== gameId) return;
-
-      console.log('[PLAYER] Bingo confirmed by host');
-
       banner.classList.remove('hidden');
-
-      // Highlight marked cells
-      document.querySelectorAll('.cell.marked').forEach(cell => {
-        cell.style.boxShadow = '0 0 12px gold';
-        cell.style.transform = 'scale(1.05)';
-      });
     }
   )
   .subscribe();
@@ -115,22 +88,15 @@ supabase
    CLAIM BINGO
 ================================ */
 claimBtn.onclick = async () => {
-  console.log('[PLAYER] Claiming bingo');
-
-  const { error } = await supabase.from('claims').insert({
+  await supabase.from('claims').insert({
     game_id: gameId,
     player_name: name,
     marked: [...marked]
   });
-
-  if (error) {
-    console.error('[PLAYER] Claim failed:', error);
-    alert('Failed to claim bingo');
-  }
 };
 
 /* ===============================
-   RENDER BOARD
+   RENDER
 ================================ */
 function render() {
   board.innerHTML = '';
@@ -141,7 +107,6 @@ function render() {
       const cell = document.createElement('div');
       cell.className = 'cell';
 
-      // FREE SPACE
       if (value === 'FREE') {
         cell.textContent = '★';
         cell.classList.add('free', 'marked');
@@ -151,20 +116,15 @@ function render() {
 
       cell.textContent = value;
 
-      const isCalled = called.has(value);
-      const isMarked = marked.has(key);
-
-      if (!isCalled) cell.classList.add('locked');
-      if (isMarked) cell.classList.add('marked');
+      if (!called.has(value)) cell.classList.add('locked');
+      if (marked.has(key)) cell.classList.add('marked');
 
       cell.onclick = () => {
         if (!called.has(value)) return;
 
-        if (marked.has(key)) {
-          marked.delete(key);
-        } else {
-          marked.add(key);
-        }
+        marked.has(key)
+          ? marked.delete(key)
+          : marked.add(key);
 
         render();
       };
@@ -187,7 +147,6 @@ function updateCurrentBall(num) {
   currentBall.textContent = `${letter} ${num}`;
   currentBall.classList.remove('hidden');
 
-  // Restart animation
   currentBall.style.animation = 'none';
   currentBall.offsetHeight;
   currentBall.style.animation = '';
@@ -232,4 +191,3 @@ function generateCard() {
   grid[2][2] = 'FREE';
   return grid;
 }
-
