@@ -1,6 +1,21 @@
 import { supabase } from './supabase.js';
 
 /* ===============================
+   AI VOICE CALLER
+================================ */
+function speak(text) {
+  if (!('speechSynthesis' in window)) return;
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 0.9;
+  utterance.pitch = 1.1;
+  utterance.volume = 1;
+
+  speechSynthesis.cancel();
+  speechSynthesis.speak(utterance);
+}
+
+/* ===============================
    UTIL
 ================================ */
 function generateCode() {
@@ -25,10 +40,7 @@ let gameId;
 ================================ */
 const { data: game } = await supabase
   .from('games')
-  .insert({
-    code: roomCode,
-    status: 'lobby'
-  })
+  .insert({ code: roomCode, status: 'lobby' })
   .select()
   .single();
 
@@ -49,31 +61,20 @@ async function updateModes() {
     modes.push('normal');
   }
 
-  await supabase
-    .from('games')
-    .update({ modes })
-    .eq('id', gameId);
+  await supabase.from('games').update({ modes }).eq('id', gameId);
 }
 
 modeInputs.forEach(i => i.onchange = updateModes);
 await updateModes();
 
 /* ===============================
-   START GAME
+   START GAME (LOCK MODES)
 ================================ */
-async function startGame() {
-  await supabase
-    .from('games')
-    .update({ status: 'active' })
-    .eq('id', gameId);
-
-  modeInputs.forEach(i => i.disabled = true);
-}
-
-startGame();
+await supabase.from('games').update({ status: 'active' }).eq('id', gameId);
+modeInputs.forEach(i => i.disabled = true);
 
 /* ===============================
-   CALLING
+   CALL LOGIC
 ================================ */
 function nextNumber() {
   const remaining = [];
@@ -97,7 +98,10 @@ document.getElementById('callBtn').onclick = async () => {
     n <= 45 ? 'N' :
     n <= 60 ? 'G' : 'O';
 
-  document.getElementById('current').textContent = `${letter} ${n}`;
+  const spoken = `${letter} ${n}`;
+
+  document.getElementById('current').textContent = spoken;
+  speak(spoken);
 
   await supabase.from('calls').insert({
     game_id: gameId,
@@ -120,6 +124,7 @@ document.getElementById('stopBtn').onclick = () => {
 document.getElementById('newBtn').onclick = async () => {
   clearInterval(autoTimer);
   called.clear();
+  document.getElementById('current').textContent = '—';
 
   modeInputs.forEach(i => i.disabled = false);
 
