@@ -162,15 +162,24 @@ header a {
 }
 
 /* ===== BINGO BUTTON ===== */
+/* ===== STATIC BINGO BUTTON ===== */
 .bingo-btn {
-  margin-top: 1.5rem;
-  background: #fff;
+  margin-top: 1rem;
+  background: #ffffff;
   color: #111;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   font-weight: 900;
-  padding: 0.8rem 2.5rem;
+  padding: 0.9rem 3rem;
   border-radius: 999px;
   border: none;
+  cursor: pointer;
+
+  position: relative; /* prevents layout shifts */
+}
+
+.bingo-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* ===== BANNER ===== */
@@ -187,3 +196,4 @@ header a {
 .hidden {
   display: none;
 }
+
