@@ -12,54 +12,35 @@
 </header>
 
 <main class="app">
+  <div class="game-shell">
 
-  <!-- GAME CONTAINER -->
-<div class="game-shell">
+    <!-- LEFT -->
+    <div class="card-area">
+      <h2 id="cardTitle"></h2>
 
-  <!-- LEFT COLUMN -->
-  <div class="card-area">
-    <h2 id="cardTitle"></h2>
+      <div id="currentBall" class="current-ball hidden"></div>
 
-    <div id="currentBall" class="current-ball hidden"></div>
+      <div class="bingo-letters">
+        <div>B</div><div>I</div><div>N</div><div>G</div><div>O</div>
+      </div>
 
-    <div class="bingo-letters">
-      <div>B</div><div>I</div><div>N</div><div>G</div><div>O</div>
+      <div id="board" class="board"></div>
+
+      <button id="bingoBtn" class="bingo-btn">BINGO!</button>
     </div>
 
-    <div id="board" class="board"></div>
+    <!-- RIGHT -->
+    <div class="history-panel">
+      <h3>Win Conditions</h3>
+      <ul id="modesList"></ul>
 
-    <button id="bingoBtn" class="bingo-btn">BINGO!</button>
-  </div>
-
-  <!-- RIGHT COLUMN -->
-  <div class="history-panel">
-    <h3>Called Numbers</h3>
-    <div id="calls" class="call-history"></div>
-  </div>
-
-</div>
-
-  <!-- CURRENT CALLED BALL -->
-  <div id="currentBall" class="current-ball hidden"></div>
-  
-  <!-- BOARD -->
-  <div id="board" class="board"></div>
-
-</div>
+      <h3 style="margin-top:1rem">Called Numbers</h3>
+      <div id="calls" class="call-history"></div>
+    </div>
 
   </div>
-
-  <!-- BINGO BANNER -->
-  <div id="banner" class="hidden">BINGO</div>
-
 </main>
 
 <script type="module" src="player.js"></script>
 </body>
 </html>
-
-
-
-
-
-
