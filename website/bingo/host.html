@@ -1,32 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Bingo Host</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+
 <header>
-  <button id="themeToggle">🌙</button>
+  <a href="index.html">← Home</a>
 </header>
-<h1>HOST</h1>
 
-<div id="current">—</div>
+<main class="app">
 
-<button id="callBtn">Call</button>
-<button id="autoBtn">Auto Call</button>
-<button id="stopBtn">Stop Call</button>
-<button id="newBtn">New Game</button>
+  <div class="game-shell">
 
-<label>
-  Speed
-  <input type="range" min="1" max="10" value="5" id="speed">
-</label>
+    <!-- LEFT -->
+    <div class="card-area">
+      <div class="current-ball" id="current">—</div>
 
-<h3>Winners</h3>
-<ul id="winners"></ul>
+      <div class="bingo-letters">
+        <div>B</div><div>I</div><div>N</div><div>G</div><div>O</div>
+      </div>
+
+      <!-- Host sees called numbers grid (not clickable) -->
+      <div class="board" id="board"></div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="history-panel">
+      <h3>Room Code</h3>
+      <div class="room-code" id="roomCode"></div>
+
+      <h3 style="margin-top:1rem">Controls</h3>
+      <button id="callBtn">Call</button>
+      <button id="autoBtn">Auto</button>
+      <button id="stopBtn">Stop</button>
+      <button id="newBtn">New Game</button>
+
+      <label style="margin-top:1rem">Speed</label>
+      <input type="range" id="speed" min="1" max="10" value="5" />
+    </div>
+
+  </div>
+
+</main>
 
 <script type="module" src="host.js"></script>
 </body>
 </html>
-
