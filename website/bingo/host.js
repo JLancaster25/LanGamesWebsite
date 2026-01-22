@@ -46,6 +46,27 @@ const { data: game } = await supabase
 
 gameId = game.id;
 
+supabase.channel(`claims-${gameId}`)
+  .on(
+    'postgres_changes',
+    { event:'INSERT', schema:'public', table:'claims' },
+    async payload => {
+      if (payload.new.game_id !== gameId) return;
+
+      // Stop auto-calling
+      clearInterval(autoTimer);
+
+      // Declare winner
+      await supabase.from('winners').insert({
+        game_id: gameId,
+        player_name: payload.new.player_name,
+        pattern: 'BINGO'
+      });
+    }
+  )
+  .subscribe();
+
+
 /* ===============================
    RESET GAME STATE
 ================================ */
@@ -119,6 +140,7 @@ document.getElementById('newBtn').onclick = async () => {
 
   await supabase.rpc('start_game', { p_game_id: gameId });
 };
+
 
 
 
