@@ -143,6 +143,7 @@ function updateCurrentBall(n) {
   currentBall.classList.remove('hidden');
 }
 
+
 function addCalledNumber(n) {
   const letter =
     n <= 15 ? 'B' :
@@ -154,6 +155,17 @@ function addCalledNumber(n) {
   span.textContent = `${letter} ${n}`;
   callsEl.prepend(span);
 }
+
+bingoBtn.onclick = async () => {
+  // Prevent double-claims
+  bingoBtn.disabled = true;
+
+  await supabase.from('claims').insert({
+    game_id: gameId,
+    player_name: name,
+    marked: [...marked]
+  });
+};
 
 function generateCard() {
   const ranges = [[1,15],[16,30],[31,45],[46,60],[61,75]];
@@ -169,5 +181,6 @@ function generateCard() {
   grid[2][2] = 'FREE';
   return grid;
 }
+
 
 
