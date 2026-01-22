@@ -158,8 +158,12 @@ header a {
 
 .call-history {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(4, 1fr); /* desktop default */
   gap: 0.5rem;
+
+  max-height: 420px;          /* controls scroll height */
+  overflow-y: auto;
+  padding-right: 0.25rem;
 }
 
 .call-history span {
@@ -205,5 +209,6 @@ header a {
 .hidden {
   display: none;
 }
+
 
 
