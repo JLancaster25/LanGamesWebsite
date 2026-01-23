@@ -52,17 +52,6 @@ document.querySelectorAll("[data-target]").forEach(el => {
 
 /* AUTH */
 // ================================
-// SUPABASE CONFIG (SAME AS LOGIN)
-// ================================
-const SUPABASE_URL = "https://kppgmvfdfuhmtuaukkdn.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_e4AhlY9ZIgdlsG8rl111Fg_tWghrBW4";
-
-const supabase = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY
-);
-
-// ================================
 // AUTH UI ELEMENTS (MAIN SITE)
 // ================================
 const authLink = document.getElementById("authLink"); // menu button
@@ -276,4 +265,5 @@ const LanGamesAPI = {
   }
 
 };
+
 
