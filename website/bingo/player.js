@@ -4,16 +4,16 @@
 const sb = window.supabaseClient;
 
 /* ===============================
-   RESOLVE PLAYER NAME
+/* ===============================
+   RESOLVE PLAYER ID + NAME
 ================================ */
 let name = null;
+let userId = null;
 
-// Check session first
 const { data: sessionData } = await sb.auth.getSession();
 
 if (sessionData.session) {
-  // Logged in → get username from profile
-  const userId = sessionData.session.user.id;
+  userId = sessionData.session.user.id;
 
   const { data: profile, error } = await sb
     .from("profiles")
@@ -26,7 +26,7 @@ if (sessionData.session) {
   }
 }
 
-// Fallback: prompt if no username
+// Fallback for anonymous users
 if (!name) {
   name = prompt("Your name (max 10 chars)")?.trim();
 
@@ -128,11 +128,12 @@ document.getElementById("bingoBtn").onclick = async () => {
 
   document.getElementById("bingoBtn").disabled = true;
 
-  const { error } = await sb.from("claims").insert({
-    game_id: gameId,
-    player_name: name,
-    marked: [...marked]
-  });
+const { error } = await sb.from("claims").insert({
+  game_id: gameId,
+  player_name: name,
+  user_id: userId, // null if anonymous
+  marked: [...marked]
+});
 
   if (error) {
     console.error("[CLAIM ERROR]", error);
@@ -204,4 +205,5 @@ if (error) {
     alert("Unable to submit Bingo claim.");
   }
 }
+
 
