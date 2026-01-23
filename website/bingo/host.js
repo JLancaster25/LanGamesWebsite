@@ -5,13 +5,10 @@ import { supabase } from './supabase.js';
 ================================ */
 function speak(text) {
   if (!('speechSynthesis' in window)) return;
-
   const u = new SpeechSynthesisUtterance(text);
   u.rate = 0.9;
   u.pitch = 1.1;
-  u.volume = 1;
-
-  speechSynthesis.cancel(); // prevent overlap
+  speechSynthesis.cancel();
   speechSynthesis.speak(u);
 }
 
@@ -19,6 +16,7 @@ function speak(text) {
    DOM
 ================================ */
 const roomCodeEl = document.getElementById('roomCode');
+const callsEl = document.getElementById('calls');
 const playerListEl = document.getElementById('playerList');
 
 const startBtn = document.getElementById('startBtn');
@@ -26,6 +24,8 @@ const callBtn = document.getElementById('callBtn');
 const autoBtn = document.getElementById('autoBtn');
 const stopBtn = document.getElementById('stopBtn');
 const newBtn = document.getElementById('newBtn');
+const speedInput = document.getElementById('speed');
+const modeInputs = document.querySelectorAll('.modes input');
 
 /* ===============================
    STATE
@@ -51,41 +51,52 @@ const { data: game } = await supabase
 gameId = game.id;
 
 /* ===============================
-   PLAYER LIST (REALTIME)
+   LOAD EXISTING PLAYERS
+================================ */
+const { data: existingPlayers } = await supabase
+  .from('players')
+  .select('name')
+  .eq('game_id', gameId);
+
+existingPlayers.forEach(p => addPlayer(p.name));
+
+/* ===============================
+   REALTIME PLAYERS
 ================================ */
 supabase.channel(`players-${gameId}`)
   .on(
     'postgres_changes',
     { event: 'INSERT', schema: 'public', table: 'players' },
     p => {
-      if (p.new.game_id !== gameId) return;
-      addPlayer(p.new.name);
+      if (p.new.game_id === gameId) addPlayer(p.new.name);
     }
   )
   .subscribe();
 
-function addPlayer(name) {
-  const li = document.createElement('li');
-  li.id = `player-${name}`;
-  li.textContent = name;
-  playerListEl.appendChild(li);
+/* ===============================
+   MODE CONTROL
+================================ */
+async function updateModes() {
+  const modes = [...modeInputs].filter(i => i.checked).map(i => i.value);
+  if (!modes.length) {
+    modeInputs[0].checked = true;
+    modes.push('normal');
+  }
+  await supabase.from('games').update({ modes }).eq('id', gameId);
 }
+modeInputs.forEach(i => i.onchange = updateModes);
+await updateModes();
 
 /* ===============================
    START GAME
 ================================ */
 startBtn.onclick = async () => {
   gameActive = true;
+  modeInputs.forEach(i => i.disabled = true);
 
-  callBtn.disabled = false;
-  autoBtn.disabled = false;
-  stopBtn.disabled = false;
+  callBtn.disabled = autoBtn.disabled = stopBtn.disabled = false;
 
-  await supabase
-    .from('games')
-    .update({ status: 'active' })
-    .eq('id', gameId);
-
+  await supabase.from('games').update({ status: 'active' }).eq('id', gameId);
   speak('Game started');
 };
 
@@ -106,8 +117,10 @@ callBtn.onclick = async () => {
     n <= 45 ? 'N' :
     n <= 60 ? 'G' : 'O';
 
-  const spoken = `${letter} ${n}`;
-  speak(spoken);
+  const label = `${letter} ${n}`;
+  speak(label);
+
+  renderCall(label);
 
   await supabase.from('calls').insert({
     game_id: gameId,
@@ -117,27 +130,34 @@ callBtn.onclick = async () => {
 
 autoBtn.onclick = () => {
   clearInterval(autoTimer);
-  autoTimer = setInterval(callBtn.onclick, 3000);
+  autoTimer = setInterval(callBtn.onclick, speedInput.value * 1000);
 };
 
-stopBtn.onclick = () => {
-  clearInterval(autoTimer);
-  autoTimer = null;
-};
+stopBtn.onclick = () => clearInterval(autoTimer);
 
 /* ===============================
-   CLAIMS → HOST VALIDATION
+   REALTIME CALL HISTORY
+================================ */
+supabase.channel(`calls-${gameId}`)
+  .on(
+    'postgres_changes',
+    { event: 'INSERT', schema: 'public', table: 'calls' },
+    p => {
+      if (p.new.game_id !== gameId) return;
+      renderCall(formatCall(p.new.number));
+    }
+  )
+  .subscribe();
+
+/* ===============================
+   CLAIMS + WINNERS
 ================================ */
 supabase.channel(`claims-${gameId}`)
   .on(
     'postgres_changes',
     { event: 'INSERT', schema: 'public', table: 'claims' },
     async p => {
-      if (!gameActive) return;
-      if (p.new.game_id !== gameId) return;
-
-      const valid = await validateClaim(p.new);
-      if (!valid) return;
+      if (!gameActive || p.new.game_id !== gameId) return;
 
       winners.add(p.new.player_name);
       crownWinner(p.new.player_name);
@@ -160,66 +180,60 @@ supabase.channel(`claims-${gameId}`)
 ================================ */
 async function endGame() {
   gameActive = false;
-
   clearInterval(autoTimer);
-  autoTimer = null;
 
-  callBtn.disabled = true;
-  autoBtn.disabled = true;
-  stopBtn.disabled = true;
-
+  callBtn.disabled = autoBtn.disabled = stopBtn.disabled = true;
   speak('Bingo! Game over');
 
-  await supabase
-    .from('games')
-    .update({ status: 'finished' })
-    .eq('id', gameId);
+  await supabase.from('games').update({ status: 'finished' }).eq('id', gameId);
 }
 
 /* ===============================
    NEW GAME
 ================================ */
 newBtn.onclick = async () => {
-  clearInterval(autoTimer);
-  autoTimer = null;
-
   gameActive = false;
   called.clear();
   winners.clear();
+  callsEl.innerHTML = '';
 
-  playerListEl.innerHTML = '';
-
-  callBtn.disabled = true;
-  autoBtn.disabled = true;
-  stopBtn.disabled = true;
+  modeInputs.forEach(i => i.disabled = false);
+  callBtn.disabled = autoBtn.disabled = stopBtn.disabled = true;
 
   await supabase.rpc('start_game', { p_game_id: gameId });
-  await supabase
-    .from('games')
-    .update({ status: 'lobby' })
-    .eq('id', gameId);
-
-  speak('New game ready');
+  await supabase.from('games').update({ status: 'lobby' }).eq('id', gameId);
 };
 
 /* ===============================
    HELPERS
 ================================ */
+function addPlayer(name) {
+  if (document.getElementById(`player-${name}`)) return;
+  const li = document.createElement('li');
+  li.id = `player-${name}`;
+  li.textContent = name;
+  playerListEl.appendChild(li);
+}
+
 function crownWinner(name) {
   const li = document.getElementById(`player-${name}`);
-  if (li && !li.textContent.includes('👑')) {
-    li.textContent += ' 👑';
-  }
+  if (li && !li.textContent.includes('👑')) li.textContent += ' 👑';
+}
+
+function renderCall(text) {
+  const span = document.createElement('span');
+  span.textContent = text;
+  callsEl.prepend(span);
+}
+
+function formatCall(n) {
+  const l = n <= 15 ? 'B' : n <= 30 ? 'I' : n <= 45 ? 'N' : n <= 60 ? 'G' : 'O';
+  return `${l} ${n}`;
 }
 
 function nextNumber() {
-  const remaining = [];
-  for (let i = 1; i <= 75; i++) {
-    if (!called.has(i)) remaining.push(i);
-  }
-  return remaining.length
-    ? remaining[Math.floor(Math.random() * remaining.length)]
-    : null;
+  for (let i = 1; i <= 75; i++) if (!called.has(i)) return i;
+  return null;
 }
 
 function generateCode() {
@@ -227,12 +241,4 @@ function generateCode() {
   return Array.from({ length: 7 }, () =>
     chars[Math.floor(Math.random() * chars.length)]
   ).join('');
-}
-
-/* ===============================
-   PLACEHOLDER VALIDATION
-   (replace with real validation if desired)
-================================ */
-async function validateClaim() {
-  return true; // host-authoritative placeholder
 }
