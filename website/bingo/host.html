@@ -25,18 +25,20 @@
     <!-- CENTER COLUMN -->
     <div class="center-panel">
 
-      <div class="card-area">
-        <div id="countdown" class="countdown hidden"></div>
-        <div id="current" class="current-ball">—</div>
-
-        <div class="bingo-letters">
-          <div>B</div><div>I</div><div>N</div><div>G</div><div>O</div>
-        </div>
-
-        <div class="board"></div>
+      <!-- BINGO HEADER MOVED ABOVE CURRENT BALL -->
+      <div class="bingo-header">
+        <span>B</span>
+        <span>I</span>
+        <span>N</span>
+        <span>G</span>
+        <span>O</span>
       </div>
 
-      <!-- CALLED NUMBERS NOW CENTERED -->
+      <div id="countdown" class="countdown hidden"></div>
+
+      <div id="current" class="current-ball">—</div>
+
+      <!-- CALLED NUMBERS -->
       <div class="panel called-center">
         <h3>Called Numbers</h3>
         <div id="calls" class="call-history"></div>
@@ -81,4 +83,3 @@
 <script type="module" src="host.js"></script>
 </body>
 </html>
-
