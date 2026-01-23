@@ -105,30 +105,6 @@ button[type="submit"] {
 button[type="submit"]:hover {
   background: #3c46cc;
 }
-.oauth-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  margin-bottom: 1rem;
-}
-
-.oauth {
-  padding: 0.6rem;
-  font-weight: bold;
-  border-radius: 6px;
-  cursor: pointer;
-  border: none;
-}
-
-.oauth.google {
-  background: #ffffff;
-  border: 1px solid #ccc;
-}
-
-.oauth.discord {
-  background: #5865F2;
-  color: white;
-}
 
 .divider {
   text-align: center;
@@ -155,4 +131,5 @@ button[type="submit"]:hover {
   margin-top: 15px;
   font-size: 0.9rem;
 }
+
 
