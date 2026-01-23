@@ -1,4 +1,21 @@
-import { supabase } from './supabase.js';
+// ==========================================
+// AUTH GUARD (HOST ONLY)
+// ==========================================
+const sb = window.supabaseClient;
+
+async function requireAuth() {
+  const { data, error } = await sb.auth.getSession();
+
+  if (error || !data.session) {
+    // Not logged in → send to login page
+    window.location.replace("/WebsiteLogin/");
+    return;
+  }
+}
+
+// BLOCK EXECUTION UNTIL AUTH CHECK PASSES
+await requireAuth();
+
 
 // ==========================================
 // AUTH GUARD (REQUIRED)
@@ -58,7 +75,7 @@ let winners = new Set();
 const roomCode = generateCode();
 roomCodeEl.textContent = roomCode;
 
-const { data: game } = await supabase
+const { data: game } = await sb
   .from('games')
   .insert({ code: roomCode, status: 'lobby' })
   .select()
@@ -69,7 +86,7 @@ gameId = game.id;
 /* ===============================
    LOAD EXISTING PLAYERS
 ================================ */
-const { data: existingPlayers } = await supabase
+const { data: existingPlayers } = await sb
   .from('players')
   .select('name')
   .eq('game_id', gameId);
@@ -79,7 +96,7 @@ existingPlayers.forEach(p => addPlayer(p.name));
 /* ===============================
    REALTIME PLAYERS
 ================================ */
-supabase.channel(`players-${gameId}`)
+sb.channel(`players-${gameId}`)
   .on(
     'postgres_changes',
     { event: 'INSERT', schema: 'public', table: 'players' },
@@ -98,7 +115,7 @@ async function updateModes() {
     modeInputs[0].checked = true;
     modes.push('normal');
   }
-  await supabase.from('games').update({ modes }).eq('id', gameId);
+  await sb.from('games').update({ modes }).eq('id', gameId);
 }
 modeInputs.forEach(i => i.onchange = updateModes);
 await updateModes();
@@ -112,7 +129,7 @@ startBtn.onclick = async () => {
 
   callBtn.disabled = autoBtn.disabled = stopBtn.disabled = false;
 
-  await supabase.from('games').update({ status: 'active' }).eq('id', gameId);
+  await sb.from('games').update({ status: 'active' }).eq('id', gameId);
   speak('Game started');
 };
 
@@ -138,7 +155,7 @@ callBtn.onclick = async () => {
 
   renderCall(label);
 
-  await supabase.from('calls').insert({
+  await sb.from('calls').insert({
     game_id: gameId,
     number: n
   });
@@ -154,7 +171,7 @@ stopBtn.onclick = () => clearInterval(autoTimer);
 /* ===============================
    REALTIME CALL HISTORY
 ================================ */
-supabase.channel(`calls-${gameId}`)
+sb.channel(`calls-${gameId}`)
   .on(
     'postgres_changes',
     { event: 'INSERT', schema: 'public', table: 'calls' },
@@ -168,7 +185,7 @@ supabase.channel(`calls-${gameId}`)
 /* ===============================
    CLAIMS + WINNERS
 ================================ */
-supabase.channel(`claims-${gameId}`)
+sb.channel(`claims-${gameId}`)
   .on(
     'postgres_changes',
     { event: 'INSERT', schema: 'public', table: 'claims' },
@@ -180,7 +197,7 @@ supabase.channel(`claims-${gameId}`)
 
       speak(`${p.new.player_name} has bingo`);
 
-      await supabase.from('winners').insert({
+      await sb.from('winners').insert({
         game_id: gameId,
         player_name: p.new.player_name,
         pattern: 'BINGO'
@@ -201,7 +218,7 @@ async function endGame() {
   callBtn.disabled = autoBtn.disabled = stopBtn.disabled = true;
   speak('Bingo! Game over');
 
-  await supabase.from('games').update({ status: 'finished' }).eq('id', gameId);
+  await sb.from('games').update({ status: 'finished' }).eq('id', gameId);
 }
 
 /* ===============================
@@ -216,8 +233,8 @@ newBtn.onclick = async () => {
   modeInputs.forEach(i => i.disabled = false);
   callBtn.disabled = autoBtn.disabled = stopBtn.disabled = true;
 
-  await supabase.rpc('start_game', { p_game_id: gameId });
-  await supabase.from('games').update({ status: 'lobby' }).eq('id', gameId);
+  await sb.rpc('start_game', { p_game_id: gameId });
+  await sb.from('games').update({ status: 'lobby' }).eq('id', gameId);
 };
 
 /* ===============================
@@ -266,5 +283,6 @@ function generateCode() {
     chars[Math.floor(Math.random() * chars.length)]
   ).join('');
 }
+
 
 
