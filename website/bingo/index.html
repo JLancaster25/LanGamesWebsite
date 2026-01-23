@@ -1,20 +1,18 @@
 <!DOCTYPE html>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/js/supabaseClient.js"></script>
-<script src="/bingo/script.js"></script>
 <html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Bingo</title>
-  <link rel="stylesheet" href="styles.css" />
+  <title>Bingo Host</title>
 </head>
 <body>
 
-<h1>BINGO</h1>
+<h2>Host Bingo</h2>
+<p>Room Code: <strong id="roomCode">...</strong></p>
 
-<button onclick="window.open('host.html','_blank')">Host Game</button>
-<button onclick="location.href='player.html'">Player</button>
+<h3>Players</h3>
+<ul id="playersList"></ul>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/supabaseClient.js"></script>
+<script type="module" src="host.js"></script>
 </body>
 </html>
-
