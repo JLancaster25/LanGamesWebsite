@@ -232,8 +232,16 @@ function formatCall(n) {
 }
 
 function nextNumber() {
-  for (let i = 1; i <= 75; i++) if (!called.has(i)) return i;
-  return null;
+  const remaining = [];
+
+  for (let i = 1; i <= 75; i++) {
+    if (!called.has(i)) remaining.push(i);
+  }
+
+  if (remaining.length === 0) return null;
+
+  const index = Math.floor(Math.random() * remaining.length);
+  return remaining[index];
 }
 
 function generateCode() {
@@ -242,3 +250,4 @@ function generateCode() {
     chars[Math.floor(Math.random() * chars.length)]
   ).join('');
 }
+
