@@ -1,21 +1,24 @@
-// ================================
-// SUPABASE CONFIG
-// ================================
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/js/supabase.js"></script>
+// ==================================================
+// SUPABASE POINTER (SHARED CLIENT)
+// ==================================================
+const sb = window.supabaseClient;
 
-// ================================
+if (!sb) {
+  console.error("Supabase client not available");
+}
+
+// ==================================================
 // UI ELEMENTS
-// ================================
+// ==================================================
 const loginTab = document.getElementById("loginTab");
 const registerTab = document.getElementById("registerTab");
 const loginForm = document.getElementById("loginForm");
 const registerForm = document.getElementById("registerForm");
 const message = document.getElementById("message");
 
-// ================================
+// ==================================================
 // TAB SWITCHING
-// ================================
+// ==================================================
 loginTab.addEventListener("click", () => {
   loginTab.classList.add("active");
   registerTab.classList.remove("active");
@@ -32,9 +35,9 @@ registerTab.addEventListener("click", () => {
   message.textContent = "";
 });
 
-// ================================
-// PASSWORD TOGGLE
-// ================================
+// ==================================================
+// PASSWORD VISIBILITY TOGGLE
+// ==================================================
 document.querySelectorAll(".toggle-password").forEach(toggle => {
   toggle.addEventListener("click", () => {
     const input = toggle.previousElementSibling;
@@ -42,9 +45,9 @@ document.querySelectorAll(".toggle-password").forEach(toggle => {
   });
 });
 
-// ================================
+// ==================================================
 // LOGIN
-// ================================
+// ==================================================
 loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   message.textContent = "⏳ Logging in...";
@@ -52,7 +55,7 @@ loginForm.addEventListener("submit", async (e) => {
   const email = document.getElementById("loginEmail").value.trim();
   const password = document.getElementById("loginPassword").value;
 
-  const { data, error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await sb.auth.signInWithPassword({
     email,
     password
   });
@@ -63,15 +66,14 @@ loginForm.addEventListener("submit", async (e) => {
   }
 
   message.textContent = "✔️ Login successful!";
-  console.log("User:", data.user);
-
-  // 🔁 Redirect after login
-  // window.location.href = "/dashboard.html";
+  setTimeout(() => {
+    window.location.href = "/";
+  }, 800);
 });
 
-// ================================
+// ==================================================
 // REGISTER
-// ================================
+// ==================================================
 registerForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   message.textContent = "⏳ Creating account...";
@@ -85,13 +87,11 @@ registerForm.addEventListener("submit", async (e) => {
     return;
   }
 
-  const { data, error } = await supabase.auth.signUp({
+  const { error } = await sb.auth.signUp({
     email,
     password,
     options: {
-      data: {
-        username: username
-      }
+      data: { username }
     }
   });
 
@@ -101,17 +101,13 @@ registerForm.addEventListener("submit", async (e) => {
   }
 
   message.textContent = "✔️ Account created! Check your email.";
-  console.log("New user:", data.user);
 });
 
-// ================================
-// SESSION CHECK (AUTO LOGIN)
-// ================================
-supabase.auth.onAuthStateChange((event, session) => {
-  if (session) {
-    console.log("Session active:", session.user.email);
-    // Optional auto-redirect
-    // window.location.href = "/dashboard.html";
+// ==================================================
+// AUTO-REDIRECT IF ALREADY LOGGED IN
+// ==================================================
+sb.auth.getSession().then(({ data }) => {
+  if (data.session) {
+    window.location.href = "/";
   }
 });
-
