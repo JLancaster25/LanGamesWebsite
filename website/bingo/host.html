@@ -12,51 +12,73 @@
 </header>
 
 <main class="app">
-  <div class="game-shell">
+  <div class="host-layout">
 
-    <!-- LEFT -->
-    <div class="card-area">
-      <div id="countdown" class="countdown hidden"></div>
-      <div id="current" class="current-ball">—</div>
-
-      <div class="board"></div>
+    <!-- LEFT COLUMN -->
+    <div class="left-panel">
+      <div class="panel">
+        <h3>Players</h3>
+        <ul id="playerList"></ul>
+      </div>
     </div>
 
-    <!-- RIGHT -->
-    <div class="history-panel">
+    <!-- CENTER COLUMN -->
+    <div class="center-panel">
 
-      <h3>Room Code</h3>
-      <div id="roomCode" class="room-code"></div>
+      <div class="card-area">
+        <div id="countdown" class="countdown hidden"></div>
+        <div id="current" class="current-ball">—</div>
 
-      <h3 style="margin-top:1rem">Win Conditions</h3>
-      <div class="modes">
-        <label><input type="checkbox" value="normal" checked> Normal</label>
-        <label><input type="checkbox" value="four_corners"> Four Corners</label>
-        <label><input type="checkbox" value="cross"> Cross</label>
-        <label><input type="checkbox" value="blackout"> Blackout</label>
+        <div class="bingo-letters">
+          <div>B</div><div>I</div><div>N</div><div>G</div><div>O</div>
+        </div>
+
+        <div class="board"></div>
       </div>
 
-      <h3 style="margin-top:1rem">Players</h3>
-      <ul id="playerList"></ul>
-
-      <h3 style="margin-top:1rem">Called Numbers</h3>
-      <div id="calls" class="call-history"></div>
-
-      <h3 style="margin-top:1rem">Controls</h3>
-      <button id="startBtn">Start Game</button>
-      <button id="callBtn" disabled>Call</button>
-      <button id="autoBtn" disabled>Auto</button>
-      <button id="stopBtn" disabled>Stop</button>
-      <button id="newBtn">New Game</button>
-
-      <label style="margin-top:1rem">Call Speed</label>
-      <input type="range" id="speed" min="1" max="10" value="5" />
+      <!-- CALLED NUMBERS NOW CENTERED -->
+      <div class="panel called-center">
+        <h3>Called Numbers</h3>
+        <div id="calls" class="call-history"></div>
+      </div>
 
     </div>
 
+    <!-- RIGHT COLUMN -->
+    <div class="right-panel">
+
+      <div class="panel">
+        <h3>Room Code</h3>
+        <div id="roomCode" class="room-code"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Win Conditions</h3>
+        <div class="modes">
+          <label><input type="checkbox" value="normal" checked> Normal</label>
+          <label><input type="checkbox" value="four_corners"> Four Corners</label>
+          <label><input type="checkbox" value="cross"> Cross</label>
+          <label><input type="checkbox" value="blackout"> Blackout</label>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Controls</h3>
+        <button id="startBtn">Start Game</button>
+        <button id="callBtn" disabled>Call</button>
+        <button id="autoBtn" disabled>Auto</button>
+        <button id="stopBtn" disabled>Stop</button>
+        <button id="newBtn">New Game</button>
+
+        <label style="margin-top:.5rem">Call Speed</label>
+        <input type="range" id="speed" min="1" max="10" value="5" />
+      </div>
+
+    </div>
   </div>
 </main>
 
 <script type="module" src="host.js"></script>
 </body>
 </html>
+
