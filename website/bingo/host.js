@@ -27,7 +27,6 @@ function generateRoomCode() {
 // ==========================================
 // AUTH GUARD (REQUIRED)
 // ==========================================
-const sb = window.supabaseClient;
 
 async function requireAuth() {
   const { data } = await sb.auth.getSession();
@@ -312,6 +311,7 @@ function generateCode() {
     chars[Math.floor(Math.random() * chars.length)]
   ).join('');
 }
+
 
 
 
