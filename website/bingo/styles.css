@@ -1,203 +1,182 @@
-/* ===== RESET ===== */
-* { box-sizing: border-box; }
-
-html, body {
+/* ===============================
+   GLOBAL RESET & VARIABLES
+================================ */
+* {
+  box-sizing: border-box;
   margin: 0;
-  height: 100%;
-  font-family: system-ui, sans-serif;
-  background: linear-gradient(135deg, #5f5be3, #4a7fe0);
-  color: #fff;
+  padding: 0;
 }
 
-/* ===== HEADER ===== */
-header {
-  position: fixed;
-  top: 16px;
-  right: 16px;
+:root {
+  --bg: #0b0b0e;
+  --panel-bg: #141418;
+  --panel-border: #222;
+  --text: #ffffff;
+  --muted: #aaaaaa;
+  --accent: #ff4d4d;
 }
 
-header a {
-  color: #fff;
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+a {
+  color: var(--accent);
   text-decoration: none;
-  font-weight: 600;
 }
 
-/* ===== APP ===== */
+header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+/* ===============================
+   APP WRAPPER
+================================ */
 .app {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  height: calc(100vh - 52px);
 }
 
-/* ===== GAME SHELL ===== */
-.game-shell {
+/* ===============================
+   HOST LAYOUT GRID
+================================ */
+.host-layout {
   display: grid;
-  grid-template-columns: 1fr 320px;
+  grid-template-columns: 220px 1fr 300px;
   gap: 1rem;
-  align-items: start;
+  padding: 1rem;
+  height: 100%;
 }
 
-/* ===== CARD AREA ===== */
-.card-area {
+/* ===============================
+   PANELS
+================================ */
+.panel {
+  background: var(--panel-bg);
+  border-radius: 10px;
+  padding: 0.75rem;
+  border: 1px solid var(--panel-border);
+}
+
+.left-panel,
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.center-panel {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 1rem;
 }
 
-.card-title {
-  text-align: center;
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  color: var(--text-color, #fff);
+/* ===============================
+   PLAYER LIST
+================================ */
+#playerList {
+  list-style: none;
 }
 
+#playerList li {
+  padding: 0.45rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  font-size: 0.95rem;
+}
 
-/* ===== CURRENT BALL ===== */
-.current-ball {
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  background: #fff;
-  color: #111;
-  font-size: 2.2rem;
+/* ===============================
+   BINGO HEADER (HOST)
+================================ */
+.bingo-header {
+  display: flex;
+  gap: 0.6rem;
+  font-size: 2rem;
   font-weight: 900;
+  letter-spacing: 0.25rem;
+}
+
+.bingo-header span {
+  background: #1f1f24;
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+}
+
+/* ===============================
+   CURRENT BALL
+================================ */
+.current-ball {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle at top, #ff6a6a, #b30000);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 0.6rem;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.25);
-  animation: ballDrop 0.4s ease;
+  font-size: 2.8rem;
+  font-weight: bold;
+  box-shadow: 0 0 25px rgba(255, 77, 77, 0.6);
 }
 
-.current-ball.hidden {
+/* ===============================
+   COUNTDOWN
+================================ */
+.countdown {
+  font-size: 4rem;
+  font-weight: bold;
+  color: var(--accent);
+}
+
+.hidden {
   display: none;
 }
 
-@keyframes ballDrop {
-  from {
-    transform: translateY(-40px) scale(0.6);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0) scale(1);
-    opacity: 1;
-  }
-}
-
-/* ===== BINGO HEADERS ===== */
-.bingo-letters {
-  display: grid;
-  grid-template-columns: repeat(5, 56px);
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.bingo-letters div {
-  text-align: center;
-  font-weight: 900;
-  font-size: 1.2rem;
-  letter-spacing: 0.2rem;
-}
-
-/* ===== BOARD ===== */
-.board {
-  display: grid;
-  grid-template-columns: repeat(5, 56px);
-  gap: 10px;
-}
-
-.cell {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: #fff;
-  color: #111;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 1.1rem;
-  cursor: pointer;
-  user-select: none;
-}
-
-.cell.locked {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.cell.marked {
-  background: #4caf50;
-  color: #fff;
-}
-
-.cell.free {
-  background: #f7c948;
-  color: #fff;
-  font-size: 1.4rem;
-}
-
-/* ===== HISTORY ===== */
-.history-panel {
-  background: rgba(255,255,255,0.18);
-  border-radius: 20px;
-  padding: 1rem;
-  width: 200px;
-}
-
-.history-panel h3 {
-  margin: 0 0 0.8rem;
-  text-align: center;
-  font-weight: 700;
+/* ===============================
+   CALLED NUMBERS
+================================ */
+.called-center {
+  width: 100%;
+  max-width: 420px;
 }
 
 .call-history {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* desktop default */
-  gap: 0.5rem;
-
-  max-height: 420px;          /* controls scroll height */
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.4rem;
+  max-height: 240px;
   overflow-y: auto;
-  padding-right: 0.25rem;
 }
 
 .call-history span {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 0.5rem;
-  padding: 0.4rem 0;
+  background: #1f1f24;
+  border-radius: 6px;
+  padding: 0.35rem;
   text-align: center;
-  font-weight: 700;
-  font-size: 0.95rem;
+  font-weight: bold;
 }
 
-/* ===== BINGO BUTTON ===== */
-/* ===== STATIC BINGO BUTTON ===== */
-.bingo-btn {
-  margin-top: 1rem;
-  background: #ffffff;
-  color: #111;
-  font-size: 1.4rem;
-  font-weight: 900;
-  padding: 0.9rem 3rem;
-  border-radius: 999px;
-  border: none;
-  cursor: pointer;
-
-  position: relative; /* prevents layout shifts */
+/* ===============================
+   ROOM CODE
+================================ */
+.room-code {
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-align: center;
+  letter-spacing: 0.15rem;
+  background: #1f1f24;
+  padding: 0.5rem;
+  border-radius: 8px;
 }
 
-.bingo-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
+/* ===============================
+   MODES
+================================ */
 .modes {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.35rem;
   font-size: 0.9rem;
 }
 
@@ -205,35 +184,113 @@ header a {
   cursor: pointer;
 }
 
-/* ===== BANNER ===== */
-#banner {
-  margin-top: 1rem;
-  background: #f7c948;
-  color: #111;
-  font-size: 2rem;
-  font-weight: 900;
-  padding: 0.6rem 1.6rem;
-  border-radius: 16px;
+/* ===============================
+   CONTROLS
+================================ */
+button {
+  background: #1f1f24;
+  color: white;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 0.5rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  margin-top: 0.3rem;
 }
 
-.hidden {
-  display: none;
+button:hover {
+  background: #2a2a33;
 }
 
-@media (max-width: 600px) {
-  .game-shell {
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+input[type="range"] {
+  width: 100%;
+  margin-top: 0.4rem;
+}
+
+/* ===============================
+   PLAYER CARD (PLAYER VIEW)
+================================ */
+.card-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.bingo-letters {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.4rem;
+  width: 100%;
+  max-width: 300px;
+}
+
+.bingo-letters div {
+  background: #1f1f24;
+  padding: 0.4rem;
+  text-align: center;
+  font-weight: bold;
+  border-radius: 6px;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.4rem;
+  width: 100%;
+  max-width: 300px;
+}
+
+.cell {
+  background: #1f1f24;
+  padding: 0.7rem;
+  text-align: center;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.cell.locked {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.cell.marked {
+  background: var(--accent);
+  color: white;
+}
+
+/* ===============================
+   PLAYER BINGO BUTTON
+================================ */
+.bingo-btn {
+  margin-top: 0.75rem;
+  background: var(--accent);
+  color: white;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+/* ===============================
+   MOBILE
+================================ */
+@media (max-width: 900px) {
+  .host-layout {
     grid-template-columns: 1fr;
   }
 
   .call-history {
     grid-template-columns: repeat(3, 1fr);
-    max-height: 300px;
+  }
+
+  .current-ball {
+    width: 90px;
+    height: 90px;
+    font-size: 2.2rem;
   }
 }
-
-
-
-
-
-
-
