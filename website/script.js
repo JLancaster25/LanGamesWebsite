@@ -1,6 +1,6 @@
-const supabase = window.supabaseClient;
+const sb = window.supabaseClient;
 
-if (!supabase) {
+if (!sb) {
   console.error("❌ Supabase client not loaded. Check script order.");
 }
 
@@ -257,6 +257,7 @@ const LanGamesAPI = {
   }
 
 };
+
 
 
 
