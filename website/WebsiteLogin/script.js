@@ -1,91 +1,102 @@
 // ==================================================
-// SUPABASE POINTER (SHARED CLIENT)
+// SUPABASE POINTER
 // ==================================================
 const sb = window.supabaseClient;
-
-if (!sb) {
-  console.error("Supabase client not available");
-}
-
-// ==================================================
-// UI ELEMENTS
-// ==================================================
-const loginTab = document.getElementById("loginTab");
-const registerTab = document.getElementById("registerTab");
-const loginForm = document.getElementById("loginForm");
-const registerForm = document.getElementById("registerForm");
 const message = document.getElementById("message");
 
 // ==================================================
-// TAB SWITCHING
+// HELPERS
 // ==================================================
-loginTab.addEventListener("click", () => {
-  loginTab.classList.add("active");
-  registerTab.classList.remove("active");
-  loginForm.classList.add("active");
-  registerForm.classList.remove("active");
-  message.textContent = "";
-});
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
 
-registerTab.addEventListener("click", () => {
-  registerTab.classList.add("active");
-  loginTab.classList.remove("active");
-  registerForm.classList.add("active");
-  loginForm.classList.remove("active");
-  message.textContent = "";
-});
+function showError(text) {
+  message.textContent = text;
+  message.style.color = "#dc2626";
+}
+
+function showSuccess(text) {
+  message.textContent = text;
+  message.style.color = "#16a34a";
+}
 
 // ==================================================
-// PASSWORD VISIBILITY TOGGLE
+// REDIRECT IF ALREADY LOGGED IN
 // ==================================================
-document.querySelectorAll(".toggle-password").forEach(toggle => {
-  toggle.addEventListener("click", () => {
-    const input = toggle.previousElementSibling;
-    input.type = input.type === "password" ? "text" : "password";
-  });
+sb.auth.getSession().then(({ data }) => {
+  if (data.session) {
+    window.location.href = "/";
+  }
 });
 
 // ==================================================
 // LOGIN
 // ==================================================
-loginForm.addEventListener("submit", async (e) => {
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  message.textContent = "⏳ Logging in...";
 
-  const email = document.getElementById("loginEmail").value.trim();
-  const password = document.getElementById("loginPassword").value;
+  const email = loginEmail.value.trim();
+  const password = loginPassword.value;
 
-  const { data, error } = await sb.auth.signInWithPassword({
+  // Validation
+  if (!email || !password) {
+    showError("Please enter email and password.");
+    return;
+  }
+
+  if (!isValidEmail(email)) {
+    showError("Please enter a valid email address.");
+    return;
+  }
+
+  showSuccess("Logging in…");
+
+  const { error } = await sb.auth.signInWithPassword({
     email,
     password
   });
 
   if (error) {
-    message.textContent = "❗ " + error.message;
+    showError(error.message);
     return;
   }
 
-  message.textContent = "✔️ Login successful!";
-  setTimeout(() => {
-    window.location.href = "/";
-  }, 800);
+  window.location.href = "/";
 });
 
 // ==================================================
 // REGISTER
 // ==================================================
-registerForm.addEventListener("submit", async (e) => {
+document.getElementById("registerForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  message.textContent = "⏳ Creating account...";
 
-  const username = document.getElementById("registerUsername").value.trim();
-  const email = document.getElementById("registerEmail").value.trim();
-  const password = document.getElementById("registerPassword").value;
+  const username = registerUsername.value.trim();
+  const email = registerEmail.value.trim();
+  const password = registerPassword.value;
 
-  if (password.length < 6) {
-    message.textContent = "❗ Password must be at least 6 characters.";
+  // Validation
+  if (!username || !email || !password) {
+    showError("All fields are required.");
     return;
   }
+
+  if (username.length < 3) {
+    showError("Username must be at least 3 characters.");
+    return;
+  }
+
+  if (!isValidEmail(email)) {
+    showError("Please enter a valid email address.");
+    return;
+  }
+
+  if (password.length < 6) {
+    showError("Password must be at least 6 characters.");
+    return;
+  }
+
+  showSuccess("Creating account…");
 
   const { error } = await sb.auth.signUp({
     email,
@@ -96,18 +107,9 @@ registerForm.addEventListener("submit", async (e) => {
   });
 
   if (error) {
-    message.textContent = "❗ " + error.message;
+    showError(error.message);
     return;
   }
 
-  message.textContent = "✔️ Account created! Check your email.";
-});
-
-// ==================================================
-// AUTO-REDIRECT IF ALREADY LOGGED IN
-// ==================================================
-sb.auth.getSession().then(({ data }) => {
-  if (data.session) {
-    window.location.href = "/";
-  }
+  showSuccess("Account created! Check your email to confirm.");
 });
