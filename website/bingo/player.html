@@ -1,51 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
   <title>Bingo Player</title>
-  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
-<header>
-  <a href="index.html">← Home</a>
-</header>
+<h2 id="cardTitle"></h2>
+<div id="board"></div>
+<button id="bingoBtn">BINGO</button>
 
-<main class="app">
-  <div class="game-shell">
-
-    <!-- LEFT -->
-    <div class="card-area">
-      <h2 id="cardTitle"></h2>
-
-      <div id="currentBall" class="current-ball hidden"></div>
-
-      <div class="bingo-letters">
-        <div>B</div><div>I</div><div>N</div><div>G</div><div>O</div>
-      </div>
-
-      <div id="board" class="board"></div>
-
-      <!-- ✅ BINGO BUTTON -->
-      <button id="bingoBtn" class="bingo-btn">BINGO!</button>
-    </div>
-
-    <!-- RIGHT -->
-    <div class="history-panel">
-      <h3>Win Conditions</h3>
-      <ul id="modesList"></ul>
-
-      <h3 style="margin-top:1rem">Called Numbers</h3>
-      <div id="calls" class="call-history"></div>
-    </div>
-
-  </div>
-</main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/supabaseClient.js"></script>
-
-<!-- Player logic -->
 <script type="module" src="player.js"></script>
 </body>
 </html>
-
