@@ -19,18 +19,28 @@
       <div id="countdown" class="countdown hidden"></div>
       <div id="current" class="current-ball">—</div>
 
-      <div class="bingo-letters">
-        <div>B</div><div>I</div><div>N</div><div>G</div><div>O</div>
-      </div>
-       <h3 style="margin-top:1rem">Players</h3>
-      <ul id="playerList"></ul>
       <div class="board"></div>
     </div>
 
     <!-- RIGHT -->
     <div class="history-panel">
+
       <h3>Room Code</h3>
       <div id="roomCode" class="room-code"></div>
+
+      <h3 style="margin-top:1rem">Win Conditions</h3>
+      <div class="modes">
+        <label><input type="checkbox" value="normal" checked> Normal</label>
+        <label><input type="checkbox" value="four_corners"> Four Corners</label>
+        <label><input type="checkbox" value="cross"> Cross</label>
+        <label><input type="checkbox" value="blackout"> Blackout</label>
+      </div>
+
+      <h3 style="margin-top:1rem">Players</h3>
+      <ul id="playerList"></ul>
+
+      <h3 style="margin-top:1rem">Called Numbers</h3>
+      <div id="calls" class="call-history"></div>
 
       <h3 style="margin-top:1rem">Controls</h3>
       <button id="startBtn">Start Game</button>
@@ -38,6 +48,10 @@
       <button id="autoBtn" disabled>Auto</button>
       <button id="stopBtn" disabled>Stop</button>
       <button id="newBtn">New Game</button>
+
+      <label style="margin-top:1rem">Call Speed</label>
+      <input type="range" id="speed" min="1" max="10" value="5" />
+
     </div>
 
   </div>
