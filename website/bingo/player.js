@@ -54,26 +54,33 @@ if (existingPlayer) {
 /* ===============================
    JOIN GAME
 ================================ */
-const code = prompt("Room code");
+// ==========================================
+// REQUIRE ROOM CODE
+// ==========================================
+const code = prompt("Enter room code")?.trim().toUpperCase();
 
-if (!code) {
-  alert("Room code required");
-  throw new Error("No room code");
+if (!code || code.length !== 6) {
+  alert("Invalid room code.");
+  throw new Error("Invalid code");
 }
 
-const { data: game, error: gameError } = await sb
+// Lookup game by code
+const { data: game, error } = await sb
   .from("games")
   .select("*")
   .eq("code", code)
   .single();
 
-if (gameError || !game) {
-  alert("Game not found");
-  throw new Error("Invalid game");
+if (error || !game) {
+  alert("Room not found.");
+  throw new Error("Game not found");
+}
+if (game.ended_at) {
+  alert("This game has already ended.");
+  throw new Error("Game ended");
 }
 
 const gameId = game.id;
-document.getElementById("cardTitle").textContent = `${name}'s card`;
 
 /* ===============================
    SHOW MODES
@@ -205,5 +212,6 @@ if (error) {
     alert("Unable to submit Bingo claim.");
   }
 }
+
 
 
