@@ -25,14 +25,14 @@
     <a data-target="features">Features</a>
     <a data-target="games">Games</a>
 	<a href="bingo/">Bingo</a>
-    <a data-target="WebsiteLogin/">Account</a>
+    <a href="WebsiteLogin/">Account</a>
   </nav>
 </header>
 
 <section id="home" class="hero">
   <h1>LAN Games</h1>
   <p>Purple × Azure Gaming Platform</p>
-  <button class="btn primary" data-target="auth">Join Now</button>
+  <button class="btn primary" href="WebsiteLogin/">Join Now</button>
 </section>
 
 <section id="features" class="features">
@@ -57,19 +57,8 @@
   <h2>Account</h2>
 
   <div id="authForms">
-    <input id="email" type="email" placeholder="Email" />
-    <input id="password" type="password" placeholder="Password" />
-
-    <button class="btn primary" id="loginBtn">Login</button>
-    <button class="btn secondary" id="registerBtn">Register</button>
+    <a href="WebsiteLogin/index.html" class="btn primary">Login/Register</a>
   </div>
-
-  <div id="userPanel" class="hidden">
-    <p id="userEmail"></p>
-    <button class="btn danger" id="logoutBtn">Logout</button>
-  </div>
-
-  <p id="authStatus"></p>
 </section>
 
 <footer>
@@ -79,5 +68,6 @@
 <script type="module" src="script.js"></script>
 </body>
 </html>
+
 
 
