@@ -94,8 +94,6 @@ if (!game) {
   throw new Error("Room creation failed");
 }
 
-const gameId = game.id;
-
 // Display room code clearly
 document.getElementById("roomCode").textContent = code;
 
@@ -299,6 +297,7 @@ function generateCode() {
     chars[Math.floor(Math.random() * chars.length)]
   ).join('');
 }
+
 
 
 
