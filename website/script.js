@@ -10,12 +10,6 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const menu = document.getElementById("menu");
 const menuBtn = document.getElementById("menuBtn");
 
-const authStatus = document.getElementById("authStatus");
-const authForms = document.getElementById("authForms");
-const userPanel = document.getElementById("userPanel");
-const userEmail = document.getElementById("userEmail");
-
-/* MENU LOGIC */
 /* MENU LOGIC */
 menuBtn.addEventListener("click", (e) => {
   e.stopPropagation(); // ⛔ prevent document click
@@ -265,5 +259,6 @@ const LanGamesAPI = {
   }
 
 };
+
 
 
