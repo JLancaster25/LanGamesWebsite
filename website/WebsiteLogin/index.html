@@ -2,51 +2,60 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>LAN Games | Login</title>
+  <title>LANGames | Login</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="/WebsiteLogin/styles.css" />
 </head>
 <body>
 
-  <div class="auth-container">
-    <div class="auth-card">
-      <h1>LAN Games</h1>
-      <p class="subtitle">Login or create an account</p>
+<div class="auth-container">
+  <div class="auth-card">
+    <h1>LANGames</h1>
+    <p class="subtitle">Login or create an account</p>
 
-      <div class="tab-buttons">
-        <button id="loginTab" class="active">Login</button>
-        <button id="registerTab">Register</button>
+    <!-- OAuth -->
+    <div class="oauth-buttons">
+      <button id="googleLogin" class="oauth google">Continue with Google</button>
+      <button id="discordLogin" class="oauth discord">Continue with Discord</button>
+    </div>
+
+    <div class="divider">or</div>
+
+    <div class="tab-buttons">
+      <button id="loginTab" class="active">Login</button>
+      <button id="registerTab">Register</button>
+    </div>
+
+    <!-- LOGIN -->
+    <form id="loginForm" class="form active">
+      <input type="email" id="loginEmail" placeholder="Email" required />
+      <input type="password" id="loginPassword" placeholder="Password" required />
+      <button type="submit">Login</button>
+    </form>
+
+    <!-- REGISTER -->
+    <form id="registerForm" class="form">
+      <input type="text" id="registerUsername" placeholder="Username" required />
+      <input type="email" id="registerEmail" placeholder="Email" required />
+
+      <input type="password" id="registerPassword" placeholder="Password" required />
+      <div id="strengthMeter" class="strength">
+        <div id="strengthBar"></div>
       </div>
 
-      <!-- LOGIN FORM -->
-      <form id="loginForm" class="form active">
-        <input type="email" id="loginEmail" placeholder="Email" required />
-        <div class="password-field">
-          <input type="password" id="loginPassword" placeholder="Password" required />
-          <span class="toggle-password">👁</span>
-        </div>
-        <button type="submit">Login</button>
-      </form>
+      <input type="password" id="confirmPassword" placeholder="Confirm Password" required />
 
-      <!-- REGISTER FORM -->
-      <form id="registerForm" class="form">
-        <input type="text" id="registerUsername" placeholder="Username" required />
-        <input type="email" id="registerEmail" placeholder="Email" required />
-        <div class="password-field">
-          <input type="password" id="registerPassword" placeholder="Password" required />
-          <span class="toggle-password">👁</span>
-        </div>
-        <button type="submit">Create Account</button>
-      </form>
+      <button type="submit">Create Account</button>
+    </form>
 
-      <p id="message"></p>
-    </div>
+    <p id="message"></p>
   </div>
+</div>
 
-  <!-- SCRIPT ORDER IS CRITICAL -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/js/supabaseClient.js"></script>
-  <script src="/WebsiteLogin/script.js"></script>
+<!-- SCRIPT ORDER -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/supabaseClient.js"></script>
+<script src="/WebsiteLogin/script.js"></script>
 
 </body>
 </html>
