@@ -1,235 +1,279 @@
 // ==========================================
-// SUPABASE POINTER
+// SUPABASE CLIENT
 // ==========================================
 const sb = window.supabaseClient;
 
-/* ===============================
-/* ===============================
-   RESOLVE PLAYER ID + NAME
-================================ */
-let name = null;
+// ==========================================
+// APP STATE
+// ==========================================
+let gameId = null;
+let playerName = null;
 let userId = null;
 
-const { data: sessionData } = await sb.auth.getSession();
+const calledNumbers = new Set();
+const markedCells = new Set(["2-2"]);
+const card = generateCard();
 
-if (sessionData.session) {
-  userId = sessionData.session.user.id;
+// UI
+const board = document.getElementById("board");
+const callsEl = document.getElementById("calls");
+const currentBall = document.getElementById("currentBall");
+const bingoBtn = document.getElementById("bingoBtn");
+const titleEl = document.getElementById("cardTitle");
 
-  const { data: profile, error } = await sb
+// ==========================================
+// ENTRY POINT
+// ==========================================
+await initPlayer();
+
+// ==========================================
+// INITIALIZATION
+// ==========================================
+async function initPlayer() {
+  const session = await getSessionUser();
+  const identity = await resolvePlayerIdentity(session);
+  const roomCode = await requireRoomCode();
+  const game = await fetchGameByCode(roomCode);
+
+  gameId = game.id;
+  playerName = identity.name;
+  userId = identity.userId;
+
+  await joinGame(gameId, playerName, userId);
+
+  titleEl.textContent = `${playerName}'s card`;
+  subscribeToCalls(gameId);
+  renderBoard();
+}
+
+// ==========================================
+// SUPABASE HELPERS (CENTRALIZED)
+// ==========================================
+async function getSessionUser() {
+  const { data } = await sb.auth.getSession();
+  return data.session ?? null;
+}
+
+async function fetchProfile(userId) {
+  const { data, error } = await sb
     .from("profiles")
     .select("username")
     .eq("id", userId)
     .single();
 
-  if (!error && profile?.username) {
-    name = profile.username.slice(0, 10);
+  return error ? null : data;
+}
+
+async function fetchGameByCode(code) {
+  const { data, error } = await sb
+    .from("games")
+    .select("*")
+    .eq("code", code)
+    .single();
+
+  if (error || !data) {
+    alert("Room not found.");
+    throw new Error("Invalid room");
+  }
+  return data;
+}
+
+async function joinGame(gameId, name, userId) {
+  const { data: existing } = await sb
+    .from("claims")
+    .select("id")
+    .eq("game_id", gameId)
+    .or(
+      userId
+        ? `user_id.eq.${userId}`
+        : `player_name.eq.${name}`
+    )
+    .maybeSingle();
+
+  if (!existing) {
+    const { error } = await sb.from("claims").insert({
+      game_id: gameId,
+      user_id: userId,
+      player_name: name,
+      marked: []
+    });
+
+    if (error) {
+      alert("Unable to join game.");
+      throw error;
+    }
   }
 }
 
-// Fallback for anonymous users
-if (!name) {
-  name = prompt("Your name (max 10 chars)")?.trim();
+// ==========================================
+// IDENTITY RESOLUTION
+// ==========================================
+async function resolvePlayerIdentity(session) {
+  // Try reconnect
+  const cachedName = localStorage.getItem("playerName");
 
+  if (session) {
+    const profile = await fetchProfile(session.user.id);
+    if (profile?.username) {
+      return {
+        name: profile.username.slice(0, 10),
+        userId: session.user.id
+      };
+    }
+  }
+
+  if (cachedName) {
+    return { name: cachedName, userId: null };
+  }
+
+  const name = prompt("Enter your name (max 10 chars)")?.trim();
   if (!name || name.length > 10) {
-    alert("Invalid name");
+    alert("Invalid name.");
     throw new Error("Invalid name");
   }
+
+  localStorage.setItem("playerName", name);
+  return { name, userId: null };
 }
 
 // ==========================================
-// PREVENT DUPLICATE USERNAMES (UX CHECK)
+// ROOM CODE HANDLING (RECONNECT SAFE)
 // ==========================================
-const { data: existingPlayer } = await sb
-  .from("claims")
-  .select("id")
-  .eq("game_id", gameId)
-  .eq("player_name", name)
-  .maybeSingle();
+async function requireRoomCode() {
+  const cachedCode = localStorage.getItem("roomCode");
 
-if (existingPlayer) {
-  alert(`The name "${name}" is already taken in this game.`);
-  throw new Error("Duplicate username");
-}
+  if (cachedCode) return cachedCode;
 
-/* ===============================
-   JOIN GAME
-================================ */
-// ==========================================
-// REQUIRE ROOM CODE
-// ==========================================
-const code = prompt("Enter room code")?.trim().toUpperCase();
-
-if (!code || code.length !== 6) {
-  alert("Invalid room code.");
-  throw new Error("Invalid code");
-}
-
-// Lookup game by code
-const { data: game, error } = await sb
-  .from("games")
-  .select("*")
-  .eq("code", code)
-  .single();
-
-if (error || !game) {
-  alert("Room not found.");
-  throw new Error("Game not found");
-}
-if (game.ended_at) {
-  alert("This game has already ended.");
-  throw new Error("Game ended");
-}
-
-const gameId = game.id;
-
-/* ===============================
-   SHOW MODES
-================================ */
-const modesList = document.getElementById("modesList");
-function renderModes(modes) {
-  modesList.innerHTML = "";
-  modes.forEach(m => {
-    const li = document.createElement("li");
-    li.textContent = m.replace("_", " ");
-    modesList.appendChild(li);
-  });
-}
-renderModes(game.modes);
-
-/* ===============================
-   CARD + CALLS
-================================ */
-let called = new Set();
-let marked = new Set(["2-2"]);
-
-const board = document.getElementById("board");
-const callsEl = document.getElementById("calls");
-const currentBall = document.getElementById("currentBall");
-
-const card = generateCard();
-render();
-
-sb.channel(`calls-${gameId}`)
-  .on(
-    "postgres_changes",
-    { event: "INSERT", schema: "public", table: "calls" },
-    p => {
-      if (p.new.game_id !== gameId) return;
-      const n = p.new.number;
-      called.add(n);
-      updateCurrentBall(n);
-      addCalledNumber(n);
-      render();
-    }
-  )
-  .subscribe();
-
-/* ===============================
-   BINGO CLAIM
-================================ */
-document.getElementById("bingoBtn").onclick = async () => {
-  if (marked.size === 0) {
-    alert("You must mark at least one number before calling Bingo");
-    return;
+  const code = prompt("Enter room code")?.trim().toUpperCase();
+  if (!code || code.length !== 6) {
+    alert("Invalid room code.");
+    throw new Error("Invalid room code");
   }
 
-  document.getElementById("bingoBtn").disabled = true;
+  localStorage.setItem("roomCode", code);
+  return code;
+}
 
-const { error } = await sb.from("claims").insert({
-  game_id: gameId,
-  player_name: name,
-  user_id: userId, // null if anonymous
-  marked: [...marked]
-});
+// ==========================================
+// REALTIME SUBSCRIPTION
+// ==========================================
+function subscribeToCalls(gameId) {
+  sb.channel(`calls-${gameId}`)
+    .on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table: "calls" },
+      payload => {
+        if (payload.new.game_id !== gameId) return;
+        handleCall(payload.new.number);
+      }
+    )
+    .subscribe();
+}
+
+function handleCall(number) {
+  calledNumbers.add(number);
+  updateCurrentBall(number);
+  addCalledNumber(number);
+  renderBoard();
+}
+
+// ==========================================
+// BINGO CLAIM
+// ==========================================
+bingoBtn.onclick = async () => {
+  bingoBtn.disabled = true;
+
+  const { error } = await sb
+    .from("claims")
+    .update({ marked: [...markedCells] })
+    .eq("game_id", gameId)
+    .eq("player_name", playerName);
 
   if (error) {
-    console.error("[CLAIM ERROR]", error);
-    alert("Unable to submit Bingo claim");
-    document.getElementById("bingoBtn").disabled = false;
+    alert("Failed to submit Bingo.");
+    bingoBtn.disabled = false;
   }
 };
 
-/* ===============================
-   RENDER
-================================ */
-function render() {
+// ==========================================
+// RENDERING
+// ==========================================
+function renderBoard() {
   board.innerHTML = "";
-  card.forEach((r, y) =>
-    r.forEach((v, x) => {
-      const d = document.createElement("div");
-      const k = `${x}-${y}`;
-      d.className = "cell";
-      d.textContent = v === "FREE" ? "★" : v;
-      if (v === "FREE" || marked.has(k)) d.classList.add("marked");
-      if (v !== "FREE" && !called.has(v)) d.classList.add("locked");
-      d.onclick = () => {
-        if (!called.has(v)) return;
-        marked.has(k) ? marked.delete(k) : marked.add(k);
-        render();
+
+  card.forEach((row, y) => {
+    row.forEach((value, x) => {
+      const cell = document.createElement("div");
+      const key = `${x}-${y}`;
+
+      cell.className = "cell";
+      cell.textContent = value === "FREE" ? "★" : value;
+
+      if (value === "FREE" || markedCells.has(key)) {
+        cell.classList.add("marked");
+      }
+
+      if (value !== "FREE" && !calledNumbers.has(value)) {
+        cell.classList.add("locked");
+      }
+
+      cell.onclick = () => {
+        if (value !== "FREE" && !calledNumbers.has(value)) return;
+        markedCells.has(key)
+          ? markedCells.delete(key)
+          : markedCells.add(key);
+        renderBoard();
       };
-      board.appendChild(d);
-    })
-  );
+
+      board.appendChild(cell);
+    });
+  });
 }
 
-/* ===============================
-   HELPERS
-================================ */
+// ==========================================
+// UI HELPERS
+// ==========================================
 function updateCurrentBall(n) {
-  const l = n <= 15 ? "B" : n <= 30 ? "I" : n <= 45 ? "N" : n <= 60 ? "G" : "O";
-  currentBall.textContent = `${l} ${n}`;
+  const letter =
+    n <= 15 ? "B" :
+    n <= 30 ? "I" :
+    n <= 45 ? "N" :
+    n <= 60 ? "G" : "O";
+
+  currentBall.textContent = `${letter} ${n}`;
   currentBall.classList.remove("hidden");
 }
 
 function addCalledNumber(n) {
-  const l = n <= 15 ? "B" : n <= 30 ? "I" : n <= 45 ? "N" : n <= 60 ? "G" : "O";
-  const s = document.createElement("span");
-  s.textContent = `${l} ${n}`;
-  callsEl.prepend(s);
+  const span = document.createElement("span");
+  span.textContent = n;
+  callsEl.prepend(span);
 }
 
+// ==========================================
+// CARD GENERATION
+// ==========================================
 function generateCard() {
-  const r = [[1,15],[16,30],[31,45],[46,60],[61,75]];
-  const g = [[],[],[],[],[]];
-  r.forEach(([a,b],x)=>{
-    const s=new Set();
-    while(s.size<5)s.add(Math.floor(Math.random()*(b-a+1))+a);
-    [...s].forEach((n,y)=>g[y][x]=n);
-  });
-  g[2][2]="FREE";
-  return g;
-}
-const { data: game, error: gameError } = await sb
-  .from("games")
-  .select("*")
-  .single();
+  const ranges = [
+    [1, 15],
+    [16, 30],
+    [31, 45],
+    [46, 60],
+    [61, 75]
+  ];
 
-if (gameError) {
-  alert("Game not found");
-  throw new Error(gameError.message);
-}
+  const grid = Array.from({ length: 5 }, () => []);
 
-const { error: claimError } = await sb
-  .from("claims")
-  .insert({
-    game_id: gameId,
-    player_name: name,
-    user_id: userId,
-    marked: [...marked]
+  ranges.forEach(([min, max], col) => {
+    const nums = new Set();
+    while (nums.size < 5) {
+      nums.add(Math.floor(Math.random() * (max - min + 1)) + min);
+    }
+    [...nums].forEach((n, row) => {
+      grid[row][col] = n;
+    });
   });
 
-if (claimError) {
-  alert("Unable to submit claim");
+  grid[2][2] = "FREE";
+  return grid;
 }
-
-if (error) {
-  if (error.message.includes("unique_player_per_game")) {
-    alert("That username is already taken in this game.");
-  } else {
-    alert("Unable to submit Bingo claim.");
-  }
-}
-
-
-
-
