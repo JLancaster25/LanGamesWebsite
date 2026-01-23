@@ -51,32 +51,72 @@ document.querySelectorAll("[data-target]").forEach(el => {
 });
 
 /* AUTH */
-document.getElementById("registerBtn").addEventListener("click", async () => {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+// ================================
+// SUPABASE CONFIG (SAME AS LOGIN)
+// ================================
+const SUPABASE_URL = "https://kppgmvfdfuhmtuaukkdn.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_e4AhlY9ZIgdlsG8rl111Fg_tWghrBW4";
 
-  const { error } = await supabase.auth.signUp({ email, password });
-  authStatus.textContent = error ? error.message : "✔️ Registered!";
-});
+const supabase = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
 
-document.getElementById("loginBtn").addEventListener("click", async () => {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+// ================================
+// AUTH UI ELEMENTS (MAIN SITE)
+// ================================
+const authLink = document.getElementById("authLink"); // menu button
+const userPanel = document.getElementById("userPanel");
+const userEmail = document.getElementById("userEmail");
+const logoutBtn = document.getElementById("logoutBtn");
 
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+// ================================
+// SESSION CHECK ON LOAD
+// ================================
+async function loadSession() {
+  const { data } = await supabase.auth.getSession();
 
-  if (error) {
-    authStatus.textContent = error.message;
+  if (data.session) {
+    showLoggedIn(data.session.user);
   } else {
-    showUser(data.user.email);
+    showLoggedOut();
+  }
+}
+
+function showLoggedIn(user) {
+  if (authLink) authLink.textContent = "Account";
+  if (userPanel) userPanel.classList.remove("hidden");
+  if (userEmail) userEmail.textContent = user.email;
+}
+
+function showLoggedOut() {
+  if (authLink) authLink.textContent = "Login";
+  if (userPanel) userPanel.classList.add("hidden");
+}
+
+// ================================
+// LOGOUT
+// ================================
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", async () => {
+    await supabase.auth.signOut();
+    showLoggedOut();
+  });
+}
+
+// ================================
+// AUTH STATE LISTENER (REALTIME)
+// ================================
+supabase.auth.onAuthStateChange((_event, session) => {
+  if (session) {
+    showLoggedIn(session.user);
+  } else {
+    showLoggedOut();
   }
 });
-document.getElementById("logoutBtn").addEventListener("click", async () => {
-  await supabase.auth.signOut();
-  authForms.classList.remove("hidden");
-  userPanel.classList.add("hidden");
-});
 
+// INIT
+loadSession();
 /* SESSION */
 function showUser(email) {
   authForms.classList.add("hidden");
@@ -236,3 +276,4 @@ const LanGamesAPI = {
   }
 
 };
+
