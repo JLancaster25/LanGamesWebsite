@@ -1,3 +1,6 @@
+// ==================================================
+// SUPABASE POINTER
+// ==================================================
 const sb = window.supabaseClient;
 const message = document.getElementById("message");
 
@@ -6,14 +9,11 @@ const loginTab = document.getElementById("loginTab");
 const registerTab = document.getElementById("registerTab");
 const loginForm = document.getElementById("loginForm");
 const registerForm = document.getElementById("registerForm");
-
 const strengthBar = document.getElementById("strengthBar");
-const googleLogin = document.getElementById("googleLogin");
-const discordLogin = document.getElementById("discordLogin");
 
-// ================================
+// ==================================================
 // HELPERS
-// ================================
+// ==================================================
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
@@ -28,9 +28,9 @@ function showSuccess(text) {
   message.style.color = "#16a34a";
 }
 
-// ================================
+// ==================================================
 // TAB SWITCHING
-// ================================
+// ==================================================
 loginTab.onclick = () => {
   loginTab.classList.add("active");
   registerTab.classList.remove("active");
@@ -47,9 +47,9 @@ registerTab.onclick = () => {
   message.textContent = "";
 };
 
-// ================================
-// PASSWORD STRENGTH
-// ================================
+// ==================================================
+// PASSWORD STRENGTH METER
+// ==================================================
 registerPassword.addEventListener("input", () => {
   const value = registerPassword.value;
   let strength = 0;
@@ -68,9 +68,18 @@ registerPassword.addEventListener("input", () => {
     "#16a34a";
 });
 
-// ================================
+// ==================================================
+// REDIRECT IF ALREADY LOGGED IN
+// ==================================================
+sb.auth.getSession().then(({ data }) => {
+  if (data.session) {
+    window.location.href = "/";
+  }
+});
+
+// ==================================================
 // LOGIN
-// ================================
+// ==================================================
 loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -78,7 +87,9 @@ loginForm.addEventListener("submit", async (e) => {
   const password = loginPassword.value;
 
   if (!email || !password) return showError("All fields required.");
-  if (!isValidEmail(email)) return showError("Invalid email.");
+  if (!isValidEmail(email)) return showError("Invalid email address.");
+
+  showSuccess("Logging in…");
 
   const { error } = await sb.auth.signInWithPassword({ email, password });
   if (error) return showError(error.message);
@@ -86,9 +97,9 @@ loginForm.addEventListener("submit", async (e) => {
   window.location.href = "/";
 });
 
-// ================================
+// ==================================================
 // REGISTER
-// ================================
+// ==================================================
 registerForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -98,13 +109,21 @@ registerForm.addEventListener("submit", async (e) => {
   const confirm = confirmPassword.value;
 
   if (!username || !email || !password || !confirm)
-    return showError("All fields required.");
+    return showError("All fields are required.");
+
+  if (username.length < 3)
+    return showError("Username must be at least 3 characters.");
+
+  if (!isValidEmail(email))
+    return showError("Invalid email address.");
+
+  if (password.length < 6)
+    return showError("Password must be at least 6 characters.");
 
   if (password !== confirm)
     return showError("Passwords do not match.");
 
-  if (password.length < 6)
-    return showError("Password too weak.");
+  showSuccess("Creating account…");
 
   const { error } = await sb.auth.signUp({
     email,
@@ -113,21 +132,6 @@ registerForm.addEventListener("submit", async (e) => {
   });
 
   if (error) return showError(error.message);
+
   showSuccess("Account created! Check your email.");
-});
-
-// ================================
-// OAUTH
-// ================================
-googleLogin.onclick = () =>
-  sb.auth.signInWithOAuth({ provider: "google" });
-
-discordLogin.onclick = () =>
-  sb.auth.signInWithOAuth({ provider: "discord" });
-
-// ================================
-// REDIRECT IF LOGGED IN
-// ================================
-sb.auth.getSession().then(({ data }) => {
-  if (data.session) window.location.href = "/";
 });
