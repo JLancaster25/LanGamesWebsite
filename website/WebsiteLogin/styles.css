@@ -105,8 +105,54 @@ button[type="submit"] {
 button[type="submit"]:hover {
   background: #3c46cc;
 }
+.oauth-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.oauth {
+  padding: 0.6rem;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+}
+
+.oauth.google {
+  background: #ffffff;
+  border: 1px solid #ccc;
+}
+
+.oauth.discord {
+  background: #5865F2;
+  color: white;
+}
+
+.divider {
+  text-align: center;
+  margin: 1rem 0;
+  opacity: 0.6;
+}
+
+.strength {
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  margin-bottom: 0.5rem;
+}
+
+#strengthBar {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  transition: width 0.3s;
+}
+
 
 #message {
   margin-top: 15px;
   font-size: 0.9rem;
 }
+
