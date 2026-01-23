@@ -1,7 +1,7 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
 // 🔑 REPLACE THESE
-const SUPABASE_URL = window.https://kppgmvfdfuhmtuaukkdn.supabase.co;
+const SUPABASE_URL = window.kppgmvfdfuhmtuaukkdn.supabase.co;
 const SUPABASE_ANON_KEY = window.sb_publishable_e4AhlY9ZIgdlsG8rl111Fg_tWghrBW4;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -259,6 +259,7 @@ const LanGamesAPI = {
   }
 
 };
+
 
 
 
