@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="script.js"></script>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lan Games | Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <div class="auth-container">
+    <div class="auth-card">
+      <h1>Lan Games</h1>
+      <p class="subtitle">Login or create an account</p>
+
+      <div class="tab-buttons">
+        <button id="loginTab" class="active">Login</button>
+        <button id="registerTab">Register</button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <form id="loginForm" class="form active">
+        <input type="email" id="loginEmail" placeholder="Email" required />
+        <div class="password-field">
+          <input type="password" id="loginPassword" placeholder="Password" required />
+          <span class="toggle-password">👁</span>
+        </div>
+        <button type="submit">Login</button>
+      </form>
+
+      <!-- REGISTER FORM -->
+      <form id="registerForm" class="form">
+        <input type="text" id="registerUsername" placeholder="Username" required />
+        <input type="email" id="registerEmail" placeholder="Email" required />
+        <div class="password-field">
+          <input type="password" id="registerPassword" placeholder="Password" required />
+          <span class="toggle-password">👁</span>
+        </div>
+        <button type="submit">Create Account</button>
+      </form>
+
+      <p id="message"></p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
