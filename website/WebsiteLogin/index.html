@@ -1,18 +1,16 @@
 <!DOCTYPE html>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="script.js"></script>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Lan Games | Login</title>
+  <title>LAN Games | Login</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="/WebsiteLogin/styles.css" />
 </head>
 <body>
 
   <div class="auth-container">
     <div class="auth-card">
-      <h1>Lan Games</h1>
+      <h1>LAN Games</h1>
       <p class="subtitle">Login or create an account</p>
 
       <div class="tab-buttons">
@@ -45,6 +43,10 @@
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <!-- SCRIPT ORDER IS CRITICAL -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabaseClient.js"></script>
+  <script src="/WebsiteLogin/script.js"></script>
+
 </body>
 </html>
