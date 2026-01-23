@@ -15,7 +15,14 @@ async function requireAuth() {
 
 // BLOCK EXECUTION UNTIL AUTH CHECK PASSES
 await requireAuth();
-
+function generateRoomCode() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
+  for (let i = 0; i < 6; i++) {
+    code += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return code;
+}
 
 // ==========================================
 // AUTH GUARD (REQUIRED)
@@ -72,16 +79,38 @@ let winners = new Set();
 /* ===============================
    CREATE GAME
 ================================ */
-const roomCode = generateCode();
-roomCodeEl.textContent = roomCode;
+let game = null;
+let code = null;
+let attempts = 0;
 
-const { data: game } = await sb
-  .from('games')
-  .insert({ code: roomCode, status: 'lobby' })
-  .select()
-  .single();
+while (!game && attempts < 5) {
+  attempts++;
+  code = generateRoomCode();
 
-gameId = game.id;
+  const { data, error } = await sb
+    .from("games")
+    .insert({
+      code,
+      host_id: (await sb.auth.getSession()).data.session.user.id,
+      modes
+    })
+    .select()
+    .single();
+
+  if (!error) {
+    game = data;
+  }
+}
+
+if (!game) {
+  alert("Failed to create unique room. Please try again.");
+  throw new Error("Room creation failed");
+}
+
+const gameId = game.id;
+
+// Display room code clearly
+document.getElementById("roomCode").textContent = code;
 
 /* ===============================
    LOAD EXISTING PLAYERS
@@ -283,6 +312,7 @@ function generateCode() {
     chars[Math.floor(Math.random() * chars.length)]
   ).join('');
 }
+
 
 
 
