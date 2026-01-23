@@ -36,6 +36,21 @@ if (!name) {
   }
 }
 
+// ==========================================
+// PREVENT DUPLICATE USERNAMES (UX CHECK)
+// ==========================================
+const { data: existingPlayer } = await sb
+  .from("claims")
+  .select("id")
+  .eq("game_id", gameId)
+  .eq("player_name", name)
+  .maybeSingle();
+
+if (existingPlayer) {
+  alert(`The name "${name}" is already taken in this game.`);
+  throw new Error("Duplicate username");
+}
+
 /* ===============================
    JOIN GAME
 ================================ */
@@ -176,3 +191,17 @@ function generateCard() {
   g[2][2]="FREE";
   return g;
 }
+const { error } = await sb.from("claims").insert({
+  game_id: gameId,
+  player_name: name,
+  marked: [...marked]
+});
+
+if (error) {
+  if (error.message.includes("unique_player_per_game")) {
+    alert("That username is already taken in this game.");
+  } else {
+    alert("Unable to submit Bingo claim.");
+  }
+}
+
