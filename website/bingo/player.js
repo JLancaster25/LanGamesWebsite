@@ -199,11 +199,28 @@ function generateCard() {
   g[2][2]="FREE";
   return g;
 }
-const { error } = await sb.from("claims").insert({
-  game_id: gameId,
-  player_name: name,
-  marked: [...marked]
-});
+const { data: game, error: gameError } = await sb
+  .from("games")
+  .select("*")
+  .single();
+
+if (gameError) {
+  alert("Game not found");
+  throw new Error(gameError.message);
+}
+
+const { error: claimError } = await sb
+  .from("claims")
+  .insert({
+    game_id: gameId,
+    player_name: name,
+    user_id: userId,
+    marked: [...marked]
+  });
+
+if (claimError) {
+  alert("Unable to submit claim");
+}
 
 if (error) {
   if (error.message.includes("unique_player_per_game")) {
@@ -212,6 +229,7 @@ if (error) {
     alert("Unable to submit Bingo claim.");
   }
 }
+
 
 
 
