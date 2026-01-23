@@ -1,192 +1,57 @@
-// ==========================================
-// SUPABASE CLIENT
-// ==========================================
 const sb = window.supabaseClient;
-
-// ==========================================
-// APP STATE
-// ==========================================
-let gameId = null;
-let roomCode = null;
-let hostId = null;
-
-let playerChannel = null;
-
-// UI
+const playersList = document.getElementById("playersList");
 const roomCodeEl = document.getElementById("roomCode");
-const playersListEl = document.getElementById("playersList");
 
-// ==========================================
-// ENTRY POINT
-// ==========================================
-await initHost();
+let gameId, hostId;
 
-// ==========================================
-// INITIALIZATION
-// ==========================================
-async function initHost() {
-  const session = await requireHostAuth();
-  hostId = session.user.id;
+await init();
 
-  const existing = await tryReconnectHost(hostId);
+async function init() {
+  const session = await sb.auth.getSession();
+  if (!session.data.session) location.href = "/WebsiteLogin/";
+  hostId = session.data.session.user.id;
 
-  if (existing) {
-    gameId = existing.id;
-    roomCode = existing.code;
-  } else {
-    const game = await createGame(hostId);
-    gameId = game.id;
-    roomCode = game.code;
-  }
+  const game = await createGame();
+  gameId = game.id;
+  roomCodeEl.textContent = game.code;
 
-  roomCodeEl.textContent = roomCode;
-
-  await loadPlayers(gameId);
-  subscribeToPlayers(gameId);
+  loadPlayers();
+  subscribePlayers();
 }
 
-// ==========================================
-// AUTH
-// ==========================================
-async function requireHostAuth() {
-  const { data } = await sb.auth.getSession();
-  if (!data.session) {
-    window.location.replace("/WebsiteLogin/");
-    throw new Error("Not authenticated");
-  }
-  return data.session;
-}
-
-// ==========================================
-// RECONNECTION LOGIC
-// ==========================================
-async function tryReconnectHost(hostId) {
-  const { data, error } = await sb
-    .from("games")
-    .select("*")
-    .eq("host_id", hostId)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  return error ? null : data;
-}
-
-// ==========================================
-// GAME CREATION
-// ==========================================
-async function createGame(hostId) {
-  for (let i = 0; i < 5; i++) {
-    const code = generateRoomCode();
-
+async function createGame() {
+  while (true) {
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
     const { data, error } = await sb
       .from("games")
       .insert({ code, host_id: hostId })
       .select()
       .single();
-
     if (!error) return data;
   }
-
-  alert("Failed to create unique room.");
-  throw new Error("Room creation failed");
 }
 
-function generateRoomCode() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let out = "";
-  for (let i = 0; i < 6; i++) {
-    out += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return out;
+async function loadPlayers() {
+  if (!playersList) return;
+  const { data } = await sb.from("claims").select("id,player_name").eq("game_id", gameId);
+  playersList.innerHTML = "";
+  data?.forEach(addPlayer);
 }
 
-// ==========================================
-// PLAYER LIST (INITIAL LOAD)
-// ==========================================
-async function loadPlayers(gameId) {
-  if (!gameId) return;
-
-  const { data, error } = await sb
-    .from("claims")
-    .select("id, player_name")
-    .eq("game_id", gameId);
-
-  if (error || !data) return;
-
-  playersListEl.innerHTML = "";
-  data.forEach(addPlayerRow);
-}
-
-// ==========================================
-// REALTIME PLAYER JOIN / LEAVE
-// ==========================================
-function subscribeToPlayers(gameId) {
-  if (!gameId) return;
-
-  playerChannel = sb.channel(`players-${gameId}`)
-    .on(
-      "postgres_changes",
-      { event: "INSERT", schema: "public", table: "claims" },
-      payload => {
-        if (payload.new.game_id === gameId) {
-          addPlayerRow(payload.new);
-        }
-      }
-    )
-    .on(
-      "postgres_changes",
-      { event: "DELETE", schema: "public", table: "claims" },
-      payload => {
-        if (payload.old.game_id === gameId) {
-          removePlayerRow(payload.old.id);
-        }
-      }
-    )
+function subscribePlayers() {
+  sb.channel("players")
+    .on("postgres_changes", { event: "*", table: "claims" }, loadPlayers)
     .subscribe();
 }
 
-// ==========================================
-// UI HELPERS
-// ==========================================
-function addPlayerRow(player) {
-  if (document.getElementById(`player-${player.id}`)) return;
-
+function addPlayer(p) {
   const li = document.createElement("li");
-  li.id = `player-${player.id}`;
-  li.className = "player-row";
+  li.textContent = p.player_name;
 
-  const nameSpan = document.createElement("span");
-  nameSpan.textContent = player.player_name;
+  const btn = document.createElement("button");
+  btn.textContent = "Kick";
+  btn.onclick = () => sb.from("claims").delete().eq("id", p.id);
 
-  const kickBtn = document.createElement("button");
-  kickBtn.textContent = "Kick";
-  kickBtn.onclick = () => kickPlayer(player.id);
-
-  li.appendChild(nameSpan);
-  li.appendChild(kickBtn);
-  playersListEl.appendChild(li);
-}
-
-function removePlayerRow(playerId) {
-  const el = document.getElementById(`player-${playerId}`);
-  if (el) el.remove();
-}
-
-// ==========================================
-// KICK PLAYER
-// ==========================================
-async function kickPlayer(playerId) {
-  const confirmKick = confirm("Kick this player?");
-  if (!confirmKick) return;
-
-  const { error } = await sb
-    .from("claims")
-    .delete()
-    .eq("id", playerId)
-    .eq("game_id", gameId);
-
-  if (error) {
-    alert("Failed to kick player.");
-  }
+  li.appendChild(btn);
+  playersList.appendChild(li);
 }
