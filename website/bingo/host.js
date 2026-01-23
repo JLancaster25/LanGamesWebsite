@@ -1,5 +1,21 @@
 import { supabase } from './supabase.js';
 
+// ==========================================
+// AUTH GUARD (REQUIRED)
+// ==========================================
+const sb = window.supabaseClient;
+
+async function requireAuth() {
+  const { data } = await sb.auth.getSession();
+
+  if (!data.session) {
+    // Not logged in → redirect to login
+    window.location.replace("/WebsiteLogin/");
+  }
+}
+
+// Run immediately
+requireAuth();
 /* ===============================
    AI VOICE CALLER
 ================================ */
@@ -250,4 +266,5 @@ function generateCode() {
     chars[Math.floor(Math.random() * chars.length)]
   ).join('');
 }
+
 
