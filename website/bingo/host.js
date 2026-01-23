@@ -63,6 +63,15 @@ let autoTimer = null;
 let called = new Set();
 let winners = new Set();
 
+// ==========================================
+// COLLECT SELECTED MODES
+// ==========================================
+const modeCheckboxes = document.querySelectorAll(
+  'input[name="mode"]:checked'
+);
+
+const modes = Array.from(modeCheckboxes).map(cb => cb.value);
+
 /* ===============================
    CREATE GAME
 ================================ */
@@ -297,6 +306,7 @@ function generateCode() {
     chars[Math.floor(Math.random() * chars.length)]
   ).join('');
 }
+
 
 
 
