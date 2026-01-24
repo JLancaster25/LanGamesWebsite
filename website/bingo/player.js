@@ -159,6 +159,7 @@ async function fetchGameByCode(code) {
 }
 
 async function joinGame(gameId, name, userId) {
+  // Check if already joined (prevents duplicates)
   const { data: existing } = await sb
     .from("claims")
     .select("id")
@@ -170,27 +171,26 @@ async function joinGame(gameId, name, userId) {
     )
     .maybeSingle();
 
-  if (!existing) {
-    const { error } = await sb.from("claims").insert({
-      game_id: gameId,
-      user_id: userId,
-      player_name: name,
-      marked: []
-    });
+  if (existing) return;
 
-    if (error) {
-      alert("Unable to join game.");
-      throw error;
-    }
-  }
-    if (error) {
-    if (error.message.includes("unique")) {
+  // Insert new player
+  const { error } = await sb.from("claims").insert({
+    game_id: gameId,
+    user_id: userId ?? null,
+    player_name: name,
+    marked: []
+  });
+
+  if (error) {
+    if (error.message?.toLowerCase().includes("unique")) {
       alert("That username is already taken in this game.");
     } else {
-      alert("Failed to join game.");
+      alert("Unable to join game.");
     }
     throw error;
   }
+}
+
 }
 
 
@@ -366,6 +366,7 @@ function generateCard() {
   grid[2][2] = "FREE";
   return grid;
 }
+
 
 
 
