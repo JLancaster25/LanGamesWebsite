@@ -38,7 +38,8 @@ document.addEventListener("DOMContentLoaded", initHost);
 async function initHost() {
   setupMenu();
   setupNewGameButton();
-
+  loadVoices();
+  
   const session = await requireAuth();
   hostId = session.user.id;
   setupControls();
@@ -72,6 +73,13 @@ function setupNewGameButton() {
   newGameBtn.addEventListener("click", async () => {
     await startNewGame();
   });
+  const voiceToggle = document.getElementById("voiceToggle");
+  if (voiceToggle) {
+    voiceEnabled = voiceToggle.checked;
+    voiceToggle.addEventListener("change", () => {
+      voiceEnabled = voiceToggle.checked;
+    });
+ }
 }
 
 // ==========================================
@@ -164,6 +172,61 @@ function generateRoomCode() {
 }
 
 // ==========================================
+// AI VOICE CALLER
+// ==========================================
+let voiceEnabled = true;
+let selectedVoice = null;
+
+function loadVoices() {
+  const voices = speechSynthesis.getVoices();
+  selectedVoice =
+    voices.find(v => v.lang.startsWith("en") && v.name.includes("Google")) ||
+    voices.find(v => v.lang.startsWith("en")) ||
+    voices[0];
+
+  // Optional dropdown
+  const voiceSelect = document.getElementById("voiceSelect");
+  if (voiceSelect && voices.length) {
+    voiceSelect.innerHTML = "";
+    voices.forEach((v, i) => {
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = `${v.name} (${v.lang})`;
+      voiceSelect.appendChild(opt);
+    });
+
+    voiceSelect.onchange = () => {
+      selectedVoice = voices[voiceSelect.value];
+    };
+  }
+}
+
+// Required for Chrome
+speechSynthesis.onvoiceschanged = loadVoices;
+
+function speakCall(number) {
+  if (!voiceEnabled || !selectedVoice) return;
+
+  const letter =
+    number <= 15 ? "B" :
+    number <= 30 ? "I" :
+    number <= 45 ? "N" :
+    number <= 60 ? "G" : "O";
+
+  const utterance = new SpeechSynthesisUtterance(
+    `${letter}… ${number}`
+  );
+
+  utterance.voice = selectedVoice;
+  utterance.rate = 0.9;
+  utterance.pitch = 1.0;
+  utterance.volume = 1;
+
+  speechSynthesis.cancel(); // prevents overlap
+  speechSynthesis.speak(utterance);
+}
+
+// ==========================================
 // CALLING LOGIC
 // ==========================================
 async function aiCallOnce() {
@@ -222,6 +285,7 @@ async function recordCall(number) {
     game_id: gameId,
     number
   });
+  speakCall(number);
 }
 
 // ==========================================
@@ -327,6 +391,7 @@ async function kickPlayer(playerId) {
     alert("Failed to kick player.");
   }
 }
+
 
 
 
