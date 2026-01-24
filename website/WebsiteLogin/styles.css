@@ -12,7 +12,63 @@ body {
   justify-content: center;
   color: #fff;
 }
+/* NAVBAR */
+.navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: white;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,.08);
+  z-index: 10000;
+}
 
+.logo {
+  font-weight: 900;
+  font-size: 1.4rem;
+  color: var(--purple);
+}
+
+.menu-btn {
+  font-size: 1.6rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.menu {
+  position: fixed;
+  top: 70px;
+  right: 20px;
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 20px 40px rgba(0,0,0,.15);
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  z-index: 9999;
+}
+
+.menu.hidden {
+  display: none;
+}
+
+.menu a {
+  padding: 1rem;
+  font-weight: 600;
+  color: var(--purple);
+}
+
+.menu a:hover {
+  background: #eef2ff;
+}
+
+.hidden {
+  display: none;
+}
 .auth-container {
   width: 100%;
   max-width: 400px;
@@ -131,5 +187,6 @@ button[type="submit"]:hover {
   margin-top: 15px;
   font-size: 0.9rem;
 }
+
 
 
