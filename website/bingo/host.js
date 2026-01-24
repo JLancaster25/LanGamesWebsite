@@ -280,41 +280,6 @@ function unsubscribePlayers() {
 }
 
 // ==========================================
-// REALTIME SUBSCRIPTION
-// ==========================================
-function subscribeToPlayers() {
-  if (!gameId) return;
-
-  playerChannel = sb.channel(`players-${gameId}`)
-    .on(
-      "postgres_changes",
-      { event: "INSERT", schema: "public", table: "claims" },
-      payload => {
-        if (payload.new.game_id === gameId) {
-          addPlayerRow(payload.new);
-        }
-      }
-    )
-    .on(
-      "postgres_changes",
-      { event: "DELETE", schema: "public", table: "claims" },
-      payload => {
-        if (payload.old.game_id === gameId) {
-          removePlayerRow(payload.old.id);
-        }
-      }
-    )
-    .subscribe();
-}
-
-function unsubscribePlayers() {
-  if (playerChannel) {
-    sb.removeChannel(playerChannel);
-    playerChannel = null;
-  }
-}
-
-// ==========================================
 // UI HELPERS
 // ==========================================
 function clearPlayersUI() {
@@ -362,6 +327,7 @@ async function kickPlayer(playerId) {
     alert("Failed to kick player.");
   }
 }
+
 
 
 
