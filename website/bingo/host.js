@@ -1,100 +1,87 @@
-
 // ==========================================
 // SUPABASE CLIENT
 // ==========================================
 const sb = window.supabaseClient;
 
 // ==========================================
-// DOM ELEMENTS (SAFE TO QUERY AFTER LOAD)
+// DOM ELEMENTS
 // ==========================================
 const roomCodeEl = document.getElementById("roomCode");
 const playersListEl = document.getElementById("playersList");
-
-/* MENU LOGIC */
 const menu = document.getElementById("menu");
 const menuBtn = document.getElementById("menuBtn");
+const newGameBtn = document.getElementById("newGameBtn");
 
-/* MENU LOGIC */
-menuBtn.addEventListener("click", (e) => {
-  e.stopPropagation(); // ⛔ prevent document click
-  menu.classList.toggle("hidden");
-});
-
-/* Close menu when clicking outside */
-document.addEventListener("click", (e) => {
-  const clickedInsideMenu = menu.contains(e.target);
-  const clickedMenuButton = menuBtn.contains(e.target);
-
-  if (!clickedInsideMenu && !clickedMenuButton) {
-    menu.classList.add("hidden");
-  }
-});
-
-/* Menu item navigation */
-document.querySelectorAll("[data-target]").forEach(el => {
-  el.addEventListener("click", () => {
-    const target = el.getAttribute("data-target");
-    menu.classList.add("hidden");
-    document.getElementById(target).scrollIntoView({ behavior: "smooth" });
-  });
-});;
 // ==========================================
 // APP STATE
 // ==========================================
 let gameId = null;
 let hostId = null;
+let playerChannel = null;
 
 // ==========================================
 // ENTRY POINT
 // ==========================================
-await initHost();
+document.addEventListener("DOMContentLoaded", initHost);
 
 // ==========================================
 // INITIALIZATION
 // ==========================================
 async function initHost() {
+  setupMenu();
+  setupNewGameButton();
+
   const session = await requireAuth();
   hostId = session.user.id;
+
+  await startNewGame();
+}
+
+// ==========================================
+// MENU LOGIC (SAFE)
+// ==========================================
+function setupMenu() {
+  if (!menu || !menuBtn) return;
+
+  menuBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    menu.classList.toggle("hidden");
+  });
+
+  document.addEventListener("click", () => {
+    menu.classList.add("hidden");
+  });
+}
+
+// ==========================================
+// NEW GAME BUTTON
+// ==========================================
+function setupNewGameButton() {
+  if (!newGameBtn) return;
+
+  newGameBtn.addEventListener("click", async () => {
+    await startNewGame();
+  });
+}
+
+// ==========================================
+// START / RESTART GAME
+// ==========================================
+async function startNewGame() {
+  clearPlayersUI();
+  unsubscribePlayers();
 
   const game = await createGameWithUniqueCode(hostId);
   gameId = game.id;
 
   roomCodeEl.textContent = game.code;
 
-  await loadPlayers(gameId);
-  subscribeToPlayers(gameId);
+  await loadPlayers();
+  subscribeToPlayers();
 }
-document.addEventListener("DOMContentLoaded", () => {
-  const newGameBtn = document.getElementById("newGameBtn");
 
-  if (!newGameBtn) {
-    console.warn("New Game button not found");
-    return;
-  }
-
-  newGameBtn.addEventListener("click", () => {
-    console.log("New Game clicked");
-    startNewGame();
-  });
-});
-async function startNewGame() {
-  console.log("Starting new game…");
-
-  const session = await sb.auth.getSession();
-  if (!session.data.session) {
-    alert("You must be logged in to host a game.");
-    return;
-  }
-
-  const hostId = session.data.session.user.id;
-
-  const game = await createGameWithUniqueCode(hostId);
-  gameId = game.id;
-
-  document.getElementById("roomCode").textContent = game.code;
-}
 // ==========================================
-// AUTH GUARD (LOCK PAGE)
+// AUTH GUARD
 // ==========================================
 async function requireAuth() {
   const { data } = await sb.auth.getSession();
@@ -111,27 +98,24 @@ async function requireAuth() {
 // GAME CREATION
 // ==========================================
 async function createGameWithUniqueCode(hostId) {
-  for (let attempt = 0; attempt < 5; attempt++) {
+  for (let i = 0; i < 5; i++) {
     const code = generateRoomCode();
 
     const { data, error } = await sb
       .from("games")
-      .insert({
-        code,
-        host_id: hostId
-      })
+      .insert({ code, host_id: hostId })
       .select()
       .single();
 
     if (!error) return data;
   }
 
-  alert("Failed to create a unique room. Please refresh.");
+  alert("Failed to create a unique room.");
   throw new Error("Room creation failed");
 }
 
 // ==========================================
-// 7-CHAR ALPHANUMERIC CODE
+// ROOM CODE
 // ==========================================
 function generateRoomCode() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -143,27 +127,27 @@ function generateRoomCode() {
 }
 
 // ==========================================
-// PLAYER LIST (INITIAL LOAD)
+// PLAYER LIST
 // ==========================================
-async function loadPlayers(gameId) {
-  if (!playersListEl) return;
+async function loadPlayers() {
+  if (!playersListEl || !gameId) return;
 
-  const { data, error } = await sb
+  const { data } = await sb
     .from("claims")
     .select("id, player_name")
     .eq("game_id", gameId);
 
-  if (error || !data) return;
-
-  playersListEl.innerHTML = "";
-  data.forEach(addPlayerRow);
+  clearPlayersUI();
+  data?.forEach(addPlayerRow);
 }
 
 // ==========================================
-// REALTIME JOIN / LEAVE
+// REALTIME SUBSCRIPTION
 // ==========================================
-function subscribeToPlayers(gameId) {
-  sb.channel(`players-${gameId}`)
+function subscribeToPlayers() {
+  if (!gameId) return;
+
+  playerChannel = sb.channel(`players-${gameId}`)
     .on(
       "postgres_changes",
       { event: "INSERT", schema: "public", table: "claims" },
@@ -185,29 +169,36 @@ function subscribeToPlayers(gameId) {
     .subscribe();
 }
 
+function unsubscribePlayers() {
+  if (playerChannel) {
+    sb.removeChannel(playerChannel);
+    playerChannel = null;
+  }
+}
+
 // ==========================================
 // UI HELPERS
 // ==========================================
+function clearPlayersUI() {
+  if (playersListEl) playersListEl.innerHTML = "";
+}
+
 function addPlayerRow(player) {
+  if (!playersListEl) return;
   if (document.getElementById(`player-${player.id}`)) return;
 
-function addPlayer(p) {
   const li = document.createElement("li");
   li.id = `player-${player.id}`;
   li.className = "player-row";
 
-  const nameSpan = document.createElement("span");
-  nameSpan.textContent = player.player_name;
-  li.textContent = p.player_name;
+  const name = document.createElement("span");
+  name.textContent = player.player_name;
 
   const kickBtn = document.createElement("button");
   kickBtn.textContent = "Kick";
   kickBtn.onclick = () => kickPlayer(player.id);
-  const btn = document.createElement("button");
-  btn.textContent = "Kick";
-  btn.onclick = () => sb.from("claims").delete().eq("id", p.id);
 
-  li.appendChild(nameSpan);
+  li.appendChild(name);
   li.appendChild(kickBtn);
   playersListEl.appendChild(li);
 }
@@ -218,7 +209,7 @@ function removePlayerRow(playerId) {
 }
 
 // ==========================================
-// KICK PLAYER (HOST ONLY)
+// KICK PLAYER
 // ==========================================
 async function kickPlayer(playerId) {
   if (!confirm("Kick this player?")) return;
@@ -232,9 +223,4 @@ async function kickPlayer(playerId) {
   if (error) {
     alert("Failed to kick player.");
   }
-  }
-  li.appendChild(btn);
-  playersList.appendChild(li);
-
-
-
+}
