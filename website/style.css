@@ -1,3 +1,6 @@
+/* =====================================================
+   MAIN STYLES (from MainStyles.css)
+===================================================== */
 :root {
   --purple: #7c3aed;
   --azure: #0ea5e9;
@@ -44,23 +47,16 @@ body {
 }
 
 .menu {
-  position: fixed;            /* ✅ WAS absolute */
+  position: fixed;
   top: 70px;
   right: 20px;
-
   background: white;
   border-radius: 14px;
   box-shadow: 0 20px 40px rgba(0,0,0,.15);
-
   min-width: 200px;
   display: flex;
   flex-direction: column;
-
   z-index: 9999;
-
-  /* animation-safe visibility */
-  opacity: 1;
-  transform: translateY(0);
 }
 
 .menu.hidden {
@@ -69,7 +65,6 @@ body {
 
 .menu a {
   padding: 1rem;
-  cursor: pointer;
   font-weight: 600;
   color: var(--purple);
 }
@@ -88,9 +83,9 @@ body {
   background: linear-gradient(135deg, var(--purple), var(--azure));
   color: white;
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
+  flex-direction: column;
   text-align: center;
 }
 
@@ -124,33 +119,25 @@ section {
   text-align: center;
 }
 
-.features, .games {
+.features,
+.games {
   background: #eef2ff;
 }
 
-.feature-grid, .game-grid {
+.feature-grid,
+.game-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
   gap: 2rem;
   margin-top: 3rem;
 }
 
-.card, .game-card {
+.card,
+.game-card {
   background: white;
   padding: 2rem;
   border-radius: 20px;
   box-shadow: 0 15px 30px rgba(0,0,0,.1);
-}
-
-/* AUTH */
-.auth input {
-  display: block;
-  width: 100%;
-  max-width: 320px;
-  margin: 0.6rem auto;
-  padding: 0.7rem;
-  border-radius: 8px;
-  border: 1px solid #c7d2fe;
 }
 
 /* FOOTER */
@@ -158,4 +145,154 @@ footer {
   background: var(--dark);
   color: white;
   padding: 1.5rem;
+}
+
+/* =====================================================
+   LOGIN STYLES (from LoginStyles.css)
+===================================================== */
+.auth-container {
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
+}
+
+.auth-card {
+  background: #11142c;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+  text-align: center;
+}
+
+.subtitle {
+  font-size: 0.9rem;
+  color: #aaa;
+  margin-bottom: 20px;
+}
+
+.tab-buttons {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+.tab-buttons button {
+  flex: 1;
+  padding: 10px;
+  background: #1b1f44;
+  color: #ccc;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+}
+
+.tab-buttons button.active {
+  background: #4f5bff;
+  color: #fff;
+}
+
+.form {
+  display: none;
+}
+
+.form.active {
+  display: block;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: none;
+  background: #1b1f44;
+  color: #fff;
+}
+
+input::placeholder {
+  color: #888;
+}
+
+button[type="submit"] {
+  width: 100%;
+  padding: 12px;
+  background: #4f5bff;
+  border-radius: 8px;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+}
+
+/* =====================================================
+   BINGO STYLES (from BingoStyles.css)
+===================================================== */
+:root {
+  --bg: #0b0b0e;
+  --panel-bg: #141418;
+  --panel-border: #222;
+  --text: #ffffff;
+  --muted: #aaaaaa;
+  --accent: #ff4d4d;
+}
+
+.app {
+  height: calc(100vh - 52px);
+}
+
+.host-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr 300px;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.panel {
+  background: var(--panel-bg);
+  border-radius: 10px;
+  padding: 0.75rem;
+  border: 1px solid var(--panel-border);
+}
+
+#playerList li {
+  padding: 0.45rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.current-ball {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle at top, #ff6a6a, #b30000);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.8rem;
+  font-weight: bold;
+}
+
+/* =====================================================
+   TIC TAC TOE STYLES (from TicTacToeStyles.css)
+===================================================== */
+.topbar {
+  padding: 1rem;
+  background: linear-gradient(135deg, var(--purple), var(--azure));
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 100px);
+  gap: 12px;
+  justify-content: center;
+  margin: 2rem auto;
+}
+
+.cell {
+  width: 100px;
+  height: 100px;
+  font-size: 2.5rem;
+  font-weight: bold;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  background: #0f172a;
+  color: #f8fafc;
 }
