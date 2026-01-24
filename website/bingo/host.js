@@ -189,18 +189,23 @@ function subscribeToPlayers(gameId) {
 // UI HELPERS
 // ==========================================
 function addPlayerRow(player) {
-  if (!playersListEl) return;
   if (document.getElementById(`player-${player.id}`)) return;
 
+function addPlayer(p) {
   const li = document.createElement("li");
   li.id = `player-${player.id}`;
+  li.className = "player-row";
 
   const nameSpan = document.createElement("span");
   nameSpan.textContent = player.player_name;
+  li.textContent = p.player_name;
 
   const kickBtn = document.createElement("button");
   kickBtn.textContent = "Kick";
   kickBtn.onclick = () => kickPlayer(player.id);
+  const btn = document.createElement("button");
+  btn.textContent = "Kick";
+  btn.onclick = () => sb.from("claims").delete().eq("id", p.id);
 
   li.appendChild(nameSpan);
   li.appendChild(kickBtn);
@@ -228,4 +233,5 @@ async function kickPlayer(playerId) {
     alert("Failed to kick player.");
   }
 }
+
 
