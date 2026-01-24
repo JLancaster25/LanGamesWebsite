@@ -4,6 +4,10 @@
 const sb = window.supabaseClient;
 
 /* MENU LOGIC */
+const menu = document.getElementById("menu");
+const menuBtn = document.getElementById("menuBtn");
+
+/* MENU LOGIC */
 menuBtn.addEventListener("click", (e) => {
   e.stopPropagation(); // ⛔ prevent document click
   menu.classList.toggle("hidden");
@@ -140,4 +144,5 @@ async function joinGame(gameId, playerName) {
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
 
