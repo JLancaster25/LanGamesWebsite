@@ -14,6 +14,10 @@
   --text: #ffffff;
   --muted: #aaaaaa;
   --accent: #ff4d4d;
+  --purple: #7c3aed;
+  --azure: #0ea5e9;
+  --dark: #020617;
+  --light: #f1f5f9;
 }
 
 body {
@@ -432,5 +436,6 @@ input[type="range"] {
     font-size: 2.2rem;
   }
 }
+
 
 
