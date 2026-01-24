@@ -56,8 +56,16 @@ async function initPlayer() {
   const roomCode = await requireRoomCode();
   const game = await fetchGameByCode(roomCode);
 
- // let game = await fetchGameByCodeWithRetry(roomCode);
+  const profileUsername = await getUsernameFromProfileIfLoggedIn();
 
+  const playerName =
+  profileUsername ||
+  prompt("Enter your name (max 10 chars)")?.trim();
+
+if (!playerName) {
+  alert("Name required");
+  throw new Error("Missing player name");
+}
   if (!game) {
     alert("Room not found. Please wait a moment and try again.");
     throw new Error("Room invalid");
@@ -198,6 +206,23 @@ async function joinGame(gameId, name, userId) {
 if (profile?.username) {
   playerName = profile.username;
 }
+}
+async function getUsernameFromProfileIfLoggedIn() {
+  const { data: sessionData } = await sb.auth.getSession();
+  const user = sessionData?.session?.user;
+
+  if (!user) {
+    // Not logged in → DO NOT query profiles
+    return null;
+  }
+
+  const { data: profile } = await sb
+    .from("profiles")
+    .select("username")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  return profile?.username ?? null;
 }
 
 // ==========================================
@@ -372,6 +397,7 @@ function generateCard() {
   grid[2][2] = "FREE";
   return grid;
 }
+
 
 
 
