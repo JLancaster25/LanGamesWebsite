@@ -234,7 +234,7 @@ async function requireRoomCode() {
   if (cachedCode) return cachedCode;
 
   const code = prompt("Enter room code")?.trim().toUpperCase();
-  if (!code || code.length !== 6) {
+  if (!code || code.length !== 7) {
     alert("Invalid room code.");
     throw new Error("Invalid room code");
   }
@@ -366,6 +366,7 @@ function generateCard() {
   grid[2][2] = "FREE";
   return grid;
 }
+
 
 
 
