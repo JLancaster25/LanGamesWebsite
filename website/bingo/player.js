@@ -41,7 +41,7 @@ let userId = null;
 const calledNumbers = new Set();
 const markedCells = new Set(["2-2"]);
 const card = generateCard();
-
+const titleEl = document.getElementById("cardTitle");
 // ==========================================
 // ENTRY POINT
 // ==========================================
@@ -363,6 +363,7 @@ function generateCard() {
   grid[2][2] = "FREE";
   return grid;
 }
+
 
 
 
