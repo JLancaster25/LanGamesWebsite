@@ -7,8 +7,24 @@
 </head>
 <body>
 
-<header>
-  <a href="index.html">← Home</a>
+<header class="navbar">
+  <div class="logo">LAN Games</div>
+
+  <!-- ❌ NO INLINE JS -->
+  <button class="menu-btn" id="menuBtn">☰</button>
+
+  <nav id="menu" class="menu hidden">
+    <a data-target="home">Home</a>
+    <a data-target="features">Features</a>
+    <a href="tictactoe/">Tic-Tac-Toe</a>
+    <a href="bingo/">Bingo</a>
+    <a href="WebsiteLogin/">Login/Register</a>
+
+  <div id="userPanel" class="hidden">
+    <span id="userEmail"></span>
+    <button id="logoutBtn" class="btn secondary hidden">Logout</button>
+  </div>
+  </nav>
 </header>
 
 <main class="app">
@@ -48,5 +64,6 @@
 <script type="module" src="player.js"></script>
 </body>
 </html>
+
 
 
