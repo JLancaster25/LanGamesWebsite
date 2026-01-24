@@ -32,6 +32,87 @@ header {
   border-bottom: 1px solid var(--panel-border);
 }
 
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+}
+
+.logo {
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.menu {
+  position: relative;
+}
+
+.menu-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.menu-dropdown {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: #111;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.menu-dropdown a {
+  display: block;
+  padding: 0.6rem 1rem;
+  color: white;
+  text-decoration: none;
+}
+
+.menu-dropdown a:hover {
+  background: #333;
+}
+
+.hidden {
+  display: none;
+}
+
+.home {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 70vh;
+}
+
+.hero {
+  text-align: center;
+}
+
+.action-buttons {
+  margin-top: 1.5rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.btn {
+  padding: 0.8rem 1.4rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.btn.primary {
+  background: #7c3aed;
+  color: white;
+}
+
+.btn.secondary {
+  background: #2563eb;
+  color: white;
+}
 /* ===============================
    APP WRAPPER
 ================================ */
@@ -294,3 +375,4 @@ input[type="range"] {
     font-size: 2.2rem;
   }
 }
+
