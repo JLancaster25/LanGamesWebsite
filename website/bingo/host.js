@@ -11,13 +11,22 @@ const playersListEl = document.getElementById("playersList");
 const menu = document.getElementById("menu");
 const menuBtn = document.getElementById("menuBtn");
 const newGameBtn = document.getElementById("newGameBtn");
+const startGameBtn = document.getElementById("startGameBtn");
+const newGameBtn = document.getElementById("newGameBtn");
+const aiCallBtn = document.getElementById("aiCallBtn");
+const autoCallBtn = document.getElementById("autoCallBtn");
+const stopAutoCallBtn = document.getElementById("stopAutoCallBtn");
 
+const callSpeedInput = document.getElementById("callSpeed");
+const speedLabel = document.getElementById("speedLabel");
 // ==========================================
 // APP STATE
 // ==========================================
 let gameId = null;
 let hostId = null;
 let playerChannel = null;
+let autoCallTimer = null;
+let calledNumbers = new Set();
 
 // ==========================================
 // ENTRY POINT
@@ -33,6 +42,8 @@ async function initHost() {
 
   const session = await requireAuth();
   hostId = session.user.id;
+  setupControls();
+  updateSpeedLabel();
 
   await startNewGame();
 }
@@ -95,6 +106,47 @@ async function requireAuth() {
 }
 
 // ==========================================
+// CONTROL SETUP
+// ==========================================
+function setupControls() {
+  startGameBtn?.addEventListener("click", startGame);
+  newGameBtn?.addEventListener("click", startNewGame);
+  aiCallBtn?.addEventListener("click", aiCallOnce);
+  autoCallBtn?.addEventListener("click", startAutoCall);
+  stopAutoCallBtn?.addEventListener("click", stopAutoCall);
+
+  callSpeedInput?.addEventListener("input", updateSpeedLabel);
+}
+
+// ==========================================
+// GAME LIFECYCLE
+// ==========================================
+async function startNewGame() {
+  stopAutoCall();
+  calledNumbers.clear();
+
+  clearPlayersUI();
+  unsubscribePlayers();
+
+  const game = await createGameWithUniqueCode(hostId);
+  gameId = game.id;
+
+  roomCodeEl.textContent = game.code;
+
+  await loadPlayers();
+  subscribeToPlayers();
+}
+
+function startGame() {
+  if (!gameId) {
+    alert("Create a game first.");
+    return;
+  }
+
+  alert("Game started!");
+}
+
+// ==========================================
 // GAME CREATION
 // ==========================================
 async function createGameWithUniqueCode(hostId) {
@@ -127,6 +179,75 @@ function generateRoomCode() {
 }
 
 // ==========================================
+// CALLING LOGIC
+// ==========================================
+async function aiCallOnce() {
+  if (!gameId) return;
+
+  const number = drawNextNumber();
+  if (!number) {
+    alert("All numbers have been called.");
+    return;
+  }
+
+  await recordCall(number);
+}
+
+function startAutoCall() {
+  if (autoCallTimer) return;
+
+  autoCallBtn.classList.add("hidden");
+  stopAutoCallBtn.classList.remove("hidden");
+
+  autoCallTimer = setInterval(async () => {
+    const number = drawNextNumber();
+    if (!number) {
+      stopAutoCall();
+      alert("All numbers called.");
+      return;
+    }
+    await recordCall(number);
+  }, callSpeedInput.value * 1000);
+}
+
+function stopAutoCall() {
+  if (autoCallTimer) {
+    clearInterval(autoCallTimer);
+    autoCallTimer = null;
+  }
+
+  autoCallBtn?.classList.remove("hidden");
+  stopAutoCallBtn?.classList.add("hidden");
+}
+
+function drawNextNumber() {
+  if (calledNumbers.size >= 75) return null;
+
+  let num;
+  do {
+    num = Math.floor(Math.random() * 75) + 1;
+  } while (calledNumbers.has(num));
+
+  calledNumbers.add(num);
+  return num;
+}
+
+async function recordCall(number) {
+  await sb.from("calls").insert({
+    game_id: gameId,
+    number
+  });
+}
+
+// ==========================================
+// SPEED UI
+// ==========================================
+function updateSpeedLabel() {
+  if (!speedLabel || !callSpeedInput) return;
+  speedLabel.textContent = `${callSpeedInput.value}s`;
+}
+
+// ==========================================
 // PLAYER LIST
 // ==========================================
 async function loadPlayers() {
@@ -139,6 +260,38 @@ async function loadPlayers() {
 
   clearPlayersUI();
   data?.forEach(addPlayerRow);
+}
+
+function subscribeToPlayers() {
+  if (!gameId) return;
+
+  playerChannel = sb.channel(`players-${gameId}`)
+    .on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table: "claims" },
+      payload => {
+        if (payload.new.game_id === gameId) {
+          addPlayerRow(payload.new);
+        }
+      }
+    )
+    .on(
+      "postgres_changes",
+      { event: "DELETE", schema: "public", table: "claims" },
+      payload => {
+        if (payload.old.game_id === gameId) {
+          removePlayerRow(payload.old.id);
+        }
+      }
+    )
+    .subscribe();
+}
+
+function unsubscribePlayers() {
+  if (playerChannel) {
+    sb.removeChannel(playerChannel);
+    playerChannel = null;
+  }
 }
 
 // ==========================================
@@ -224,3 +377,4 @@ async function kickPlayer(playerId) {
     alert("Failed to kick player.");
   }
 }
+
