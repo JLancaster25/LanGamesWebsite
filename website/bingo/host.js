@@ -10,6 +10,10 @@ const roomCodeEl = document.getElementById("roomCode");
 const playersListEl = document.getElementById("playersList");
 
 /* MENU LOGIC */
+const menu = document.getElementById("menu");
+const menuBtn = document.getElementById("menuBtn");
+
+/* MENU LOGIC */
 menuBtn.addEventListener("click", (e) => {
   e.stopPropagation(); // ⛔ prevent document click
   menu.classList.toggle("hidden");
@@ -32,6 +36,7 @@ document.querySelectorAll("[data-target]").forEach(el => {
     menu.classList.add("hidden");
     document.getElementById(target).scrollIntoView({ behavior: "smooth" });
   });
+});;
 });
 // ==========================================
 // APP STATE
@@ -209,4 +214,5 @@ if (menuBtn && menuDropdown) {
     menuDropdown.classList.add("hidden");
   });
 }
+
 
