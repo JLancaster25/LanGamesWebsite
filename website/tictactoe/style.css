@@ -89,7 +89,7 @@ body {
 .board {
   display: grid;
   grid-template-columns: repeat(3, 100px);
-  gap: 12px;
+  gap: 120px;
   justify-content: center;
   margin: 2rem auto;
 }
@@ -120,5 +120,6 @@ body {
   color: white;
 
 }
+
 
 
