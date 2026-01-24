@@ -48,27 +48,6 @@ const card = generateCard();
 await initPlayer();
 
 // ==========================================
-// INIT
-// ==========================================
-async function initPlayer() {
-  playerName = resolvePlayerName();
-  const roomCode = resolveRoomCode();
-
-  const game = await fetchGameByCodeWithRetry(roomCode);
-
-  if (!game) {
-    alert("Room not found. Please wait a moment and try again.");
-    throw new Error("Room invalid");
-  }
-
-  gameId = game.id;
-
-  await joinGame(gameId, playerName);
-
-  document.getElementById("cardTitle").textContent =
-    `${playerName}'s card`;
-}
-// ==========================================
 // INITIALIZATION
 // ==========================================
 async function initPlayer() {
@@ -77,6 +56,13 @@ async function initPlayer() {
   const roomCode = await requireRoomCode();
   const game = await fetchGameByCode(roomCode);
 
+  const game = await fetchGameByCodeWithRetry(roomCode);
+
+  if (!game) {
+    alert("Room not found. Please wait a moment and try again.");
+    throw new Error("Room invalid");
+  }
+  
   gameId = game.id;
   playerName = identity.name;
   userId = identity.userId;
@@ -391,3 +377,4 @@ function generateCard() {
   grid[2][2] = "FREE";
   return grid;
 }
+
