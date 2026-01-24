@@ -37,7 +37,6 @@ document.querySelectorAll("[data-target]").forEach(el => {
     document.getElementById(target).scrollIntoView({ behavior: "smooth" });
   });
 });;
-});
 // ==========================================
 // APP STATE
 // ==========================================
@@ -214,5 +213,6 @@ if (menuBtn && menuDropdown) {
     menuDropdown.classList.add("hidden");
   });
 }
+
 
 
