@@ -189,6 +189,15 @@ async function joinGame(gameId, name, userId) {
     }
     throw error;
   }
+  const { data: profile } = await sb
+  .from("profiles")
+  .select("username")
+  .eq("id", userId)
+  .maybeSingle();
+
+if (profile?.username) {
+  playerName = profile.username;
+}
 }
 
 // ==========================================
@@ -363,6 +372,7 @@ function generateCard() {
   grid[2][2] = "FREE";
   return grid;
 }
+
 
 
 
