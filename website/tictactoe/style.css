@@ -12,7 +12,7 @@
 }
 
 body {
-  margin: 0;
+  margin: 50px;
   background: var(--bg);
   color: var(--text);
   text-align: center;
@@ -120,6 +120,7 @@ body {
   color: white;
 
 }
+
 
 
 
