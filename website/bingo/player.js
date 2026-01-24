@@ -56,7 +56,7 @@ async function initPlayer() {
   const roomCode = await requireRoomCode();
   const game = await fetchGameByCode(roomCode);
 
-  const game = await fetchGameByCodeWithRetry(roomCode);
+  let game = await fetchGameByCodeWithRetry(roomCode);
 
   if (!game) {
     alert("Room not found. Please wait a moment and try again.");
@@ -377,4 +377,5 @@ function generateCard() {
   grid[2][2] = "FREE";
   return grid;
 }
+
 
