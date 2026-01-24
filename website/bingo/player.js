@@ -127,26 +127,6 @@ async function fetchGameByCodeWithRetry(code, retries = 5) {
 }
 
 // ==========================================
-// JOIN GAME
-// ==========================================
-async function joinGame(gameId, playerName) {
-  const { error } = await sb.from("claims").insert({
-    game_id: gameId,
-    player_name: playerName,
-    marked: []
-  });
-
-  if (error) {
-    if (error.message.includes("unique")) {
-      alert("That username is already taken in this game.");
-    } else {
-      alert("Failed to join game.");
-    }
-    throw error;
-  }
-}
-
-// ==========================================
 // SUPABASE HELPERS (CENTRALIZED)
 // ==========================================
 async function getSessionUser() {
@@ -203,6 +183,15 @@ async function joinGame(gameId, name, userId) {
       throw error;
     }
   }
+    if (error) {
+    if (error.message.includes("unique")) {
+      alert("That username is already taken in this game.");
+    } else {
+      alert("Failed to join game.");
+    }
+    throw error;
+  }
+}
 }
 
 // ==========================================
@@ -377,6 +366,7 @@ function generateCard() {
   grid[2][2] = "FREE";
   return grid;
 }
+
 
 
 
