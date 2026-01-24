@@ -171,3 +171,17 @@ async function kickPlayer(playerId) {
     alert("Failed to kick player.");
   }
 }
+
+const menuBtn = document.getElementById("menuBtn");
+const menuDropdown = document.getElementById("menuDropdown");
+
+if (menuBtn && menuDropdown) {
+  menuBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    menuDropdown.classList.toggle("hidden");
+  });
+
+  document.addEventListener("click", () => {
+    menuDropdown.classList.add("hidden");
+  });
+}
