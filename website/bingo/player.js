@@ -191,9 +191,6 @@ async function joinGame(gameId, name, userId) {
   }
 }
 
-}
-
-
 // ==========================================
 // IDENTITY RESOLUTION
 // ==========================================
@@ -366,6 +363,7 @@ function generateCard() {
   grid[2][2] = "FREE";
   return grid;
 }
+
 
 
 
