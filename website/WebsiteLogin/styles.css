@@ -69,6 +69,7 @@ body {
 .hidden {
   display: none;
 }
+
 .auth-container {
   width: 100%;
   max-width: 400px;
@@ -187,6 +188,7 @@ button[type="submit"]:hover {
   margin-top: 15px;
   font-size: 0.9rem;
 }
+
 
 
 
