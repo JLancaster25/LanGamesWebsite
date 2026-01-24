@@ -12,7 +12,6 @@ const menu = document.getElementById("menu");
 const menuBtn = document.getElementById("menuBtn");
 const newGameBtn = document.getElementById("newGameBtn");
 const startGameBtn = document.getElementById("startGameBtn");
-const newGameBtn = document.getElementById("newGameBtn");
 const aiCallBtn = document.getElementById("aiCallBtn");
 const autoCallBtn = document.getElementById("autoCallBtn");
 const stopAutoCallBtn = document.getElementById("stopAutoCallBtn");
@@ -377,4 +376,5 @@ async function kickPlayer(playerId) {
     alert("Failed to kick player.");
   }
 }
+
 
