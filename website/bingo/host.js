@@ -1,3 +1,4 @@
+
 // ==========================================
 // SUPABASE CLIENT
 // ==========================================
@@ -63,7 +64,35 @@ async function initHost() {
   await loadPlayers(gameId);
   subscribeToPlayers(gameId);
 }
+document.addEventListener("DOMContentLoaded", () => {
+  const newGameBtn = document.getElementById("newGameBtn");
 
+  if (!newGameBtn) {
+    console.warn("New Game button not found");
+    return;
+  }
+
+  newGameBtn.addEventListener("click", () => {
+    console.log("New Game clicked");
+    startNewGame();
+  });
+});
+async function startNewGame() {
+  console.log("Starting new game…");
+
+  const session = await sb.auth.getSession();
+  if (!session.data.session) {
+    alert("You must be logged in to host a game.");
+    return;
+  }
+
+  const hostId = session.data.session.user.id;
+
+  const game = await createGameWithUniqueCode(hostId);
+  gameId = game.id;
+
+  document.getElementById("roomCode").textContent = game.code;
+}
 // ==========================================
 // AUTH GUARD (LOCK PAGE)
 // ==========================================
@@ -199,3 +228,4 @@ async function kickPlayer(playerId) {
     alert("Failed to kick player.");
   }
 }
+
