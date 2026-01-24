@@ -80,6 +80,8 @@ function setupNewGameButton() {
 async function startNewGame() {
   clearPlayersUI();
   unsubscribePlayers();
+  stopAutoCall();
+  calledNumbers.clear();
 
   const game = await createGameWithUniqueCode(hostId);
   gameId = game.id;
@@ -120,22 +122,6 @@ function setupControls() {
 // ==========================================
 // GAME LIFECYCLE
 // ==========================================
-async function startNewGame() {
-  stopAutoCall();
-  calledNumbers.clear();
-
-  clearPlayersUI();
-  unsubscribePlayers();
-
-  const game = await createGameWithUniqueCode(hostId);
-  gameId = game.id;
-
-  roomCodeEl.textContent = game.code;
-
-  await loadPlayers();
-  subscribeToPlayers();
-}
-
 function startGame() {
   if (!gameId) {
     alert("Create a game first.");
@@ -376,5 +362,6 @@ async function kickPlayer(playerId) {
     alert("Failed to kick player.");
   }
 }
+
 
 
