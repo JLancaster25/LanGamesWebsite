@@ -91,7 +91,7 @@ body {
   grid-template-columns: repeat(3, 100px);
   gap: 120px;
   justify-content: center;
-  margin: 2rem auto;
+  margin: 10rem auto;
 }
 
 .cell {
@@ -120,6 +120,7 @@ body {
   color: white;
 
 }
+
 
 
 
