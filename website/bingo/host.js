@@ -232,6 +232,9 @@ async function kickPlayer(playerId) {
   if (error) {
     alert("Failed to kick player.");
   }
-}
+  }
+  li.appendChild(btn);
+  playersList.appendChild(li);
+
 
 
