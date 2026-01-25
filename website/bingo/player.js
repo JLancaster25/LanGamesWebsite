@@ -41,6 +41,14 @@ let userId = null;
 const calledNumbers = new Set();
 const markedCells = new Set(["2-2"]);
 const card = generateCard();
+const lobbyEl = document.getElementById("lobby");
+const gameEl = document.getElementById("game");
+const joinForm = document.getElementById("joinForm");
+
+const nameInput = document.getElementById("playerNameInput");
+const roomInput = document.getElementById("roomCodeInput");
+const lobbyError = document.getElementById("lobbyError");
+
 const titleEl = document.getElementById("cardTitle");
 // ==========================================
 // ENTRY POINT
@@ -50,6 +58,20 @@ await initPlayer();
 // ==========================================
 // INITIALIZATION
 // ==========================================
+document.addEventListener("DOMContentLoaded", initPlayer);
+
+async function initPlayer() {
+  // If logged in, auto-fill username
+  const profileName = await getUsernameFromProfileIfLoggedIn();
+  if (profileName) {
+    nameInput.value = profileName;
+    nameInput.readOnly = true;
+  }
+
+  joinForm.addEventListener("submit", handleJoin);
+}
+
+/*
 async function initPlayer() {
   const session = await getSessionUser();
   const identity = await resolvePlayerIdentity(session);
@@ -81,7 +103,39 @@ if (!playerName) {
   subscribeToCalls(gameId);
   renderBoard();
 }
+*/
 
+async function handleJoin(e) {
+  e.preventDefault();
+  showLobbyError("");
+
+  const playerName = nameInput.value.trim();
+  const roomCode = roomInput.value.trim().toUpperCase();
+
+  if (!playerName) {
+    return showLobbyError("Please enter your name.");
+  }
+
+  if (!roomCode || roomCode.length !== 7) {
+    return showLobbyError("Room code must be 7 characters.");
+  }
+
+  const game = await fetchGameByCodeWithRetry(roomCode);
+  if (!game) {
+    return showLobbyError("Room not found. Please try again.");
+  }
+
+  const userId = await getCurrentUserId();
+
+  await joinGame(game.id, playerName, userId);
+
+  // Transition to game UI
+  lobbyEl.classList.add("hidden");
+  gameEl.classList.remove("hidden");
+
+  titleEl.textContent = `${playerName}'s Card`;
+}
+/*
 // ==========================================
 // PLAYER NAME
 // ==========================================
@@ -111,7 +165,7 @@ function resolveRoomCode() {
 
   return code;
 }
-
+*/
 // ==========================================
 // GAME LOOKUP WITH RETRY (CRITICAL FIX)
 // ==========================================
@@ -365,7 +419,35 @@ function addCalledNumber(n) {
   span.textContent = n;
   callsEl.prepend(span);
 }
+  async function getCurrentUserId() {
+  const { data } = await sb.auth.getSession();
+  return data?.session?.user?.id ?? null;
+}
+  async function getUsernameFromProfileIfLoggedIn() {
+  const { data } = await sb.auth.getSession();
+  const user = data?.session?.user;
 
+  if (!user) return null;
+
+  const { data: profile } = await sb
+    .from("profiles")
+    .select("display_username")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  return profile?.display_username ?? null;
+}
+  function showLobbyError(msg) {
+  if (!msg) {
+    lobbyError.classList.add("hidden");
+    lobbyError.textContent = "";
+    return;
+  }
+
+  lobbyError.textContent = msg;
+  lobbyError.classList.remove("hidden");
+}
+  
 // ==========================================
 // CARD GENERATION
 // ==========================================
@@ -392,5 +474,9 @@ function generateCard() {
 
   grid[2][2] = "FREE";
   return grid;
+}
+  async function getCurrentUserId() {
+  const { data } = await sb.auth.getSession();
+  return data?.session?.user?.id ?? null;
 }
 }
