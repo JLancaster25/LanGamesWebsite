@@ -83,6 +83,7 @@ async function handleJoin(e) {
   titleEl.textContent = `${playerName}'s Bingo Card`;
 
   renderBingoCard();
+  await joinGame(gameId, playerName, userId);
   subscribeToCalls(gameId);
 }
 
@@ -146,17 +147,25 @@ async function joinGame(gameId, name, userId) {
 // REALTIME CALLS
 // ==========================================
 function subscribeToCalls(gameId) {
+  console.log("📡 Subscribing to calls for game:", gameId);
+
   sb.channel(`calls-${gameId}`)
     .on(
       "postgres_changes",
-      { event: "INSERT", schema: "public", table: "calls" },
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "calls",
+        filter: `game_id=eq.${gameId}`
+      },
       payload => {
-        if (payload.new.game_id === gameId) {
-          handleCall(payload.new.number);
-        }
+        console.log("📣 Call received:", payload.new.number);
+        handleCall(payload.new.number);
       }
     )
-    .subscribe();
+    .subscribe(status => {
+      console.log("📡 Calls channel status:", status);
+    });
 }
 
 // ==========================================
@@ -259,4 +268,5 @@ function showLobbyError(msg) {
 function sleep(ms) {
   return new Promise(res => setTimeout(res, ms));
 }
+
 
