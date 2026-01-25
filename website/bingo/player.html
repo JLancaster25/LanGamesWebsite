@@ -2,109 +2,67 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Bingo Player</title>
-  <link rel="stylesheet" href="styles.css" />
+  <title>Join Bingo | LANGames</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" href="/styles.css" />
 </head>
-<body>
+<body class="page-player">
 
-<header class="navbar">
-  <div class="logo">LAN Games</div>
-
-  <!-- ❌ NO INLINE JS -->
-  <button class="menu-btn" id="menuBtn">☰</button>
-
-  <nav id="menu" class="menu hidden">
+<header class="site-header">
+  <div class="logo">LANGames</div>
+  <nav>
     <a href="/">Home</a>
-    <a data-target="features">Features</a>
-    <a href="/tictactoe/">Tic-Tac-Toe</a>
-    <a href="/bingo/">Bingo</a>
-    <a href="/WebsiteLogin/">Login/Register</a>
-
-  <div id="userPanel" class="hidden">
-    <span id="userEmail"></span>
-    <button id="logoutBtn" class="btn secondary hidden">Logout</button>
-  </div>
   </nav>
 </header>
 
-  <main class="player-lobby" id="lobby">
-    <h1>Join Bingo Game</h1>
+<!-- =========================
+     PLAYER LOBBY
+========================= -->
+<main class="player-lobby" id="lobby">
+  <form id="joinForm" class="lobby-card">
+    <h1>Join Bingo</h1>
 
-    <form id="joinForm" class="lobby-card">
-      <label>
-        Your Name
-        <input
-          type="text"
-          id="playerNameInput"
-          placeholder="Enter your name"
-          maxlength="15"
-          required
-        />
-      </label>
+    <label>
+      Your Name
+      <input
+        type="text"
+        id="playerNameInput"
+        placeholder="Enter your name"
+        maxlength="15"
+        required
+      />
+    </label>
 
-      <label>
-        Room Code
-        <input
-          type="text"
-          id="roomCodeInput"
-          placeholder="ABC1234"
-          maxlength="7"
-          required
-        />
-      </label>
+    <label>
+      Room Code
+      <input
+        type="text"
+        id="roomCodeInput"
+        placeholder="ABC1234"
+        maxlength="7"
+        required
+      />
+    </label>
 
-      <button type="submit" class="btn primary">
-        Join Game
-      </button>
+    <button type="submit" class="btn primary">
+      Join Game
+    </button>
 
-      <p id="lobbyError" class="error hidden"></p>
-    </form>
-  </main>
-
-<main class="player-game hidden" id="game">  
-<main class="app">
-  <div class="game-shell">
-
-    <!-- LEFT -->
-    <div class="card-area">
-      <h2 id="cardTitle"></h2>
-
-      <div id="currentBall" class="current-ball hidden"></div>
-
-      <div class="bingo-letters">
-        <div>B</div><div>I</div><div>N</div><div>G</div><div>O</div>
-      </div>
-
-      <div id="board" class="board"></div>
-
-      <!-- ✅ BINGO BUTTON -->
-      <button id="bingoBtn" class="bingo-btn">BINGO!</button>
-    </div>
-
-    <!-- RIGHT -->
-    <div class="history-panel">
-      <h3>Win Conditions</h3>
-      <ul id="modesList"></ul>
-
-      <h3 style="margin-top:1rem">Called Numbers</h3>
-      <div id="calls" class="call-history"></div>
-    </div>
-
-  </div>
+    <p id="lobbyError" class="error hidden"></p>
+  </form>
 </main>
-</main>  
+
+<!-- =========================
+     PLAYER GAME
+========================= -->
+<main class="player-game hidden" id="game">
+  <h2 id="cardTitle"></h2>
+  <div class="bingo-card" id="bingoCard"></div>
+</main>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/supabaseClient.js"></script>
-
-<!-- Player logic -->
-<script type="module" src="player.js"></script>
+<script type="module" src="/bingo/player.js"></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
