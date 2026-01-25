@@ -497,6 +497,96 @@ input[type="range"] {
     font-size: 2.2rem;
   }
 }
+/* ===============================
+   PLAYER GAME LAYOUT
+================================ */
+.player-game {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+/* ===============================
+   CALLED NUMBERS PANEL (PLAYER)
+================================ */
+.called-numbers {
+  min-width: 140px;
+  background: #11142c;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--panel-border);
+}
+
+.called-numbers h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  text-align: center;
+  color: #c7c9ff;
+}
+
+#calledNumbersList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  gap: 6px;
+}
+
+.called-number {
+  background: #1b1f44;
+  color: white;
+  border-radius: 6px;
+  padding: 6px 0;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* ===============================
+   BINGO CELL STATES (PLAYER)
+================================ */
+
+/* Default: locked (not called yet) */
+.bingo-cell {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Called by host, can now be marked */
+.bingo-cell.call-available {
+  opacity: 1;
+  cursor: pointer;
+  outline: 3px solid #facc15;
+}
+
+/* Marked by player */
+.bingo-cell.marked {
+  background: #22c55e;
+  color: #022c22;
+  opacity: 1;
+  outline: none;
+}
+
+/* FREE space always enabled */
+.bingo-cell.free {
+  opacity: 1;
+  cursor: default;
+}
+
+/* ===============================
+   MOBILE ADJUSTMENTS
+================================ */
+@media (max-width: 768px) {
+  .player-game {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .called-numbers {
+    width: 100%;
+    max-width: 360px;
+  }
+}
+
 
 
 
