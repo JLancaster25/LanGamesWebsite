@@ -129,6 +129,13 @@ loginForm.addEventListener("submit", async (e) => {
 
   window.location.href = "/";
 });
+function showLoggedIn(user) {
+  if (loginLink) loginLink.classList.add("hidden");
+
+  if (userPanel) userPanel.classList.remove("hidden");
+  if (logoutBtn) logoutBtn.classList.remove("hidden");
+  if (userEmail) userEmail.textContent = user.email;
+}
 
 // ==================================================
 // REGISTER
@@ -229,3 +236,11 @@ logoutBtn.addEventListener("click", async () => {
 
   window.location.href = "/";
 });
+function showLoggedOut() {
+  if (loginLink) loginLink.classList.remove("hidden");
+
+  if (userPanel) userPanel.classList.add("hidden");
+  if (logoutBtn) logoutBtn.classList.add("hidden");
+  if (userEmail) userEmail.textContent = "";
+}
+
