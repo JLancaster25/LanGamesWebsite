@@ -25,8 +25,11 @@ let gameId = null;
 let playerName = null;
 let userId = null;
 
-let markedNumbers = new Set();
-let cardNumbers = new Set();
+// ==========================================
+// GAME STATE (GLOBAL)
+// ==========================================
+const calledNumbers = new Set();   // numbers called by host
+const markedNumbers = new Set();   // numbers player has marked
 
 // ==========================================
 // ENTRY POINT
@@ -268,5 +271,6 @@ function showLobbyError(msg) {
 function sleep(ms) {
   return new Promise(res => setTimeout(res, ms));
 }
+
 
 
