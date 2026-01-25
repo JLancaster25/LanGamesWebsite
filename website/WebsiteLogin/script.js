@@ -82,7 +82,7 @@ registerPassword.addEventListener("input", () => {
   const value = registerPassword.value;
   let strength = 0;
 
-  if (value.length >= 6) strength++;
+  if (value.length >= 8) strength++;
   if (/[A-Z]/.test(value)) strength++;
   if (/[0-9]/.test(value)) strength++;
   if (/[^A-Za-z0-9]/.test(value)) strength++;
@@ -139,14 +139,14 @@ registerForm.addEventListener("submit", async (e) => {
   if (!username || !email || !password || !confirm)
     return showError("All fields are required.");
 
-  if (username.length < 3)
-    return showError("Username must be at least 3 characters.");
+  if (username.length < 8)
+    return showError("Username must be at least 8 characters.");
 
   if (!isValidEmail(email))
     return showError("Invalid email address.");
 
-  if (password.length < 6)
-    return showError("Password must be at least 6 characters.");
+  if (password.length < 8)
+    return showError("Password must be at least 8 characters.");
 
   if (password !== confirm)
     return showError("Passwords do not match.");
@@ -163,4 +163,5 @@ registerForm.addEventListener("submit", async (e) => {
 
   showSuccess("Account created! Check your email.");
 });
+
 
