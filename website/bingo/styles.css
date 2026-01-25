@@ -98,7 +98,7 @@ a {
 .lobby-card {
   background: #11142c;
   padding: 2rem;
-  border-radius: 14px;
+  border-radius: 16px;
   width: 100%;
   max-width: 360px;
   display: flex;
@@ -421,20 +421,23 @@ input[type="range"] {
   border-radius: 6px;
 }
 
-.board {
+.bingo-card {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 0.4rem;
-  width: 100%;
-  max-width: 300px;
+  gap: 8px;
+  max-width: 360px;
+  margin: 1.5rem auto;
 }
 
-.cell {
-  background: #1f1f24;
-  padding: 0.7rem;
-  text-align: center;
-  border-radius: 6px;
+.bingo-cell {
+  aspect-ratio: 1 / 1;
+  background: #1b1f44;
+  color: white;
+  border-radius: 10px;
   font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
 }
 
@@ -443,9 +446,26 @@ input[type="range"] {
   cursor: not-allowed;
 }
 
-.cell.marked {
-  background: var(--accent);
-  color: white;
+.bingo-cell.header {
+  background: transparent;
+  cursor: default;
+}
+
+.bingo-cell.free {
+  background: #4f5bff;
+}
+
+.bingo-cell.marked {
+  background: #22c55e;
+  color: #022c22;
+}
+
+.hidden {
+  display: none;
+}
+
+.error {
+  color: #ff6b6b;
 }
 
 /* ===============================
@@ -477,6 +497,7 @@ input[type="range"] {
     font-size: 2.2rem;
   }
 }
+
 
 
 
