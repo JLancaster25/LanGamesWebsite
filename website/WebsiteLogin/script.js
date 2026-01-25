@@ -11,6 +11,7 @@ const loginForm = document.getElementById("loginForm");
 const registerForm = document.getElementById("registerForm");
 const strengthBar = document.getElementById("strengthBar");
 
+const loginLink = document.getElementById("loginLink");
 const logoutBtn = document.getElementById("logoutBtn");
 const userPanel = document.getElementById("userPanel");
 const userEmail = document.getElementById("userEmail");
@@ -199,4 +200,32 @@ sb.auth.onAuthStateChange((event, session) => {
     logoutBtn.classList.add("hidden");
     userEmail.textContent = "";
   }
+});
+
+sb.auth.onAuthStateChange((event, session) => {
+  if (session) {
+    // USER LOGGED IN
+    loginLink.classList.add("hidden");
+
+    userEmail.textContent = session.user.email;
+    userPanel.classList.remove("hidden");
+    logoutBtn.classList.remove("hidden");
+  } else {
+    // USER LOGGED OUT
+    loginLink.classList.remove("hidden");
+
+    userPanel.classList.add("hidden");
+    logoutBtn.classList.add("hidden");
+    userEmail.textContent = "";
+  }
+});
+
+logoutBtn.addEventListener("click", async () => {
+  const { error } = await sb.auth.signOut();
+  if (error) {
+    console.error(error.message);
+    return;
+  }
+
+  window.location.href = "/";
 });
