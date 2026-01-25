@@ -287,6 +287,10 @@ async function recordCall(number) {
   });
   speakCall(number);
 }
+await sb.from("calls").insert({
+  game_id: gameId,
+  number
+});
 
 // ==========================================
 // SPEED UI
@@ -391,6 +395,7 @@ async function kickPlayer(playerId) {
     alert("Failed to kick player.");
   }
 }
+
 
 
 
