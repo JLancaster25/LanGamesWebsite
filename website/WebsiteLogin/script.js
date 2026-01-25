@@ -11,6 +11,10 @@ const loginForm = document.getElementById("loginForm");
 const registerForm = document.getElementById("registerForm");
 const strengthBar = document.getElementById("strengthBar");
 
+const logoutBtn = document.getElementById("logoutBtn");
+const userPanel = document.getElementById("userPanel");
+const userEmail = document.getElementById("userEmail");
+
 const menu = document.getElementById("menu");
 const menuBtn = document.getElementById("menuBtn");
 
@@ -164,4 +168,35 @@ registerForm.addEventListener("submit", async (e) => {
   showSuccess("Account created! Check your email.");
 });
 
+// ==================================================
+// LOGOUT
+// ==================================================
+async function logout() {
+  const { error } = await sb.auth.signOut();
 
+  if (error) {
+    console.error("Logout error:", error.message);
+    return;
+  }
+
+  // UI reset
+  userPanel.classList.add("hidden");
+  logoutBtn.classList.add("hidden");
+  userEmail.textContent = "";
+
+  // Redirect
+  window.location.href = "/WebsiteLogin/";
+}
+logoutBtn.addEventListener("click", logout);
+
+sb.auth.onAuthStateChange((event, session) => {
+  if (session) {
+    userEmail.textContent = session.user.email;
+    userPanel.classList.remove("hidden");
+    logoutBtn.classList.remove("hidden");
+  } else {
+    userPanel.classList.add("hidden");
+    logoutBtn.classList.add("hidden");
+    userEmail.textContent = "";
+  }
+});
