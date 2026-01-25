@@ -27,6 +27,40 @@
   </nav>
 </header>
 
+  <main class="player-lobby" id="lobby">
+    <h1>Join Bingo Game</h1>
+
+    <form id="joinForm" class="lobby-card">
+      <label>
+        Your Name
+        <input
+          type="text"
+          id="playerNameInput"
+          placeholder="Enter your name"
+          maxlength="15"
+          required
+        />
+      </label>
+
+      <label>
+        Room Code
+        <input
+          type="text"
+          id="roomCodeInput"
+          placeholder="ABC1234"
+          maxlength="7"
+          required
+        />
+      </label>
+
+      <button type="submit" class="btn primary">
+        Join Game
+      </button>
+
+      <p id="lobbyError" class="error hidden"></p>
+    </form>
+  </main>
+  
 <main class="app">
   <div class="game-shell">
 
@@ -64,6 +98,7 @@
 <script type="module" src="player.js"></script>
 </body>
 </html>
+
 
 
 
