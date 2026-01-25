@@ -143,11 +143,15 @@ async function getSessionUser() {
 }
 
 async function fetchProfile(userId) {
-  const { data, error } = await sb
-    .from("profiles")
-    .select("username")
-    .eq("id", userId)
-    .single();
+  const { data: profile } = await sb
+  .from("profiles")
+  .select("display_username")
+  .eq("id", userId)
+  .maybeSingle();
+
+const playerName =
+  profile?.display_username ||
+  prompt("Enter your name");
 
   return error ? null : data;
 }
@@ -197,16 +201,16 @@ async function joinGame(gameId, name, userId) {
     }
     throw error;
   }
-  const { data: profile } = await sb
+const { data: profile } = await sb
   .from("profiles")
-  .select("username")
+  .select("display_username")
   .eq("id", userId)
   .maybeSingle();
 
-if (profile?.username) {
-  playerName = profile.username;
-}
-}
+const playerName =
+  profile?.display_username ||
+  prompt("Enter your name");
+
 async function getUsernameFromProfileIfLoggedIn() {
   const { data: sessionData } = await sb.auth.getSession();
   const user = sessionData?.session?.user;
@@ -216,14 +220,6 @@ async function getUsernameFromProfileIfLoggedIn() {
     return null;
   }
 
-  const { data: profile } = await sb
-    .from("profiles")
-    .select("username")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  return profile?.username ?? null;
-}
 
 // ==========================================
 // IDENTITY RESOLUTION
@@ -397,6 +393,7 @@ function generateCard() {
   grid[2][2] = "FREE";
   return grid;
 }
+
 
 
 
