@@ -60,9 +60,6 @@ document.querySelectorAll("[data-target]").forEach(el => {
 // AUTH UI ELEMENTS (MAIN SITE)
 // ================================
 const authLink = document.getElementById("authLink"); // menu button
-const userPanel = document.getElementById("userPanel");
-const userEmail = document.getElementById("userEmail");
-const logoutBtn = document.getElementById("logoutBtn");
 
 function showLoggedIn(user) {
   if (loginLink) loginLink.classList.add("hidden");
@@ -307,6 +304,7 @@ const LanGamesAPI = {
 
 };
 */
+
 
 
 
