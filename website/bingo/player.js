@@ -91,6 +91,7 @@ async function handleJoin(e) {
   renderBingoCard();
   await joinGame(gameId, playerName, userId);
   subscribeToCalls(gameId);
+  subscribeToGameLock(gameId);
 }
 
 // ==========================================
@@ -379,6 +380,7 @@ function subscribeToGameLock(gameId) {
     )
     .subscribe();
 }
+
 
 
 
