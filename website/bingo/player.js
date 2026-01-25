@@ -393,15 +393,4 @@ function generateCard() {
   grid[2][2] = "FREE";
   return grid;
 }
-
-
-
-
-
-
-
-
-
-
-
-
+}
