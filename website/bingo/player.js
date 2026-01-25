@@ -33,7 +33,7 @@ let userId = null;
 const calledNumbers = new Set();   // numbers called by host
 const markedNumbers = new Set();   // numbers player has marked
 let cardNumbers = {};  
-const cardPositionMap = {};
+let cardPositionMap = {};
 // ==========================================
 // ENTRY POINT
 // ==========================================
@@ -181,7 +181,7 @@ function renderBingoCard() {
   bingoCardEl.innerHTML = "";
   markedNumbers.clear();
   cardNumbers = generateBingoNumbers();
-  cardPositionMap = {};
+  Object.keys(cardPositionMap).forEach(k => delete cardPositionMap[k]);
   cardPositionMap[number] = { row, col: colIndex };
   cardPositionMap["FREE"] = { row: 2, col: 2 };
   const headers = ["B", "I", "N", "G", "O"];
@@ -340,6 +340,7 @@ function handleBingoClaim() {
   // OPTIONAL: server-side validation hook
   submitBingoClaim();
 }
+
 
 
 
