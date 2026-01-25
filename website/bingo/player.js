@@ -358,6 +358,27 @@ async function submitBingoClaim() {
   }
 }
 
+function subscribeToGameLock(gameId) {
+  sb.channel(`game-lock-${gameId}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "UPDATE",
+        schema: "public",
+        table: "games",
+        filter: `id=eq.${gameId}`
+      },
+      payload => {
+        if (payload.new.is_locked) {
+          gameLocked = true;
+          disableGameInteraction();
+          bingoMessage.textContent = "Game Over";
+          bingoMessage.classList.remove("hidden");
+        }
+      }
+    )
+    .subscribe();
+}
 
 
 
