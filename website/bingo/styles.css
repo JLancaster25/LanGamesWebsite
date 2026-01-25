@@ -587,11 +587,21 @@ input[type="range"] {
   }
 }
 
+.bingo-btn {
+  margin: 1rem auto;
+  display: block;
+}
 
+.bingo-message {
+  text-align: center;
+  font-weight: bold;
+  margin-top: 0.5rem;
+}
 
+.bingo-message.success {
+  color: #22c55e;
+}
 
-
-
-
-
-
+.bingo-message.error {
+  color: #ff6b6b;
+}
