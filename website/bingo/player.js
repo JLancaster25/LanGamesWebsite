@@ -16,6 +16,7 @@ const lobbyError = document.getElementById("lobbyError");
 
 const titleEl = document.getElementById("cardTitle");
 const bingoCardEl = document.getElementById("bingoCard");
+const calledNumbersListEl = document.getElementById("calledNumbersList");
 
 // ==========================================
 // APP STATE
@@ -25,7 +26,7 @@ let playerName = null;
 let userId = null;
 
 let markedNumbers = new Set();
-let cardNumbers = {};
+let cardNumbers = new Set();
 
 // ==========================================
 // ENTRY POINT
@@ -196,17 +197,32 @@ function renderBingoCard() {
 }
 
 function handleCall(number) {
+  if (calledNumbers.has(number)) return;
+
+  calledNumbers.add(number);
+
+  // Show in called numbers UI
+  const badge = document.createElement("div");
+  badge.className = "called-number";
+  badge.textContent = number;
+  calledNumbersListEl.appendChild(badge);
+
+  // Enable matching cell
   const cell = document.querySelector(
     `.bingo-cell[data-number="${number}"]`
   );
-  if (cell && !cell.classList.contains("marked")) {
-    cell.classList.add("marked");
-    markedNumbers.add(number);
+
+  if (cell) {
+    cell.classList.add("call-available");
   }
 }
 
 function toggleMark(cell, number) {
+  // ❌ Not called yet → cannot mark
+  if (!calledNumbers.has(number)) return;
+
   cell.classList.toggle("marked");
+
   if (markedNumbers.has(number)) {
     markedNumbers.delete(number);
   } else {
@@ -243,3 +259,4 @@ function showLobbyError(msg) {
 function sleep(ms) {
   return new Promise(res => setTimeout(res, ms));
 }
+
