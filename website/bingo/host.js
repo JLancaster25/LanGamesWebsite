@@ -378,6 +378,12 @@ function removePlayerRow(playerId) {
   const el = document.getElementById(`player-${playerId}`);
   if (el) el.remove();
 }
+async function submitBingoClaim() {
+  await sb.from("bingo_claims").insert({
+    game_id: gameId,
+    user_id: userId
+  });
+}
 
 // ==========================================
 // KICK PLAYER
@@ -395,6 +401,7 @@ async function kickPlayer(playerId) {
     alert("Failed to kick player.");
   }
 }
+
 
 
 
