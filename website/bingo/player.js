@@ -30,7 +30,7 @@ let userId = null;
 // ==========================================
 const calledNumbers = new Set();   // numbers called by host
 const markedNumbers = new Set();   // numbers player has marked
-
+let cardNumbers = {};  
 // ==========================================
 // ENTRY POINT
 // ==========================================
@@ -271,6 +271,7 @@ function showLobbyError(msg) {
 function sleep(ms) {
   return new Promise(res => setTimeout(res, ms));
 }
+
 
 
 
