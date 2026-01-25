@@ -182,8 +182,7 @@ function renderBingoCard() {
   markedNumbers.clear();
   cardNumbers = generateBingoNumbers();
   Object.keys(cardPositionMap).forEach(k => delete cardPositionMap[k]);
-  cardPositionMap[number] = { row, col: colIndex };
-  cardPositionMap["FREE"] = { row: 2, col: 2 };
+
   const headers = ["B", "I", "N", "G", "O"];
 
   headers.forEach(h => {
@@ -194,25 +193,31 @@ function renderBingoCard() {
   });
 
   for (let row = 0; row < 5; row++) {
-    headers.forEach((col, colIndex) => {
-      const cell = document.createElement("div");
-      cell.className = "bingo-cell";
+  headers.forEach((col, colIndex) => {
+    const cell = document.createElement("div");
+    cell.className = "bingo-cell";
 
-      if (row === 2 && colIndex === 2) {
-  cell.textContent = "FREE";
-  cell.classList.add("free", "marked");
-  markedNumbers.add("FREE");
-  cardPositionMap["FREE"] = { row: 2, col: 2 };
-} else {
-  const number = cardNumbers[col][row];
-  cell.textContent = number;
-  cell.dataset.number = number;
-  cell.onclick = () => toggleMark(cell, number);
-  cardPositionMap[number] = { row, col: colIndex };
+    if (row === 2 && colIndex === 2) {
+      // FREE space
+      cell.textContent = "FREE";
+      cell.classList.add("free", "marked");
+      markedNumbers.add("FREE");
+      cardPositionMap["FREE"] = { row: 2, col: 2 };
+    } else {
+      // NORMAL NUMBER CELL
+      const number = cardNumbers[col][row];
+
+      cell.textContent = number;
+      cell.dataset.number = number;
+      cell.onclick = () => toggleMark(cell, number);
+
+      // ✅ IMPORTANT: map position INSIDE this block
+      cardPositionMap[number] = { row, col: colIndex };
+    }
+
+    bingoCardEl.appendChild(cell);
+  });
 }
-      bingoCardEl.appendChild(cell);
-    });
-  }
 }
 
 function handleCall(number) {
@@ -340,6 +345,7 @@ function handleBingoClaim() {
   // OPTIONAL: server-side validation hook
   submitBingoClaim();
 }
+
 
 
 
