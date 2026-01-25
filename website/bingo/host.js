@@ -237,7 +237,17 @@ async function aiCallOnce() {
     alert("All numbers have been called.");
     return;
   }
+const { data: game } = await sb
+  .from("games")
+  .select("is_locked")
+  .eq("id", gameId)
+  .single();
 
+if (game?.is_locked) {
+  alert("Game is locked. Bingo already claimed.");
+  stopAutoCall();
+  return;
+}
   await recordCall(number);
 }
 
@@ -254,6 +264,17 @@ function startAutoCall() {
       alert("All numbers called.");
       return;
     }
+    const { data: game } = await sb
+  .from("games")
+  .select("is_locked")
+  .eq("id", gameId)
+  .single();
+
+if (game?.is_locked) {
+  alert("Game is locked. Bingo already claimed.");
+  stopAutoCall();
+  return;
+}
     await recordCall(number);
   }, callSpeedInput.value * 1000);
 }
@@ -401,6 +422,7 @@ async function kickPlayer(playerId) {
     alert("Failed to kick player.");
   }
 }
+
 
 
 
