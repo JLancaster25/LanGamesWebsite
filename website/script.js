@@ -60,7 +60,7 @@ document.querySelectorAll("[data-target]").forEach(el => {
 // AUTH UI ELEMENTS (MAIN SITE)
 // ================================
 const authLink = document.getElementById("authLink"); // menu button
-
+/*
 function showLoggedIn(user) {
   if (loginLink) loginLink.classList.add("hidden");
 
@@ -76,7 +76,7 @@ function showLoggedOut() {
   logoutBtn.classList.add("hidden");
   userEmail.textContent = "";
 }
-
+*/
 // ================================
 // SESSION CHECK ON LOAD
 // ================================
@@ -304,6 +304,7 @@ const LanGamesAPI = {
 
 };
 */
+
 
 
 
