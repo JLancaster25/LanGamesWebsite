@@ -345,6 +345,19 @@ function handleBingoClaim() {
   // OPTIONAL: server-side validation hook
   submitBingoClaim();
 }
+async function submitBingoClaim() {
+  if (!gameId) return;
+
+  const { error } = await sb.from("bingo_claims").insert({
+    game_id: gameId,
+    user_id: userId
+  });
+
+  if (error) {
+    console.error("Failed to submit bingo claim:", error);
+  }
+}
+
 
 
 
