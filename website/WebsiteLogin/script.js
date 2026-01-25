@@ -11,11 +11,6 @@ const loginForm = document.getElementById("loginForm");
 const registerForm = document.getElementById("registerForm");
 const strengthBar = document.getElementById("strengthBar");
 
-const loginLink = document.getElementById("loginLink");
-const logoutBtn = document.getElementById("logoutBtn");
-const userPanel = document.getElementById("userPanel");
-const userEmail = document.getElementById("userEmail");
-
 const menu = document.getElementById("menu");
 const menuBtn = document.getElementById("menuBtn");
 
@@ -129,13 +124,6 @@ loginForm.addEventListener("submit", async (e) => {
 
   window.location.href = "/";
 });
-function showLoggedIn(user) {
-  if (loginLink) loginLink.classList.add("hidden");
-
-  if (userPanel) userPanel.classList.remove("hidden");
-  if (logoutBtn) logoutBtn.classList.remove("hidden");
-  if (userEmail) userEmail.textContent = user.email;
-}
 
 // ==================================================
 // REGISTER
@@ -176,71 +164,4 @@ registerForm.addEventListener("submit", async (e) => {
   showSuccess("Account created! Check your email.");
 });
 
-// ==================================================
-// LOGOUT
-// ==================================================
-async function logout() {
-  const { error } = await sb.auth.signOut();
-
-  if (error) {
-    console.error("Logout error:", error.message);
-    return;
-  }
-
-  // UI reset
-  userPanel.classList.add("hidden");
-  logoutBtn.classList.add("hidden");
-  userEmail.textContent = "";
-
-  // Redirect
-  window.location.href = "/WebsiteLogin/";
-}
-logoutBtn.addEventListener("click", logout);
-
-sb.auth.onAuthStateChange((event, session) => {
-  if (session) {
-    userEmail.textContent = session.user.email;
-    userPanel.classList.remove("hidden");
-    logoutBtn.classList.remove("hidden");
-  } else {
-    userPanel.classList.add("hidden");
-    logoutBtn.classList.add("hidden");
-    userEmail.textContent = "";
-  }
-});
-
-sb.auth.onAuthStateChange((event, session) => {
-  if (session) {
-    // USER LOGGED IN
-    loginLink.classList.add("hidden");
-
-    userEmail.textContent = session.user.email;
-    userPanel.classList.remove("hidden");
-    logoutBtn.classList.remove("hidden");
-  } else {
-    // USER LOGGED OUT
-    loginLink.classList.remove("hidden");
-
-    userPanel.classList.add("hidden");
-    logoutBtn.classList.add("hidden");
-    userEmail.textContent = "";
-  }
-});
-
-logoutBtn.addEventListener("click", async () => {
-  const { error } = await sb.auth.signOut();
-  if (error) {
-    console.error(error.message);
-    return;
-  }
-
-  window.location.href = "/";
-});
-function showLoggedOut() {
-  if (loginLink) loginLink.classList.remove("hidden");
-
-  if (userPanel) userPanel.classList.add("hidden");
-  if (logoutBtn) logoutBtn.classList.add("hidden");
-  if (userEmail) userEmail.textContent = "";
-}
 
