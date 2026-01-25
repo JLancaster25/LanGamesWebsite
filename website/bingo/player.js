@@ -18,6 +18,8 @@ const titleEl = document.getElementById("cardTitle");
 const bingoCardEl = document.getElementById("bingoCard");
 const calledNumbersListEl = document.getElementById("calledNumbersList");
 
+const bingoBtn = document.getElementById("bingoBtn");
+const bingoMessage = document.getElementById("bingoMessage");
 // ==========================================
 // APP STATE
 // ==========================================
@@ -31,6 +33,7 @@ let userId = null;
 const calledNumbers = new Set();   // numbers called by host
 const markedNumbers = new Set();   // numbers player has marked
 let cardNumbers = {};  
+const cardPositionMap = {};
 // ==========================================
 // ENTRY POINT
 // ==========================================
@@ -49,7 +52,7 @@ async function initPlayer() {
       nameInput.readOnly = true;
     }
   }
-
+  bingoBtn.addEventListener("click", handleBingoClaim);
   joinForm.addEventListener("submit", handleJoin);
 }
 
@@ -178,7 +181,9 @@ function renderBingoCard() {
   bingoCardEl.innerHTML = "";
   markedNumbers.clear();
   cardNumbers = generateBingoNumbers();
-
+  cardPositionMap = {};
+  cardPositionMap[number] = { row, col: colIndex };
+  cardPositionMap["FREE"] = { row: 2, col: 2 };
   const headers = ["B", "I", "N", "G", "O"];
 
   headers.forEach(h => {
@@ -194,15 +199,17 @@ function renderBingoCard() {
       cell.className = "bingo-cell";
 
       if (row === 2 && colIndex === 2) {
-        cell.textContent = "FREE";
-        cell.classList.add("free", "marked");
-      } else {
-        const number = cardNumbers[col][row];
-        cell.textContent = number;
-        cell.dataset.number = number;
-        cell.onclick = () => toggleMark(cell, number);
-      }
-
+  cell.textContent = "FREE";
+  cell.classList.add("free", "marked");
+  markedNumbers.add("FREE");
+  cardPositionMap["FREE"] = { row: 2, col: 2 };
+} else {
+  const number = cardNumbers[col][row];
+  cell.textContent = number;
+  cell.dataset.number = number;
+  cell.onclick = () => toggleMark(cell, number);
+  cardPositionMap[number] = { row, col: colIndex };
+}
       bingoCardEl.appendChild(cell);
     });
   }
@@ -242,6 +249,46 @@ function toggleMark(cell, number) {
   }
 }
 
+function checkForBingo() {
+  const grid = Array.from({ length: 5 }, () =>
+    Array(5).fill(false)
+  );
+
+  markedNumbers.forEach(num => {
+    const pos = cardPositionMap[num];
+    if (pos) grid[pos.row][pos.col] = true;
+  });
+
+  return (
+    hasCompleteRow(grid) ||
+    hasCompleteColumn(grid) ||
+    hasCompleteDiagonal(grid)
+  );
+}
+
+function hasCompleteRow(grid) {
+  return grid.some(row => row.every(Boolean));
+}
+
+function hasCompleteColumn(grid) {
+  for (let col = 0; col < 5; col++) {
+    if (grid.every(row => row[col])) return true;
+  }
+  return false;
+}
+
+function hasCompleteDiagonal(grid) {
+  const diag1 = grid.every((row, i) => row[i]);
+  const diag2 = grid.every((row, i) => row[4 - i]);
+  return diag1 || diag2;
+}
+function isMarkedSetValid() {
+  for (const num of markedNumbers) {
+    if (num === "FREE") continue;
+    if (!calledNumbers.has(num)) return false;
+  }
+  return true;
+}
 // ==========================================
 // UTIL
 // ==========================================
@@ -272,6 +319,27 @@ function sleep(ms) {
   return new Promise(res => setTimeout(res, ms));
 }
 
+function handleBingoClaim() {
+  bingoMessage.classList.remove("hidden", "success", "error");
+
+  if (!isMarkedSetValid()) {
+    bingoMessage.textContent = "Invalid card: uncalled numbers marked.";
+    bingoMessage.classList.add("error");
+    return;
+  }
+
+  if (!checkForBingo()) {
+    bingoMessage.textContent = "No Bingo detected yet.";
+    bingoMessage.classList.add("error");
+    return;
+  }
+
+  bingoMessage.textContent = "🎉 BINGO! You win!";
+  bingoMessage.classList.add("success");
+
+  // OPTIONAL: server-side validation hook
+  submitBingoClaim();
+}
 
 
 
