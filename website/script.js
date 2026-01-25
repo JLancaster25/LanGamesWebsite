@@ -1,14 +1,27 @@
+
+// ================================
+// SUPABASE CLIENT
+// ================================
 const sb = window.supabaseClient;
 
 if (!sb) {
   console.error("❌ Supabase client not loaded. Check script order.");
 }
 
-/* ELEMENTS */
+// ================================
+// NAV ELEMENTS
+// ================================
 const menu = document.getElementById("menu");
 const menuBtn = document.getElementById("menuBtn");
 
-/* MENU LOGIC */
+const loginLink = document.getElementById("loginLink");
+const userPanel = document.getElementById("userPanel");
+const userEmail = document.getElementById("userEmail");
+const logoutBtn = document.getElementById("logoutBtn");
+
+// ================================
+// MENU TOGGLE
+// ================================
 menuBtn.addEventListener("click", (e) => {
   e.stopPropagation(); // ⛔ prevent document click
   menu.classList.toggle("hidden");
@@ -51,6 +64,22 @@ const userPanel = document.getElementById("userPanel");
 const userEmail = document.getElementById("userEmail");
 const logoutBtn = document.getElementById("logoutBtn");
 
+function showLoggedIn(user) {
+  if (loginLink) loginLink.classList.add("hidden");
+
+  userEmail.textContent = user.email;
+  userPanel.classList.remove("hidden");
+  logoutBtn.classList.remove("hidden");
+}
+
+function showLoggedOut() {
+  if (loginLink) loginLink.classList.remove("hidden");
+
+  userPanel.classList.add("hidden");
+  logoutBtn.classList.add("hidden");
+  userEmail.textContent = "";
+}
+
 // ================================
 // SESSION CHECK ON LOAD
 // ================================
@@ -80,8 +109,15 @@ function showLoggedOut() {
 // ================================
 if (logoutBtn) {
   logoutBtn.addEventListener("click", async () => {
-    await supabase.auth.signOut();
-    showLoggedOut();
+    const { error } = await sb.auth.signOut();
+
+    if (error) {
+      console.error("Logout failed:", error.message);
+      return;
+    }
+
+    // Redirect to login page
+    window.location.href = "/WebsiteLogin/";
   });
 }
 
@@ -98,6 +134,19 @@ supabase.auth.onAuthStateChange((_event, session) => {
 
 // INIT
 loadSession();
+
+// ================================
+// INITIAL SESSION CHECK
+// ================================
+(async () => {
+  const { data } = await sb.auth.getSession();
+  if (data.session) {
+    showLoggedIn(data.session.user);
+  } else {
+    showLoggedOut();
+  }
+})();
+
 /* SESSION */
 function showUser(email) {
   authForms.classList.add("hidden");
@@ -108,7 +157,7 @@ function showUser(email) {
 supabase.auth.getSession().then(({ data }) => {
   if (data.session) showUser(data.session.user.email);
 });
-
+/*
 const LanGamesAPI = {
   baseUrl: 'https://api.langames.online/v1',
   apiKey: 'YOUR_LANGAMES_API_KEY', // Replace with your key
@@ -257,6 +306,8 @@ const LanGamesAPI = {
   }
 
 };
+*/
+
 
 
 
