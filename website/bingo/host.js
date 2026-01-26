@@ -22,11 +22,11 @@ const playerListEl = document.getElementById('playerList');
 const callsEl = document.getElementById('calls');
 
 const startBtn = document.getElementById('startBtn');
-const callBtn = document.getElementById('callBtn');
-const autoBtn = document.getElementById('autoBtn');
-const stopBtn = document.getElementById('stopBtn');
+const callBtn = document.getElementById('aiCallBtn');
+const autoBtn = document.getElementById('autoCallBtn');
+const stopBtn = document.getElementById('stopAutoCallBtn');
 const newBtn = document.getElementById('newBtn');
-const speedInput = document.getElementById('speed');
+const speedInput = document.getElementById('callSpeed');
 
 const modeInputs = document.querySelectorAll('.modes input');
 
@@ -345,3 +345,4 @@ function generateCode() {
     chars[Math.floor(Math.random() * chars.length)]
   ).join('');
 }
+
