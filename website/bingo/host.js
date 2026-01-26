@@ -286,7 +286,7 @@ async function endGame() {
 /* =====================================================
    NEW GAME
 ===================================================== */
-newBtn.onclick = async () => {
+newGameBtn.onclick = async () => {
   clearInterval(autoTimer);
   autoTimer = null;
 
@@ -345,6 +345,7 @@ function generateCode() {
     chars[Math.floor(Math.random() * chars.length)]
   ).join('');
 }
+
 
 
 
