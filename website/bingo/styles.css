@@ -402,7 +402,16 @@ input[type="range"] {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.6rem;
+  gap: 1rem;
+  transform: scale(1.8);          /* ⬅️ makes card ~100% bigger */
+  transform-origin: top center;
+}
+
+#cardTitle {
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin-bottom: 1.2rem;
 }
 
 .bingo-letters {
@@ -512,11 +521,12 @@ input[type="range"] {
    CALLED NUMBERS PANEL (PLAYER)
 ================================ */
 .called-numbers {
-  min-width: 140px;
+  min-width: 220px;
   background: #11142c;
   padding: 1rem;
   border-radius: 12px;
   border: 1px solid var(--panel-border);
+  margin-top: 3rem; /* aligns vertically with bingo card */
 }
 
 .called-numbers h3 {
@@ -585,6 +595,16 @@ input[type="range"] {
     width: 100%;
     max-width: 360px;
   }
+   
+  .card-area {
+  transform: scale(1.25);
+  }
+
+.called-numbers {
+  margin-top: 1.5rem;
+  width: 100%;
+  max-width: 360px;
+  }
 }
 
 .bingo-btn {
@@ -605,3 +625,4 @@ input[type="range"] {
 .bingo-message.error {
   color: #ff6b6b;
 }
+
