@@ -133,7 +133,6 @@ aiCallBtn.onclick = async () => {
 
   const label = formatCall(n);
   speak(label);
-  renderCall(label);
 
   await sb.from('calls').insert({
     game_id: gameId,
@@ -345,6 +344,7 @@ function generateCode() {
     chars[Math.floor(Math.random() * chars.length)]
   ).join('');
 }
+
 
 
 
