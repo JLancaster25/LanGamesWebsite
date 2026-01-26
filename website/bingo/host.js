@@ -123,7 +123,7 @@ function nextNumber() {
   return remaining[Math.floor(Math.random() * remaining.length)];
 }
 
-callBtn.onclick = async () => {
+aiCallBtn.onclick = async () => {
   if (!gameActive) return;
 
   const n = nextNumber();
@@ -141,12 +141,12 @@ callBtn.onclick = async () => {
   });
 };
 
-autoBtn.onclick = () => {
+autoCallBtn.onclick = () => {
   clearInterval(autoTimer);
   autoTimer = setInterval(callBtn.onclick, speedInput.value * 1000);
 };
 
-stopBtn.onclick = () => {
+stopAutoCallBtn.onclick = () => {
   clearInterval(autoTimer);
   autoTimer = null;
 };
@@ -297,9 +297,9 @@ newBtn.onclick = async () => {
   gameActive = false;
   modeInputs.forEach(i => (i.disabled = false));
 
-  callBtn.disabled = true;
-  autoBtn.disabled = true;
-  stopBtn.disabled = true;
+  aiCallBtn.disabled = true;
+  autoCallBtn.disabled = true;
+  stopAutoCallBtn.disabled = true;
 
   await sb.rpc('start_game', { p_game_id: gameId });
   await sb.from('games').update({ status: 'lobby' }).eq('id', gameId);
@@ -345,4 +345,5 @@ function generateCode() {
     chars[Math.floor(Math.random() * chars.length)]
   ).join('');
 }
+
 
