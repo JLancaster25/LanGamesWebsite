@@ -1,429 +1,347 @@
-// ==========================================
-// SUPABASE CLIENT
-// ==========================================
-const sb = window.supabaseClient;
+'use strict';
 
-// ==========================================
-// DOM ELEMENTS
-// ==========================================
-const roomCodeEl = document.getElementById("roomCode");
-const playersListEl = document.getElementById("playersList");
-const menu = document.getElementById("menu");
-const menuBtn = document.getElementById("menuBtn");
-const newGameBtn = document.getElementById("newGameBtn");
-const startGameBtn = document.getElementById("startGameBtn");
-const aiCallBtn = document.getElementById("aiCallBtn");
-const autoCallBtn = document.getElementById("autoCallBtn");
-const stopAutoCallBtn = document.getElementById("stopAutoCallBtn");
+import { supabase as sb } from './supabase.js';
 
-const callSpeedInput = document.getElementById("callSpeed");
-const speedLabel = document.getElementById("speedLabel");
-// ==========================================
-// APP STATE
-// ==========================================
-let gameId = null;
-let hostId = null;
-let playerChannel = null;
-let autoCallTimer = null;
-let calledNumbers = new Set();
-
-// ==========================================
-// ENTRY POINT
-// ==========================================
-document.addEventListener("DOMContentLoaded", initHost);
-
-// ==========================================
-// INITIALIZATION
-// ==========================================
-async function initHost() {
-  setupMenu();
-  setupNewGameButton();
-  loadVoices();
-  
-  const session = await requireAuth();
-  hostId = session.user.id;
-  setupControls();
-  updateSpeedLabel();
-
-  await startNewGame();
+/* =====================================================
+   AI VOICE CALLER
+===================================================== */
+function speak(text) {
+  if (!('speechSynthesis' in window)) return;
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate = 0.9;
+  u.pitch = 1.1;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
 }
 
-// ==========================================
-// MENU LOGIC (SAFE)
-// ==========================================
-function setupMenu() {
-  if (!menu || !menuBtn) return;
+/* =====================================================
+   DOM
+===================================================== */
+const roomCodeEl = document.getElementById('roomCode');
+const playerListEl = document.getElementById('playerList');
+const callsEl = document.getElementById('calls');
 
-  menuBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    menu.classList.toggle("hidden");
-  });
+const startBtn = document.getElementById('startBtn');
+const callBtn = document.getElementById('callBtn');
+const autoBtn = document.getElementById('autoBtn');
+const stopBtn = document.getElementById('stopBtn');
+const newBtn = document.getElementById('newBtn');
+const speedInput = document.getElementById('speed');
 
-  document.addEventListener("click", () => {
-    menu.classList.add("hidden");
-  });
-}
+const modeInputs = document.querySelectorAll('.modes input');
 
-// ==========================================
-// NEW GAME BUTTON
-// ==========================================
-function setupNewGameButton() {
-  if (!newGameBtn) return;
+/* =====================================================
+   STATE
+===================================================== */
+let gameId;
+let gameActive = false;
+let autoTimer = null;
+let called = new Set();
+let winners = new Set();
 
-  newGameBtn.addEventListener("click", async () => {
-    await startNewGame();
-  });
-  const voiceToggle = document.getElementById("voiceToggle");
-  if (voiceToggle) {
-    voiceEnabled = voiceToggle.checked;
-    voiceToggle.addEventListener("change", () => {
-      voiceEnabled = voiceToggle.checked;
-    });
- }
-}
+/* =====================================================
+   CREATE GAME
+===================================================== */
+const roomCode = generateCode();
+roomCodeEl.textContent = roomCode;
 
-// ==========================================
-// START / RESTART GAME
-// ==========================================
-async function startNewGame() {
-  clearPlayersUI();
-  unsubscribePlayers();
-  stopAutoCall();
-  calledNumbers.clear();
-
-  const game = await createGameWithUniqueCode(hostId);
-  gameId = game.id;
-
-  roomCodeEl.textContent = game.code;
-
-  await loadPlayers();
-  subscribeToPlayers();
-}
-
-// ==========================================
-// AUTH GUARD
-// ==========================================
-async function requireAuth() {
-  const { data } = await sb.auth.getSession();
-
-  if (!data.session) {
-    window.location.replace("/WebsiteLogin/");
-    throw new Error("Not authenticated");
-  }
-
-  return data.session;
-}
-
-// ==========================================
-// CONTROL SETUP
-// ==========================================
-function setupControls() {
-  startGameBtn?.addEventListener("click", startGame);
-  newGameBtn?.addEventListener("click", startNewGame);
-  aiCallBtn?.addEventListener("click", aiCallOnce);
-  autoCallBtn?.addEventListener("click", startAutoCall);
-  stopAutoCallBtn?.addEventListener("click", stopAutoCall);
-
-  callSpeedInput?.addEventListener("input", updateSpeedLabel);
-}
-
-// ==========================================
-// GAME LIFECYCLE
-// ==========================================
-function startGame() {
-  if (!gameId) {
-    alert("Create a game first.");
-    return;
-  }
-
-  alert("Game started!");
-}
-
-// ==========================================
-// GAME CREATION
-// ==========================================
-async function createGameWithUniqueCode(hostId) {
-  for (let i = 0; i < 5; i++) {
-    const code = generateRoomCode();
-
-    const { data, error } = await sb
-      .from("games")
-      .insert({ code, host_id: hostId })
-      .select()
-      .single();
-
-    if (!error) return data;
-  }
-
-  alert("Failed to create a unique room.");
-  throw new Error("Room creation failed");
-}
-
-// ==========================================
-// ROOM CODE
-// ==========================================
-function generateRoomCode() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let code = "";
-  for (let i = 0; i < 7; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return code;
-}
-
-// ==========================================
-// AI VOICE CALLER
-// ==========================================
-let voiceEnabled = true;
-let selectedVoice = null;
-
-function loadVoices() {
-  const voices = speechSynthesis.getVoices();
-  selectedVoice =
-    voices.find(v => v.lang.startsWith("en") && v.name.includes("Google")) ||
-    voices.find(v => v.lang.startsWith("en")) ||
-    voices[0];
-
-  // Optional dropdown
-  const voiceSelect = document.getElementById("voiceSelect");
-  if (voiceSelect && voices.length) {
-    voiceSelect.innerHTML = "";
-    voices.forEach((v, i) => {
-      const opt = document.createElement("option");
-      opt.value = i;
-      opt.textContent = `${v.name} (${v.lang})`;
-      voiceSelect.appendChild(opt);
-    });
-
-    voiceSelect.onchange = () => {
-      selectedVoice = voices[voiceSelect.value];
-    };
-  }
-}
-
-// Required for Chrome
-speechSynthesis.onvoiceschanged = loadVoices;
-
-function speakCall(number) {
-  if (!voiceEnabled || !selectedVoice) return;
-
-  const letter =
-    number <= 15 ? "B" :
-    number <= 30 ? "I" :
-    number <= 45 ? "N" :
-    number <= 60 ? "G" : "O";
-
-  const utterance = new SpeechSynthesisUtterance(
-    `${letter}… ${number}`
-  );
-
-  utterance.voice = selectedVoice;
-  utterance.rate = 0.9;
-  utterance.pitch = 1.0;
-  utterance.volume = 1;
-
-  speechSynthesis.cancel(); // prevents overlap
-  speechSynthesis.speak(utterance);
-}
-
-// ==========================================
-// CALLING LOGIC
-// ==========================================
-async function aiCallOnce() {
-  if (!gameId) return;
-
-  const number = drawNextNumber();
-  if (!number) {
-    alert("All numbers have been called.");
-    return;
-  }
-const { data: game } = await sb
-  .from("games")
-  .select("is_locked")
-  .eq("id", gameId)
+const { data: game, error: gameErr } = await sb
+  .from('games')
+  .insert({ code: roomCode, status: 'lobby' })
+  .select()
   .single();
 
-if (game?.is_locked) {
-  alert("Game is locked. Bingo already claimed.");
-  stopAutoCall();
-  return;
-}
-  await recordCall(number);
-}
+if (gameErr) throw gameErr;
+gameId = game.id;
 
-function startAutoCall() {
-  if (autoCallTimer) return;
+/* =====================================================
+   LOAD EXISTING PLAYERS
+===================================================== */
+const { data: existingPlayers } = await sb
+  .from('players')
+  .select('name')
+  .eq('game_id', gameId);
 
-  autoCallBtn.classList.add("hidden");
-  stopAutoCallBtn.classList.remove("hidden");
+existingPlayers?.forEach(p => addPlayer(p.name));
 
-  autoCallTimer = setInterval(async () => {
-    const number = drawNextNumber();
-    if (!number) {
-      stopAutoCall();
-      alert("All numbers called.");
-      return;
+/* =====================================================
+   REALTIME: PLAYERS
+===================================================== */
+sb.channel(`players-${gameId}`)
+  .on(
+    'postgres_changes',
+    { event: 'INSERT', schema: 'public', table: 'players' },
+    p => {
+      if (p.new.game_id === gameId) addPlayer(p.new.name);
     }
-    const { data: game } = await sb
-  .from("games")
-  .select("is_locked")
-  .eq("id", gameId)
-  .single();
+  )
+  .subscribe();
 
-if (game?.is_locked) {
-  alert("Game is locked. Bingo already claimed.");
-  stopAutoCall();
-  return;
-}
-    await recordCall(number);
-  }, callSpeedInput.value * 1000);
-}
+/* =====================================================
+   MODE CONTROL
+===================================================== */
+async function updateModes() {
+  const modes = [...modeInputs]
+    .filter(i => i.checked)
+    .map(i => i.value);
 
-function stopAutoCall() {
-  if (autoCallTimer) {
-    clearInterval(autoCallTimer);
-    autoCallTimer = null;
+  if (!modes.length) {
+    modeInputs[0].checked = true;
+    modes.push('normal');
   }
 
-  autoCallBtn?.classList.remove("hidden");
-  stopAutoCallBtn?.classList.add("hidden");
+  await sb.from('games').update({ modes }).eq('id', gameId);
 }
 
-function drawNextNumber() {
-  if (calledNumbers.size >= 75) return null;
+modeInputs.forEach(i => (i.onchange = updateModes));
+await updateModes();
 
-  let num;
-  do {
-    num = Math.floor(Math.random() * 75) + 1;
-  } while (calledNumbers.has(num));
+/* =====================================================
+   START GAME
+===================================================== */
+startBtn.onclick = async () => {
+  gameActive = true;
+  modeInputs.forEach(i => (i.disabled = true));
 
-  calledNumbers.add(num);
-  return num;
+  callBtn.disabled = false;
+  autoBtn.disabled = false;
+  stopBtn.disabled = false;
+
+  await sb.from('games').update({ status: 'active' }).eq('id', gameId);
+  speak('Game started');
+};
+
+/* =====================================================
+   RANDOM CALLING
+===================================================== */
+function nextNumber() {
+  const remaining = [];
+  for (let i = 1; i <= 75; i++) {
+    if (!called.has(i)) remaining.push(i);
+  }
+  if (!remaining.length) return null;
+  return remaining[Math.floor(Math.random() * remaining.length)];
 }
 
-async function recordCall(number) {
-  await sb.from("calls").insert({
+callBtn.onclick = async () => {
+  if (!gameActive) return;
+
+  const n = nextNumber();
+  if (!n) return;
+
+  called.add(n);
+
+  const label = formatCall(n);
+  speak(label);
+  renderCall(label);
+
+  await sb.from('calls').insert({
     game_id: gameId,
-    number
+    number: n
   });
-  speakCall(number);
+};
+
+autoBtn.onclick = () => {
+  clearInterval(autoTimer);
+  autoTimer = setInterval(callBtn.onclick, speedInput.value * 1000);
+};
+
+stopBtn.onclick = () => {
+  clearInterval(autoTimer);
+  autoTimer = null;
+};
+
+/* =====================================================
+   REALTIME: CALL HISTORY
+===================================================== */
+sb.channel(`calls-${gameId}`)
+  .on(
+    'postgres_changes',
+    { event: 'INSERT', schema: 'public', table: 'calls' },
+    p => {
+      if (p.new.game_id !== gameId) return;
+      renderCall(formatCall(p.new.number));
+    }
+  )
+  .subscribe();
+
+/* =====================================================
+   REALTIME: CLAIMS → HOST VALIDATION
+===================================================== */
+sb.channel(`claims-${gameId}`)
+  .on(
+    'postgres_changes',
+    { event: 'INSERT', schema: 'public', table: 'claims' },
+    async p => {
+      if (!gameActive || p.new.game_id !== gameId) return;
+
+      const valid = await validateClaim(p.new);
+      if (!valid) return;
+
+      winners.add(p.new.player_name);
+      crownWinner(p.new.player_name);
+
+      speak(`${p.new.player_name} has bingo`);
+
+      await sb.from('winners').insert({
+        game_id: gameId,
+        player_name: p.new.player_name,
+        pattern: 'BINGO'
+      });
+
+      endGame();
+    }
+  )
+  .subscribe();
+
+/* =====================================================
+   HOST-SIDE BINGO VALIDATION
+===================================================== */
+async function validateClaim(claim) {
+  const { data: player } = await sb
+    .from('players')
+    .select('card')
+    .eq('game_id', gameId)
+    .eq('name', claim.player_name)
+    .single();
+
+  if (!player) return false;
+
+  const card = player.card;
+  const marked = new Set(claim.marked);
+  const calledSet = called;
+
+  const { data: game } = await sb
+    .from('games')
+    .select('modes')
+    .eq('id', gameId)
+    .single();
+
+  return validateBingo(card, marked, calledSet, game.modes);
 }
 
-// ==========================================
-// SPEED UI
-// ==========================================
-function updateSpeedLabel() {
-  if (!speedLabel || !callSpeedInput) return;
-  speedLabel.textContent = `${callSpeedInput.value}s`;
-}
+/* =====================================================
+   BINGO ENGINE
+===================================================== */
+function validateBingo(card, marked, calledSet, modes) {
+  const isMarked = (x, y) => {
+    const v = card[y][x];
+    return v === 'FREE' || (calledSet.has(v) && marked.has(`${x}-${y}`));
+  };
 
-// ==========================================
-// PLAYER LIST
-// ==========================================
-async function loadPlayers() {
-  if (!playersListEl || !gameId) return;
+  if (modes.includes('normal')) {
+    for (let i = 0; i < 5; i++) {
+      if ([0,1,2,3,4].every(x => isMarked(x, i))) return true;
+      if ([0,1,2,3,4].every(y => isMarked(i, y))) return true;
+    }
+    if ([0,1,2,3,4].every(i => isMarked(i, i))) return true;
+    if ([0,1,2,3,4].every(i => isMarked(4 - i, i))) return true;
+  }
 
-  const { data } = await sb
-    .from("claims")
-    .select("id, player_name")
-    .eq("game_id", gameId);
+  if (modes.includes('four_corners')) {
+    if (
+      isMarked(0,0) &&
+      isMarked(4,0) &&
+      isMarked(0,4) &&
+      isMarked(4,4)
+    ) return true;
+  }
 
-  clearPlayersUI();
-  data?.forEach(addPlayerRow);
-}
+  if (modes.includes('cross')) {
+    if (
+      [0,1,2,3,4].every(i => isMarked(2, i)) &&
+      [0,1,2,3,4].every(i => isMarked(i, 2))
+    ) return true;
+  }
 
-function subscribeToPlayers() {
-  if (!gameId) return;
-
-  playerChannel = sb.channel(`players-${gameId}`)
-    .on(
-      "postgres_changes",
-      { event: "INSERT", schema: "public", table: "claims" },
-      payload => {
-        if (payload.new.game_id === gameId) {
-          addPlayerRow(payload.new);
-        }
+  if (modes.includes('blackout')) {
+    for (let y = 0; y < 5; y++) {
+      for (let x = 0; x < 5; x++) {
+        if (!isMarked(x, y)) return false;
       }
-    )
-    .on(
-      "postgres_changes",
-      { event: "DELETE", schema: "public", table: "claims" },
-      payload => {
-        if (payload.old.game_id === gameId) {
-          removePlayerRow(payload.old.id);
-        }
-      }
-    )
-    .subscribe();
+    }
+    return true;
+  }
+
+  return false;
 }
 
-function unsubscribePlayers() {
-  if (playerChannel) {
-    sb.removeChannel(playerChannel);
-    playerChannel = null;
+/* =====================================================
+   END GAME
+===================================================== */
+async function endGame() {
+  gameActive = false;
+  clearInterval(autoTimer);
+  autoTimer = null;
+
+  callBtn.disabled = true;
+  autoBtn.disabled = true;
+  stopBtn.disabled = true;
+
+  speak('Bingo! Game over');
+
+  await sb.from('games').update({ status: 'finished' }).eq('id', gameId);
+}
+
+/* =====================================================
+   NEW GAME
+===================================================== */
+newBtn.onclick = async () => {
+  clearInterval(autoTimer);
+  autoTimer = null;
+
+  called.clear();
+  winners.clear();
+  callsEl.innerHTML = '';
+
+  gameActive = false;
+  modeInputs.forEach(i => (i.disabled = false));
+
+  callBtn.disabled = true;
+  autoBtn.disabled = true;
+  stopBtn.disabled = true;
+
+  await sb.rpc('start_game', { p_game_id: gameId });
+  await sb.from('games').update({ status: 'lobby' }).eq('id', gameId);
+
+  speak('New game ready');
+};
+
+/* =====================================================
+   UI HELPERS
+===================================================== */
+function addPlayer(name) {
+  if (document.getElementById(`player-${name}`)) return;
+  const li = document.createElement('li');
+  li.id = `player-${name}`;
+  li.textContent = name;
+  playerListEl.appendChild(li);
+}
+
+function crownWinner(name) {
+  const li = document.getElementById(`player-${name}`);
+  if (li && !li.textContent.includes('👑')) {
+    li.textContent += ' 👑';
   }
 }
 
-// ==========================================
-// UI HELPERS
-// ==========================================
-function clearPlayersUI() {
-  if (playersListEl) playersListEl.innerHTML = "";
+function renderCall(text) {
+  const span = document.createElement('span');
+  span.textContent = text;
+  callsEl.prepend(span);
 }
 
-function addPlayerRow(player) {
-  if (!playersListEl) return;
-  if (document.getElementById(`player-${player.id}`)) return;
-
-  const li = document.createElement("li");
-  li.id = `player-${player.id}`;
-  li.className = "player-row";
-
-  const name = document.createElement("span");
-  name.textContent = player.player_name;
-
-  const kickBtn = document.createElement("button");
-  kickBtn.textContent = "Kick";
-  kickBtn.onclick = () => kickPlayer(player.id);
-
-  li.appendChild(name);
-  li.appendChild(kickBtn);
-  playersListEl.appendChild(li);
+function formatCall(n) {
+  const l = n <= 15 ? 'B' :
+            n <= 30 ? 'I' :
+            n <= 45 ? 'N' :
+            n <= 60 ? 'G' : 'O';
+  return `${l} ${n}`;
 }
 
-function removePlayerRow(playerId) {
-  const el = document.getElementById(`player-${playerId}`);
-  if (el) el.remove();
+function generateCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({ length: 7 }, () =>
+    chars[Math.floor(Math.random() * chars.length)]
+  ).join('');
 }
-async function submitBingoClaim() {
-  await sb.from("bingo_claims").insert({
-    game_id: gameId,
-    user_id: userId
-  });
-}
-
-// ==========================================
-// KICK PLAYER
-// ==========================================
-async function kickPlayer(playerId) {
-  if (!confirm("Kick this player?")) return;
-
-  const { error } = await sb
-    .from("claims")
-    .delete()
-    .eq("id", playerId)
-    .eq("game_id", gameId);
-
-  if (error) {
-    alert("Failed to kick player.");
-  }
-}
-
-
-
-
-
-
-
-
-
