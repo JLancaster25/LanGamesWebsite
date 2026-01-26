@@ -133,8 +133,7 @@ aiCallBtn.onclick = async () => {
 
   const label = formatCall(n);
   speak(label);
-  console.log('BALL ELEMENT:', document.getElementById('current'))
-  updateCurrentCall(n);
+  updateCurrentBall(n);
    
   await sb.from('calls').insert({
     game_id: gameId,
@@ -364,6 +363,7 @@ function updateCurrentBall(number) {
   void ball.offsetWidth; // force reflow
   ball.classList.add('glow');
 }
+
 
 
 
