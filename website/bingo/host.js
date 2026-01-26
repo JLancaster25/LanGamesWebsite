@@ -345,6 +345,24 @@ function generateCode() {
   ).join('');
 }
 
+function updateCurrentBall(number) {
+  const ball = document.getElementById('current');
+  if (!ball) return;
+
+  const letter =
+    number <= 15 ? 'B' :
+    number <= 30 ? 'I' :
+    number <= 45 ? 'N' :
+    number <= 60 ? 'G' : 'O';
+
+  ball.textContent = `${letter} ${number}`;
+
+  // restart glow animation
+  ball.classList.remove('glow');
+  void ball.offsetWidth; // force reflow
+  ball.classList.add('glow');
+}
+
 
 
 
