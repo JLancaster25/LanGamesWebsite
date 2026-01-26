@@ -99,13 +99,13 @@ await updateModes();
 /* =====================================================
    START GAME
 ===================================================== */
-startBtn.onclick = async () => {
+startGameBtn.onclick = async () => {
   gameActive = true;
   modeInputs.forEach(i => (i.disabled = true));
 
-  callBtn.disabled = false;
-  autoBtn.disabled = false;
-  stopBtn.disabled = false;
+  aiCallBtn.disabled = false;
+  autoCallBtn.disabled = false;
+  stopAutoCallBtn.disabled = false;
 
   await sb.from('games').update({ status: 'active' }).eq('id', gameId);
   speak('Game started');
@@ -345,5 +345,6 @@ function generateCode() {
     chars[Math.floor(Math.random() * chars.length)]
   ).join('');
 }
+
 
 
