@@ -626,3 +626,62 @@ input[type="range"] {
   color: #ff6b6b;
 }
 
+/* ===============================
+   PLAYER GAME LAYOUT (FIXED)
+================================ */
+.player-layout {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 3rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+/* Center title above card */
+#cardTitle {
+  text-align: center;
+  font-size: 1.9rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+}
+
+/* Card container */
+.card-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: scale(1.8);          /* ~100% bigger */
+  transform-origin: top center;
+}
+
+/* Bingo button under card */
+.card-area .bingo-btn {
+  margin-top: 1rem;
+  width: 100%;
+  max-width: 260px;
+}
+
+/* Called numbers to the right */
+.called-numbers {
+  min-width: 240px;
+  margin-top: 4rem;
+}
+
+/* Mobile layout */
+@media (max-width: 768px) {
+  .player-layout {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .card-area {
+    transform: scale(1.25);
+  }
+
+  .called-numbers {
+    margin-top: 1.5rem;
+    width: 100%;
+    max-width: 360px;
+  }
+}
