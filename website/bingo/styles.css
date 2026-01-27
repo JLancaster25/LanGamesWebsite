@@ -489,69 +489,6 @@ input[type="range"] {
 }
 
 /* ===============================
-   MOBILE
-================================ */
-@media (max-width: 900px) {
-  .host-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .call-history {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .current-ball {
-    width: 90px;
-    height: 90px;
-    font-size: 2.2rem;
-  }
-}
-/* ===============================
-   PLAYER GAME LAYOUT
-================================ */
-.player-game {
-  display: flex;
-  gap: 2rem;
-  justify-content: center;
-  align-items: flex-start;
-  flex-wrap: wrap;
-}
-
-/* ===============================
-   CALLED NUMBERS PANEL (PLAYER)
-================================ */
-.called-numbers {
-  min-width: 220px;
-  background: #11142c;
-  padding: 1rem;
-  border-radius: 12px;
-  border: 1px solid var(--panel-border);
-  margin-top: 3rem; /* aligns vertically with bingo card */
-}
-
-.called-numbers h3 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1rem;
-  text-align: center;
-  color: #c7c9ff;
-}
-
-#calledNumbersList {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
-  gap: 6px;
-}
-
-.called-number {
-  background: #1b1f44;
-  color: white;
-  border-radius: 6px;
-  padding: 6px 0;
-  text-align: center;
-  font-weight: bold;
-}
-
-/* ===============================
    BINGO CELL STATES (PLAYER)
 ================================ */
 
@@ -627,60 +564,59 @@ input[type="range"] {
 }
 
 /* ===============================
-   PLAYER GAME LAYOUT (FIXED)
+   PLAYER FINAL LAYOUT (AUTHORITATIVE)
 ================================ */
-/* Force main player area to center */
+
+/* Page container */
 .player-game {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display: grid;
+  place-items: center;
 }
 
-/* Title centered over the CARD (not page left) */
+/* Title centered above card */
 #cardTitle {
   text-align: center;
   font-size: 2rem;
   font-weight: 800;
   margin-bottom: 1.5rem;
-  width: fit-content;
 }
 
-/* Layout: card center, called numbers right */
+/* Two-column layout: card | called numbers */
 .player-layout {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 3.5rem;
+  display: grid;
+  grid-template-columns: auto 240px;
+  gap: 3rem;
+  align-items: start;
 }
 
-/* Card container (center anchor) */
+/* Card column */
 .card-area {
   display: flex;
   flex-direction: column;
   align-items: center;
-  transform: scale(2); /* 🔥 bigger than before */
+  transform: scale(2);
   transform-origin: top center;
 }
 
-/* Bingo button tight under card */
+/* Bingo button under card */
 .card-area .bingo-btn {
   margin-top: 0.75rem;
   width: 260px;
 }
 
-/* Called numbers aligned to card grid */
+/* Called numbers column */
 .called-numbers {
-  margin-top: 3.2rem; /* aligns with top of number grid */
-  min-width: 220px;
+  align-self: start;
+  margin-top: 0;       /* 🔥 NO vertical drift */
+  min-width: 240px;
 }
 
 /* ===============================
-   MOBILE SAFETY
+   MOBILE STACKING
 ================================ */
 @media (max-width: 768px) {
   .player-layout {
-    flex-direction: column;
-    align-items: center;
+    grid-template-columns: 1fr;
   }
 
   .card-area {
@@ -689,6 +625,7 @@ input[type="range"] {
 
   .called-numbers {
     margin-top: 1.5rem;
-    width: 100%;
     max-width: 360px;
+    width: 100%;
   }
+}
