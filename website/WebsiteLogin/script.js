@@ -127,7 +127,7 @@ loginForm.addEventListener("submit", async (e) => {
     window.history.back();
   } else {
     // Otherwise, redirect to a default page (e.g., the home page or dashboard)
-    window.location.href = '/dashboard.html'; // Replace with your default URL
+    window.location.href = '/'; // Replace with your default URL
   }
 });
 
@@ -169,6 +169,7 @@ registerForm.addEventListener("submit", async (e) => {
 
   showSuccess("Account created! Check your email.");
 });
+
 
 
 
