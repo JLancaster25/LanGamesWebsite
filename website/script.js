@@ -64,15 +64,17 @@ const authLink = document.getElementById("authLink"); // menu button
 function showLoggedIn(user) {
   if (loginLink) loginLink.classList.add("hidden");
 
-  userEmail.textContent = user.email;
-  userPanel.classList.remove("hidden");
+  if (authLink) authLink.textContent = "Account";
+  if (userPanel) userPanel.classList.remove("hidden");
+  if (userEmail) userEmail.textContent = user.email;
   logoutBtn.classList.remove("hidden");
 }
 
 function showLoggedOut() {
   if (loginLink) loginLink.classList.remove("hidden");
 
-  userPanel.classList.add("hidden");
+  if (authLink) authLink.textContent = "Login";
+  if (userPanel) userPanel.classList.add("hidden");
   logoutBtn.classList.add("hidden");
   userEmail.textContent = "";
 }
@@ -95,12 +97,12 @@ function showLoggedIn(user) {
   if (userPanel) userPanel.classList.remove("hidden");
   if (userEmail) userEmail.textContent = user.email;
 }
-
+/*
 function showLoggedOut() {
   if (authLink) authLink.textContent = "Login";
   if (userPanel) userPanel.classList.add("hidden");
 }
-
+*/
 // ================================
 // LOGOUT
 // ================================
@@ -154,4 +156,5 @@ function showUser(email) {
 supabase.auth.getSession().then(({ data }) => {
   if (data.session) showUser(data.session.user.email);
 });
+
 
