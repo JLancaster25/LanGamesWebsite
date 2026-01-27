@@ -589,24 +589,35 @@ input[type="range"] {
   cursor: default;
 }
 
-.bingo-cell.free {
-  background: #4f5bff;
+.bingo-cell {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
+/* Called by host, can now be marked */
+.bingo-cell.call-available {
+  opacity: 1;
+  cursor: pointer;
+  outline: 3px solid #facc15;
+}
+
+/* Marked by player */
 .bingo-cell.marked {
   background: #22c55e;
   color: #022c22;
+  opacity: 1;
+  outline: none;
+}
+
+/* FREE space always enabled */
+.bingo-cell.free {
+  opacity: 1;
+  cursor: default;
 }
 
 .hidden {
   display: none;
 }
-.called-number {
-  background: #1b1f44;
-  color: white;
-  border-radius: 6px;
-  padding: 6px 0;
-  text-align: center;
-  font-weight: bold;
-}
+
+
 
