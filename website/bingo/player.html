@@ -57,13 +57,21 @@
      PLAYER GAME
 ========================= -->
 <main class="player-game hidden" id="game">
-  <h2 id="cardTitle"></h2>
+ <h2 id="cardTitle"></h2>
+
+<div class="player-layout">
+
+  <div class="card-area">
+    <div class="bingo-card" id="bingoCard"></div>
+    <button id="bingoBtn" class="btn primary bingo-btn">BINGO!</button>
+  </div>
+
   <div class="called-numbers">
-  <h3>Called Numbers</h3>
-  <div id="calledNumbersList"></div>
+    <h3>Called Numbers</h3>
+    <div id="calledNumbersList"></div>
+  </div>
+
 </div>
-  <div class="bingo-card" id="bingoCard"></div>
-  <button id="bingoBtn" class="btn primary bingo-btn">BINGO!</button>
   <p id="bingoMessage" class="bingo-message hidden"></p>
 </main>
 
@@ -72,6 +80,7 @@
 <script type="module" src="/bingo/player.js"></script>
 </body>
 </html>
+
 
 
 
