@@ -528,6 +528,25 @@ input[type="range"] {
 }
 
 /* ===============================
+   PLAYER BINGO BUTTON ALIGNMENT
+================================ */
+
+/* Allow internal alignment control */
+.card-area {
+  align-items: flex-start;
+}
+
+/* Center the bingo grid itself */
+.card-area .bingo-card {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Align BINGO button with left edge of card */
+.card-area .bingo-btn {
+  align-self: flex-start;
+}
+/* ===============================
    MOBILE LAYOUT
 ================================ */
 @media (max-width: 900px) {
@@ -618,6 +637,7 @@ input[type="range"] {
 .hidden {
   display: none;
 }
+
 
 
 
