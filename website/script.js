@@ -115,8 +115,13 @@ if (logoutBtn) {
       return;
     }
 
-    // Redirect to login page
-    window.location.href = "/";
+    if (window.history.length > 1) {
+    // If there is history to go back to, use history.back()
+    window.history.back();
+    } else {
+    // Otherwise, redirect to a default page (e.g., the home page or dashboard)
+    window.location.href = '/dashboard.html'; // Replace with your default URL
+  }
   });
 }
 
@@ -156,6 +161,7 @@ function showUser(email) {
 supabase.auth.getSession().then(({ data }) => {
   if (data.session) showUser(data.session.user.email);
 });
+
 
 
 
