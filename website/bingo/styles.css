@@ -601,4 +601,12 @@ input[type="range"] {
 .hidden {
   display: none;
 }
+.called-number {
+  background: #1b1f44;
+  color: white;
+  border-radius: 6px;
+  padding: 6px 0;
+  text-align: center;
+  font-weight: bold;
+}
 
