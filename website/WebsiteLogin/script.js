@@ -122,7 +122,13 @@ loginForm.addEventListener("submit", async (e) => {
   const { error } = await sb.auth.signInWithPassword({ email, password });
   if (error) return showError(error.message);
 
-  window.location.href = "/";
+  if (window.history.length > 1) {
+    // If there is history to go back to, use history.back()
+    window.history.back();
+  } else {
+    // Otherwise, redirect to a default page (e.g., the home page or dashboard)
+    window.location.href = '/dashboard.html'; // Replace with your default URL
+  }
 });
 
 // ==================================================
@@ -163,5 +169,6 @@ registerForm.addEventListener("submit", async (e) => {
 
   showSuccess("Account created! Check your email.");
 });
+
 
 
