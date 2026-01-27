@@ -1,0 +1,96 @@
+body {
+  background: #020617;
+  color: #e5e7eb;
+  font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.account-card {
+  width: 380px;
+  background: #020617;
+  border: 1px solid #1e293b;
+  padding: 2rem;
+  border-radius: 12px;
+}
+
+h1 {
+  text-align: center;
+}
+
+.avatar-section {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.avatar-section img {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 0.5rem;
+}
+
+.avatar-grid {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.avatar-option {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.avatar-option.selected {
+  border-color: #2563eb;
+}
+
+.field {
+  margin-top: 1rem;
+}
+
+label {
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.readonly {
+  border: 1px solid #1e293b;
+  padding: 0.5rem;
+  border-radius: 6px;
+}
+
+select, button {
+  width: 100%;
+  padding: 0.6rem;
+  margin-top: 0.5rem;
+  border-radius: 6px;
+  border: none;
+}
+
+button {
+  background: #2563eb;
+  color: white;
+}
+
+button:hover {
+  background: #1d4ed8;
+}
+
+.actions {
+  margin-top: 1.5rem;
+}
+
+.danger {
+  background: #dc2626;
+}
+
+.danger:hover {
+  background: #b91c1c;
+}

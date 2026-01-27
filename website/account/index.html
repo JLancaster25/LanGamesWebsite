@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>LAN Game | Account</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" href="accountStyle.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabaseClient.js"></script>  
+  <script defer src="accountScript.js"></script>
+</head>
+<body>
+
+<div class="account-card">
+  <h1>Account Settings</h1>
+
+  <!-- Avatar Picker -->
+  <div class="avatar-section">
+    <img id="currentAvatar" src="/avatars/avatar1.png" />
+
+    <div class="avatar-grid">
+      <img src="/avatars/avatar1.png" class="avatar-option" />
+      <img src="/avatars/avatar2.png" class="avatar-option" />
+      <img src="/avatars/avatar3.png" class="avatar-option" />
+      <img src="/avatars/avatar4.png" class="avatar-option" />
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Email</label>
+    <div id="email" class="readonly"></div>
+  </div>
+
+  <div class="field">
+    <label>Display Username</label>
+    <div id="displayUsername" class="readonly"></div>
+  </div>
+
+  <div class="field">
+    <label>Daub Color</label>
+    <select id="daubColor">
+      <option value="red">Red</option>
+      <option value="blue">Blue</option>
+      <option value="green">Green</option>
+      <option value="yellow">Yellow</option>
+      <option value="purple">Purple</option>
+    </select>
+    <button id="saveColor">Save Color</button>
+  </div>
+
+  <div class="actions">
+    <button id="resetPassword">Reset Password</button>
+    <button id="logout" class="danger">Log Out</button>
+  </div>
+</div>
+
+</body>
+</html>
