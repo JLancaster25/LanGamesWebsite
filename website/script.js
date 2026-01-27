@@ -60,7 +60,7 @@ document.querySelectorAll("[data-target]").forEach(el => {
 // AUTH UI ELEMENTS (MAIN SITE)
 // ================================
 const authLink = document.getElementById("authLink"); // menu button
-/*
+
 function showLoggedIn(user) {
   if (loginLink) loginLink.classList.add("hidden");
 
@@ -76,7 +76,7 @@ function showLoggedOut() {
   logoutBtn.classList.add("hidden");
   userEmail.textContent = "";
 }
-*/
+
 // ================================
 // SESSION CHECK ON LOAD
 // ================================
@@ -114,7 +114,7 @@ if (logoutBtn) {
     }
 
     // Redirect to login page
-    window.location.href = "/WebsiteLogin/";
+    window.location.href = "/";
   });
 }
 
@@ -154,163 +154,4 @@ function showUser(email) {
 supabase.auth.getSession().then(({ data }) => {
   if (data.session) showUser(data.session.user.email);
 });
-/*
-const LanGamesAPI = {
-  baseUrl: 'https://api.langames.online/v1',
-  apiKey: 'YOUR_LANGAMES_API_KEY', // Replace with your key
-  
-  async publishGame() {
-    try {
-      const gameData = {
-        name: "AI Voice Bingo",
-        description: "Real-time multiplayer bingo game with AI voice announcements. Features multiple game modes including Normal (5 in a row), Four Corners, and Blackout. Includes user authentication, admin controls, and real-time synchronization across all players.",
-        version: "1.0.0",
-        category: "board-games",
-        tags: ["bingo", "multiplayer", "voice", "realtime", "party-game"],
-        minPlayers: 2,
-        maxPlayers: 100,
-        estimatedDuration: 15,
-        difficulty: "easy",
-        ageRating: "everyone",
-        gameUrl: window.location.origin,
-        features: [
-          "Real-time multiplayer synchronization",
-          "AI voice number calling with Web Speech API",
-          "Three game modes: Normal, 4-Corners, Blackout",
-          "Secure user authentication",
-          "Admin control panel with auto-call feature",
-          "Mobile responsive design",
-          "Real-time winner detection",
-          "Customizable game speed"
-        ],
-        technology: {
-          framework: "react",
-          backend: "supabase",
-          realtime: true,
-          authentication: true,
-          voice: true
-        },
-        pricing: {
-          model: "free",
-          iapEnabled: false
-        }
-      };
-
-      const response = await fetch(`${this.baseUrl}/games/publish`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`
-        },
-        body: JSON.stringify(gameData)
-      });
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log('Game published successfully:', result);
-      return result;
-    } catch (error) {
-      console.error('Error publishing game:', error);
-      throw error;
-    }
-  },
-
-  async updateGame(gameId, updates) {
-    try {
-      const response = await fetch(`${this.baseUrl}/games/${gameId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`
-        },
-        body: JSON.stringify(updates)
-      });
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error updating game:', error);
-      throw error;
-    }
-  },
-
-  async getStats(gameId) {
-    try {
-      const response = await fetch(`${this.baseUrl}/games/${gameId}/stats`, {
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-      throw error;
-    }
-  },
-
-  async reportGameStart() {
-    // Track when a game session starts
-    try {
-      await fetch(`${this.baseUrl}/events/game-start`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`
-        },
-        body: JSON.stringify({
-          gameId: 'bingo-ai-voice-12345',
-          timestamp: new Date().toISOString(),
-          players: players.length,
-          gameMode: gameType
-        })
-      });
-    } catch (error) {
-      console.error('Error reporting game start:', error);
-    }
-  },
-
-  async reportGameEnd(winner) {
-    // Track when a game session ends
-    try {
-      await fetch(`${this.baseUrl}/events/game-end`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`
-        },
-        body: JSON.stringify({
-          gameId: 'bingo-ai-voice-12345',
-          timestamp: new Date().toISOString(),
-          duration: Math.floor((Date.now() - gameStartTime) / 1000),
-          winner: winner,
-          gameMode: gameType
-        })
-      });
-    } catch (error) {
-      console.error('Error reporting game end:', error);
-    }
-  }
-
-};
-*/
-
-
-
-
-
-
-
-
-
 
