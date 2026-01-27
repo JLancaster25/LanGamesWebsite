@@ -229,7 +229,14 @@ function handleCall(number) {
   // Show in called numbers UI
   const badge = document.createElement("div");
   badge.className = "called-number";
-  badge.textContent = number;
+    let letter =
+    number <= 15 ? "B" :
+    number <= 30 ? "I" :
+    number <= 45 ? "N" :
+    number <= 60 ? "G" : "O";
+
+  badge.textContent = `${letter} ${number}`;
+  calledNumbersListEl.appendChild(badge);
   calledNumbersListEl.appendChild(badge);
 
   // Enable matching cell
@@ -380,6 +387,7 @@ function subscribeToGameLock(gameId) {
     )
     .subscribe();
 }
+
 
 
 
