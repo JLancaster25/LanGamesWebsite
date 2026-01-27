@@ -551,4 +551,69 @@ input[type="range"] {
     max-width: 360px;
   }
 }
+/* ======================================================
+   BINGO BOARD FUNCTIONAL STYLES (RESTORED)
+   ⚠️ REQUIRED FOR JS INTERACTION
+====================================================== */
+
+/* Bingo grid container */
+.bingo-card {
+  display: grid;
+  grid-template-columns: repeat(5, 80px);
+  grid-template-rows: repeat(5, 80px);
+  gap: 0.75rem;
+}
+
+/* Bingo cell */
+.bingo-card .cell {
+  background: #14182f;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Hover feedback */
+.bingo-card .cell:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 0 2px rgba(124, 77, 255, 0.4);
+}
+
+/* FREE cell (center) */
+.bingo-card .cell.free {
+  background: #32d46b;
+  color: #000;
+  font-weight: 900;
+  cursor: default;
+}
+
+/* Marked cell (daubed) */
+.bingo-card .cell.marked {
+  background: #7c4dff;
+  color: #fff;
+  box-shadow: 0 0 18px rgba(124, 77, 255, 0.6);
+}
+
+/* Prevent marking FREE twice */
+.bingo-card .cell.free.marked {
+  background: #32d46b;
+  box-shadow: none;
+}
+
+/* ===============================
+   MOBILE SCALING
+================================ */
+@media (max-width: 900px) {
+  .bingo-card {
+    grid-template-columns: repeat(5, 64px);
+    grid-template-rows: repeat(5, 64px);
+  }
+}
+
 
