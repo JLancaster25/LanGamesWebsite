@@ -490,11 +490,12 @@ input[type="range"] {
 ================================ */
 .bingo-btn {
   margin-top: 1.5rem;
-  width: 420px;
+  width: 400px;
   height: 64px;
   font-size: 1.6rem;
   font-weight: 900;
   border-radius: 14px;
+  align-items: center;
 }
 
 /* ===============================
@@ -529,23 +530,24 @@ input[type="range"] {
 
 /* ===============================
    PLAYER BINGO BUTTON ALIGNMENT
-================================ */
+================================
 
-/* Allow internal alignment control */
+/* Allow internal alignment control 
 .card-area {
   align-items: flex-start;
 }
 
-/* Center the bingo grid itself */
+/* Center the bingo grid itself 
 .card-area .bingo-card {
   margin-left: auto;
   margin-right: auto;
 }
 
-/* Align BINGO button with left edge of card */
+/* Align BINGO button with left edge of card 
 .card-area .bingo-btn {
   align-self: flex-start;
 }
+*/
 /* ===============================
    MOBILE LAYOUT
 ================================ */
@@ -637,6 +639,7 @@ input[type="range"] {
 .hidden {
   display: none;
 }
+
 
 
 
