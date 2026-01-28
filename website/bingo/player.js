@@ -53,6 +53,27 @@ async function initPlayer() {
       nameInput.readOnly = true;
     }
   }
+  const {data: { user }} = await sb.auth.getUser();
+   if (user) {
+  // Try Supabase profile first
+  const { data, error } = await sb
+    .from("profiles")
+    .select("daub_color")
+    .eq("id", user.id)
+    .single();
+
+  if (!error && data?.daub_color) {
+    daubColor = data.daub_color;
+    localStorage.setItem("bingo_daub_color", daubColor);
+  } else {
+    // fallback to localStorage if profile missing
+    daubColor =
+      localStorage.getItem("bingo_daub_color") || "#7c4dff";
+  }
+} else {
+  // Guest user → always green
+  daubColor = "#7c4dff";
+}
   bingoBtn.addEventListener("click", handleBingoClaim);
   joinForm.addEventListener("submit", handleJoin);
 }
@@ -391,6 +412,7 @@ function subscribeToGameLock(gameId) {
     )
     .subscribe();
 }
+
 
 
 
