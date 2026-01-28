@@ -22,10 +22,10 @@ const logoutBtn = document.getElementById("logoutBtn");
 // ================================
 // MENU TOGGLE
 // ================================
-menuBtn.addEventListener("click", (e) => {
-  e.stopPropagation(); // ⛔ prevent document click
-  menu.classList.toggle("hidden");
-});
+//menuBtn.addEventListener("click", (e) => {
+//  e.stopPropagation(); // ⛔ prevent document click
+//  menu.classList.toggle("hidden");
+//});
 
 /* Close menu when clicking outside */
 document.addEventListener("click", (e) => {
@@ -128,7 +128,7 @@ if (logoutBtn) {
 // ================================
 // AUTH STATE LISTENER (REALTIME)
 // ================================
-supabase.auth.onAuthStateChange((_event, session) => {
+sb.auth.onAuthStateChange((_event, session) => {
   if (session) {
     showLoggedIn(session.user);
   } else {
@@ -158,9 +158,10 @@ function showUser(email) {
   userEmail.textContent = `Logged in as ${email}`;
 }
 
-supabase.auth.getSession().then(({ data }) => {
+sb.auth.getSession().then(({ data }) => {
   if (data.session) showUser(data.session.user.email);
 });
+
 
 
 
