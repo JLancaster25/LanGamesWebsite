@@ -67,14 +67,25 @@ avatarOptions.forEach(img => {
 // SAVE DAUB COLOR
 // ===============================
 async function saveDaubColor() {
-  await sb.auth.updateUser({
-    data: { daub_color: daubColorSelect.value }
-  });
-document.getElementById("daubColorPicker").addEventListener("input", e => {
-  saveDaubColor(e.target.value);
-});
+// Always save locally
+  localStorage.setItem("bingo_daub_color", color);
 
-  alert('Daub color saved');
+  const {
+    data: { user }
+  } = await sb.auth.getUser();
+
+  // If NOT logged in → stop here (local only)
+  if (!user) return;
+
+  // Save to Supabase profile
+  const { error } = await sb
+    .from("profiles")
+    .update({ daub_color: color })
+    .eq("id", user.id);
+
+  if (error) {
+    console.error("Failed to save daub color:", error.message);
+  }
 }
 
 // ===============================
@@ -93,5 +104,6 @@ async function logout() {
   await sb.auth.signOut();
   location.href = '/';
 }
+
 
 
