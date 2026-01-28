@@ -17,6 +17,7 @@ const lobbyError = document.getElementById("lobbyError");
 const titleEl = document.getElementById("cardTitle");
 const bingoCardEl = document.getElementById("bingoCard");
 const calledNumbersListEl = document.getElementById("calledNumbersList");
+const daubColor = localStorage.getItem("bingo_daub_color") || "#7c4dff"; 
 
 const bingoBtn = document.getElementById("bingoBtn");
 const bingoMessage = document.getElementById("bingoMessage");
@@ -254,6 +255,9 @@ function toggleMark(cell, number) {
   if (!calledNumbers.has(number)) return;
 
   cell.classList.toggle("marked");
+  if (cell.classList.contains("marked")) {
+  cell.style.setProperty("--daub-color", daubColor);
+  }
 
   if (markedNumbers.has(number)) {
     markedNumbers.delete(number);
@@ -387,6 +391,7 @@ function subscribeToGameLock(gameId) {
     )
     .subscribe();
 }
+
 
 
 
