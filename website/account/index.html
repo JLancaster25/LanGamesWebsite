@@ -12,6 +12,27 @@
   <script type="module" src="/js/navbar.js"></script>
 </head>
 <body>
+  
+<header class="navbar">
+  <div class="logo">LAN Games</div>
+
+  <!-- ❌ NO INLINE JS -->
+  <button class="menu-btn" id="menuBtn">☰</button>
+
+  <nav id="menu" class="menu hidden">
+    <a href="/">Home</a>
+    <a data-target="features">Features</a>
+    <a href="/tictactoe/">Tic-Tac-Toe</a>
+    <a href="/bingo/">Bingo</a>
+	<a href="/account/" id="account">Account</a>
+    <a href="/WebsiteLogin/" id="loginLink">Login/Register</a>
+
+	<div id="userPanel" class="hidden">
+    <span id="userEmail"></span>
+    <button id="logoutBtn" class="btn">Logout</button>
+</div>
+  </nav>
+</header>
 
 <div class="account-card">
   <h1>Account Settings</h1>
@@ -59,3 +80,4 @@
 </body>
 
 </html>
+
