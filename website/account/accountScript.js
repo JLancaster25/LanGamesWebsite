@@ -21,7 +21,7 @@ document.getElementById('logout').onclick = logout;
 // ===============================
 async function loadProfile() {
   const { data: { user } } = await sb.auth.getUser();
-  if (!user) return location.href = 'WebsiteLogin/index.html';
+  if (!user) return location.href = '/WebsiteLogin/index.html';
 
   emailEl.textContent = user.email;
 
@@ -93,4 +93,5 @@ async function logout() {
   await sb.auth.signOut();
   location.href = '/';
 }
+
 
