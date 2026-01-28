@@ -481,8 +481,9 @@ input[type="range"] {
 
 /* Marked cell */
 .bingo-card .cell.marked {
-  background: #7c4dff;
+  background: var(--daub-color, #7c4dff);
   color: #fff;
+  box-shadow: 0 0 18px color-mix(in srgb, var(--daub-color) 70%, transparent);
 }
 
 /* ===============================
@@ -639,6 +640,7 @@ input[type="range"] {
 .hidden {
   display: none;
 }
+
 
 
 
