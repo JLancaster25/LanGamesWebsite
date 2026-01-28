@@ -70,6 +70,9 @@ async function saveDaubColor() {
   await sb.auth.updateUser({
     data: { daub_color: daubColorSelect.value }
   });
+document.getElementById("daubColorPicker").addEventListener("input", e => {
+  saveDaubColor(e.target.value);
+});
 
   alert('Daub color saved');
 }
@@ -90,3 +93,4 @@ async function logout() {
   await sb.auth.signOut();
   location.href = '/';
 }
+
