@@ -9,10 +9,23 @@
 </head>
 <body class="page-player">
 
-<header class="site-header">
-  <div class="logo">LANGames</div>
-  <nav>
+<header class="navbar">
+  <div class="logo">LAN Games</div>
+
+  <!-- ❌ NO INLINE JS -->
+  <button class="menu-btn" id="menuBtn">☰</button>
+
+  <nav id="menu" class="menu hidden">
     <a href="/">Home</a>
+    <a data-target="features">Features</a>
+    <a href="/tictactoe/">Tic-Tac-Toe</a>
+    <a href="/bingo/">Bingo</a>
+    <a href="/WebsiteLogin/">Login/Register</a>
+
+  <div id="userPanel" class="hidden">
+    <span id="userEmail"></span>
+    <button id="logoutBtn" class="btn secondary hidden">Logout</button>
+  </div>
   </nav>
 </header>
 
@@ -81,6 +94,7 @@
 <script type="module" src="/js/navbar.js"></script>
 </body>
 </html>
+
 
 
 
