@@ -45,9 +45,19 @@ let winners = new Set();
 const roomCode = generateCode();
 roomCodeEl.textContent = roomCode;
 
+const {
+  data: { user }
+} = await sb.auth.getUser();
+
+if (!user) throw new Error("Not authenticated");
+
 const { data: game, error: gameErr } = await sb
   .from('games')
-  .insert({ code: roomCode, status: 'lobby' })
+  .insert({
+    code: roomCode,
+    status: 'lobby',
+    host_id: user.id
+  })
   .select()
   .single();
 
@@ -363,6 +373,7 @@ function updateCurrentBall(number) {
   void ball.offsetWidth; // force reflow
   ball.classList.add('glow');
 }
+
 
 
 
