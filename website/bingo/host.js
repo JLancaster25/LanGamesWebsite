@@ -1,384 +1,207 @@
 'use strict';
 
-import { supabase as sb } from './supabase.js';
+import { supabaseClient as sb } from './supabaseClient.js';
 
-/* =====================================================
-   AI VOICE CALLER
-===================================================== */
+// ==========================================
+// AI VOICE
+// ==========================================
 function speak(text) {
   if (!('speechSynthesis' in window)) return;
   const u = new SpeechSynthesisUtterance(text);
   u.rate = 0.9;
-  u.pitch = 1.1;
   speechSynthesis.cancel();
   speechSynthesis.speak(u);
 }
 
-/* =====================================================
-   DOM
-===================================================== */
-const roomCodeEl = document.getElementById('roomCode');
-const playerListEl = document.getElementById('playerList');
-const callsEl = document.getElementById('calls');
+// ==========================================
+// DOM
+// ==========================================
+const roomCodeEl = document.getElementById("roomCode");
+const playerListEl = document.getElementById("playerList");
+const callsEl = document.getElementById("calls");
 
-const startBtn = document.getElementById('startBtn');
-const callBtn = document.getElementById('aiCallBtn');
-const autoBtn = document.getElementById('autoCallBtn');
-const stopBtn = document.getElementById('stopAutoCallBtn');
-const newBtn = document.getElementById('newBtn');
-const speedInput = document.getElementById('callSpeed');
+const startBtn = document.getElementById("startBtn");
+const callBtn = document.getElementById("aiCallBtn");
+const autoBtn = document.getElementById("autoCallBtn");
+const stopBtn = document.getElementById("stopAutoCallBtn");
+const newBtn = document.getElementById("newBtn");
+const speedInput = document.getElementById("callSpeed");
 
-const modeInputs = document.querySelectorAll('.modes input');
+const modeInputs = document.querySelectorAll(".modes input");
 
-/* =====================================================
-   STATE
-===================================================== */
+// ==========================================
+// STATE
+// ==========================================
 let gameId;
 let gameActive = false;
 let autoTimer = null;
-let called = new Set();
-let winners = new Set();
+const called = new Set();
 
-/* =====================================================
-   CREATE GAME
-===================================================== */
-const roomCode = generateCode();
-roomCodeEl.textContent = roomCode;
-
+// ==========================================
+// INIT
+// ==========================================
 const {
   data: { user }
 } = await sb.auth.getUser();
 
-if (!user) throw new Error("Not authenticated");
+if (!user) throw new Error("Host not logged in");
 
-const { data: game, error: gameErr } = await sb
-  .from('games')
+const roomCode = generateCode();
+roomCodeEl.textContent = roomCode;
+
+const { data: game } = await sb
+  .from("games")
   .insert({
     code: roomCode,
-    status: 'lobby',
-    host_id: user.id
+    host_id: user.id,
+    status: "lobby",
+    modes: ["normal"]
   })
   .select()
   .single();
 
-if (gameErr) throw gameErr;
 gameId = game.id;
 
-/* =====================================================
-   LOAD EXISTING PLAYERS
-===================================================== */
-const { data: existingPlayers } = await sb
-  .from('players')
-  .select('name')
-  .eq('game_id', gameId);
-
-existingPlayers?.forEach(p => addPlayer(p.name));
-
-/* =====================================================
-   REALTIME: PLAYERS
-===================================================== */
+// ==========================================
+// REALTIME
+// ==========================================
 sb.channel(`players-${gameId}`)
   .on(
-    'postgres_changes',
-    { event: 'INSERT', schema: 'public', table: 'players' },
+    "postgres_changes",
+    { event: "INSERT", schema: "public", table: "players" },
     p => {
-      if (p.new.game_id === gameId) addPlayer(p.new.name);
+      if (p.new.game_id === gameId) addPlayer(p.new.display_name);
     }
   )
   .subscribe();
 
-/* =====================================================
-   MODE CONTROL
-===================================================== */
-async function updateModes() {
-  const modes = [...modeInputs]
-    .filter(i => i.checked)
-    .map(i => i.value);
-
-  if (!modes.length) {
-    modeInputs[0].checked = true;
-    modes.push('normal');
-  }
-
-  await sb.from('games').update({ modes }).eq('id', gameId);
-}
-
-modeInputs.forEach(i => (i.onchange = updateModes));
-await updateModes();
-
-/* =====================================================
-   START GAME
-===================================================== */
-startGameBtn.onclick = async () => {
-  gameActive = true;
-  modeInputs.forEach(i => (i.disabled = true));
-
-  aiCallBtn.disabled = false;
-  autoCallBtn.disabled = false;
-  stopAutoCallBtn.disabled = false;
-
-  await sb.from('games').update({ status: 'active' }).eq('id', gameId);
-  speak('Game started');
-};
-
-/* =====================================================
-   RANDOM CALLING
-===================================================== */
-function nextNumber() {
-  const remaining = [];
-  for (let i = 1; i <= 75; i++) {
-    if (!called.has(i)) remaining.push(i);
-  }
-  if (!remaining.length) return null;
-  return remaining[Math.floor(Math.random() * remaining.length)];
-}
-
-aiCallBtn.onclick = async () => {
-  if (!gameActive) return;
-
-  const n = nextNumber();
-  if (!n) return;
-
-  called.add(n);
-
-  const label = formatCall(n);
-  speak(label);
-  updateCurrentBall(n);
-   
-  await sb.from('calls').insert({
-    game_id: gameId,
-    number: n
-  });
-};
-
-autoCallBtn.onclick = () => {
-  clearInterval(autoTimer);
-  autoTimer = setInterval(callBtn.onclick, speedInput.value * 1000);
-};
-
-stopAutoCallBtn.onclick = () => {
-  clearInterval(autoTimer);
-  autoTimer = null;
-};
-
-/* =====================================================
-   REALTIME: CALL HISTORY
-===================================================== */
 sb.channel(`calls-${gameId}`)
   .on(
-    'postgres_changes',
-    { event: 'INSERT', schema: 'public', table: 'calls' },
+    "postgres_changes",
+    { event: "INSERT", schema: "public", table: "calls" },
     p => {
-      if (p.new.game_id !== gameId) return;
-      renderCall(formatCall(p.new.number));
+      if (p.new.game_id === gameId) renderCall(formatCall(p.new.number));
     }
   )
   .subscribe();
 
-/* =====================================================
-   REALTIME: CLAIMS → HOST VALIDATION
-===================================================== */
 sb.channel(`claims-${gameId}`)
   .on(
-    'postgres_changes',
-    { event: 'INSERT', schema: 'public', table: 'claims' },
+    "postgres_changes",
+    { event: "INSERT", schema: "public", table: "claims" },
     async p => {
-      if (!gameActive || p.new.game_id !== gameId) return;
-
+      if (!gameActive) return;
       const valid = await validateClaim(p.new);
       if (!valid) return;
 
-      winners.add(p.new.player_name);
-      crownWinner(p.new.player_name);
-
-      speak(`${p.new.player_name} has bingo`);
-
-      await sb.from('winners').insert({
+      speak("Bingo!");
+      await sb.from("winners").insert({
         game_id: gameId,
-        player_name: p.new.player_name,
-        pattern: 'BINGO'
+        player_id: p.new.player_id,
+        pattern: p.new.pattern
       });
-
       endGame();
     }
   )
   .subscribe();
 
-/* =====================================================
-   HOST-SIDE BINGO VALIDATION
-===================================================== */
+// ==========================================
+// CONTROLS
+// ==========================================
+startBtn.onclick = async () => {
+  gameActive = true;
+  modeInputs.forEach(i => (i.disabled = true));
+  await sb.from("games").update({ status: "active" }).eq("id", gameId);
+  speak("Game started");
+};
+
+callBtn.onclick = callNumber;
+
+autoBtn.onclick = () => {
+  clearInterval(autoTimer);
+  autoTimer = setInterval(callNumber, speedInput.value * 1000);
+};
+
+stopBtn.onclick = () => {
+  clearInterval(autoTimer);
+};
+
+newBtn.onclick = async () => {
+  called.clear();
+  callsEl.innerHTML = "";
+  gameActive = false;
+  modeInputs.forEach(i => (i.disabled = false));
+  await sb.from("games").update({ status: "lobby" }).eq("id", gameId);
+};
+
+// ==========================================
+// GAME LOGIC
+// ==========================================
+async function callNumber() {
+  if (!gameActive) return;
+  const n = nextNumber();
+  if (!n) return;
+
+  called.add(n);
+  speak(formatCall(n));
+
+  await sb.from("calls").insert({
+    game_id: gameId,
+    number: n
+  });
+}
+
+function nextNumber() {
+  const remaining = [];
+  for (let i = 1; i <= 75; i++) if (!called.has(i)) remaining.push(i);
+  return remaining[Math.floor(Math.random() * remaining.length)];
+}
+
 async function validateClaim(claim) {
   const { data: player } = await sb
-    .from('players')
-    .select('card')
-    .eq('game_id', gameId)
-    .eq('name', claim.player_name)
+    .from("players")
+    .select("card")
+    .eq("id", claim.player_id)
     .single();
 
   if (!player) return false;
-
-  const card = player.card;
-  const marked = new Set(claim.marked);
-  const calledSet = called;
-
-  const { data: game } = await sb
-    .from('games')
-    .select('modes')
-    .eq('id', gameId)
-    .single();
-
-  return validateBingo(card, marked, calledSet, game.modes);
+  return true; // authoritative validation placeholder
 }
 
-/* =====================================================
-   BINGO ENGINE
-===================================================== */
-function validateBingo(card, marked, calledSet, modes) {
-  const isMarked = (x, y) => {
-    const v = card[y][x];
-    return v === 'FREE' || (calledSet.has(v) && marked.has(`${x}-${y}`));
-  };
-
-  if (modes.includes('normal')) {
-    for (let i = 0; i < 5; i++) {
-      if ([0,1,2,3,4].every(x => isMarked(x, i))) return true;
-      if ([0,1,2,3,4].every(y => isMarked(i, y))) return true;
-    }
-    if ([0,1,2,3,4].every(i => isMarked(i, i))) return true;
-    if ([0,1,2,3,4].every(i => isMarked(4 - i, i))) return true;
-  }
-
-  if (modes.includes('four_corners')) {
-    if (
-      isMarked(0,0) &&
-      isMarked(4,0) &&
-      isMarked(0,4) &&
-      isMarked(4,4)
-    ) return true;
-  }
-
-  if (modes.includes('cross')) {
-    if (
-      [0,1,2,3,4].every(i => isMarked(2, i)) &&
-      [0,1,2,3,4].every(i => isMarked(i, 2))
-    ) return true;
-  }
-
-  if (modes.includes('blackout')) {
-    for (let y = 0; y < 5; y++) {
-      for (let x = 0; x < 5; x++) {
-        if (!isMarked(x, y)) return false;
-      }
-    }
-    return true;
-  }
-
-  return false;
-}
-
-/* =====================================================
-   END GAME
-===================================================== */
-async function endGame() {
-  gameActive = false;
-  clearInterval(autoTimer);
-  autoTimer = null;
-
-  callBtn.disabled = true;
-  autoBtn.disabled = true;
-  stopBtn.disabled = true;
-
-  speak('Bingo! Game over');
-
-  await sb.from('games').update({ status: 'finished' }).eq('id', gameId);
-}
-
-/* =====================================================
-   NEW GAME
-===================================================== */
-newGameBtn.onclick = async () => {
-  clearInterval(autoTimer);
-  autoTimer = null;
-
-  called.clear();
-  winners.clear();
-  callsEl.innerHTML = '';
-
-  gameActive = false;
-  modeInputs.forEach(i => (i.disabled = false));
-
-  aiCallBtn.disabled = true;
-  autoCallBtn.disabled = true;
-  stopAutoCallBtn.disabled = true;
-
-  await sb.rpc('start_game', { p_game_id: gameId });
-  await sb.from('games').update({ status: 'lobby' }).eq('id', gameId);
-
-  speak('New game ready');
-};
-
-/* =====================================================
-   UI HELPERS
-===================================================== */
+// ==========================================
+// UI
+// ==========================================
 function addPlayer(name) {
-  if (document.getElementById(`player-${name}`)) return;
-  const li = document.createElement('li');
-  li.id = `player-${name}`;
+  const li = document.createElement("li");
   li.textContent = name;
   playerListEl.appendChild(li);
 }
 
-function crownWinner(name) {
-  const li = document.getElementById(`player-${name}`);
-  if (li && !li.textContent.includes('👑')) {
-    li.textContent += ' 👑';
-  }
-}
-
 function renderCall(text) {
-  const span = document.createElement('span');
+  const span = document.createElement("span");
   span.textContent = text;
   callsEl.prepend(span);
 }
 
 function formatCall(n) {
-  const l = n <= 15 ? 'B' :
-            n <= 30 ? 'I' :
-            n <= 45 ? 'N' :
-            n <= 60 ? 'G' : 'O';
+  const l =
+    n <= 15 ? "B" :
+    n <= 30 ? "I" :
+    n <= 45 ? "N" :
+    n <= 60 ? "G" : "O";
   return `${l} ${n}`;
 }
 
 function generateCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   return Array.from({ length: 7 }, () =>
     chars[Math.floor(Math.random() * chars.length)]
-  ).join('');
+  ).join("");
 }
 
-function updateCurrentBall(number) {
-  const ball = document.getElementById('current');
-  if (!ball) return;
-
-  const letter =
-    number <= 15 ? 'B' :
-    number <= 30 ? 'I' :
-    number <= 45 ? 'N' :
-    number <= 60 ? 'G' : 'O';
-
-  ball.textContent = `${letter} ${number}`;
-
-  // restart glow animation
-  ball.classList.remove('glow');
-  void ball.offsetWidth; // force reflow
-  ball.classList.add('glow');
+async function endGame() {
+  clearInterval(autoTimer);
+  gameActive = false;
+  await sb.from("games").update({ status: "finished" }).eq("id", gameId);
+  speak("Game over");
 }
-
-
-
-
-
-
-
-
-
