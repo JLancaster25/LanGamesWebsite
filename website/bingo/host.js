@@ -203,6 +203,40 @@ function renderCall(text) {
   callsEl.prepend(span);
 }
 
+function renderCurrentBall(number) {
+  const el = document.getElementById("currentBall");
+  if (el) el.textContent = number;
+}
+
+function renderCallHistory(number) {
+  const callsEl = document.getElementById("calls");
+  if (!callsEl) return;
+
+  const div = document.createElement("div");
+  div.className = "called-number";
+  div.textContent = formatCall(number);
+  callsEl.prepend(div);
+}
+
+function subscribeHostCalls() {
+  window.sb
+    .channel(`calls-${gameId}`)
+    .on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table: "calls" },
+      payload => {
+        if (payload.new.game_id !== gameId) return;
+
+        const number = payload.new.number;
+        renderCurrentBall(number);
+        renderCallHistory(number);
+      }
+    )
+    .subscribe();
+}
+gameId = game.id;
+subscribeHostCalls();
+
 function formatCall(n) {
   const l =
     n <= 15 ? "B" :
@@ -225,6 +259,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
