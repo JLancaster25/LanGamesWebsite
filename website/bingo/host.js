@@ -22,11 +22,11 @@ const roomCodeEl = document.getElementById("roomCode");
 const playerListEl = document.getElementById("playerList");
 const callsEl = document.getElementById("calls");
 
-const startBtn = document.getElementById("startBtn");
-const callBtn = document.getElementById("aiCallBtn");
-const autoBtn = document.getElementById("autoCallBtn");
-const stopBtn = document.getElementById("stopAutoCallBtn");
-const newBtn = document.getElementById("newBtn");
+const startGameBtn = document.getElementById("startBtn");
+const aiCallBtn = document.getElementById("aiCallBtn");
+const autoCallBtn = document.getElementById("autoCallBtn");
+const stopAutoCallBtn = document.getElementById("stopAutoCallBtn");
+const newGameBtn = document.getElementById("newBtn");
 const speedInput = document.getElementById("callSpeed");
 
 const modeInputs = document.querySelectorAll(".modes input");
@@ -134,7 +134,7 @@ stopAutoCallBtn.onclick = () => {
   clearInterval(autoTimer);
 };
 
-newBtn.onclick = async () => {
+newGameBtn.onclick = async () => {
   called.clear();
   callsEl.innerHTML = "";
   gameActive = false;
@@ -213,6 +213,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
