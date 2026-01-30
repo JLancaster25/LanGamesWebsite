@@ -234,7 +234,7 @@ function subscribeHostCalls() {
     )
     .subscribe();
 }
-gameId = game.id;
+//gameId = game.id;
 subscribeHostCalls();
 
 function formatCall(n) {
@@ -259,6 +259,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
