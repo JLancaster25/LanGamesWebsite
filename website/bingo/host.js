@@ -22,14 +22,26 @@ const roomCodeEl = document.getElementById("roomCode");
 const playerListEl = document.getElementById("playerList");
 const callsEl = document.getElementById("calls");
 
-const startGameBtn = document.getElementById("startBtn");
+const startGameBtn = document.getElementById("startGameBtn");
 const aiCallBtn = document.getElementById("aiCallBtn");
 const autoCallBtn = document.getElementById("autoCallBtn");
 const stopAutoCallBtn = document.getElementById("stopAutoCallBtn");
-const newGameBtn = document.getElementById("newBtn");
+const newGameBtn = document.getElementById("newGameBtn");
 const speedInput = document.getElementById("callSpeed");
 
 const modeInputs = document.querySelectorAll(".modes input");
+[
+  ["roomCode", roomCodeEl],
+  ["startGameBtn", startGameBtn],
+  ["newGameBtn", newGameBtn],
+  ["aiCallBtn", aiCallBtn],
+  ["autoCallBtn", autoCallBtn],
+  ["stopAutoCallBtn", stopAutoCallBtn],
+  ["playerList", playerListEl],
+  ["calls", callsEl]
+].forEach(([name, el]) => {
+  if (!el) console.error(`❌ Missing DOM element: ${name}`);
+});
 
 // ==========================================
 // STATE
@@ -213,6 +225,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
