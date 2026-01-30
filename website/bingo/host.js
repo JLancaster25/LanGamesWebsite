@@ -1,8 +1,6 @@
 'use strict';
 
-//import { supabaseClient as sb } from '/js/supabaseClient.js';
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/js/supabaseClient.js"></script>
+import { supabaseClient as sb } from './supabaseClient.js';
 // ==========================================
 // AI VOICE
 // ==========================================
@@ -206,6 +204,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
