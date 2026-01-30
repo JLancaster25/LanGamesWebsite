@@ -1,7 +1,9 @@
 'use strict';
+const sb = window.supabaseClient;
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="./supabaseClient.js"></script>
+if (!sb) {
+  console.error("❌ Supabase client not loaded");
+}
 // ==========================================
 // AI VOICE
 // ==========================================
@@ -205,6 +207,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
