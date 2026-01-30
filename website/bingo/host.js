@@ -42,6 +42,11 @@ const called = new Set();
 // ==========================================
 // INIT
 // ==========================================
+document.addEventListener("DOMContentLoaded", () => {
+  initHost();
+});
+
+async function initHost() {
 const {
   data: { user }
 } = await sb.auth.getUser();
@@ -63,6 +68,7 @@ const { data: game } = await sb
   .single();
 
 gameId = game.id;
+}
 
 // ==========================================
 // REALTIME
@@ -207,6 +213,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
