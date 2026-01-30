@@ -1,5 +1,5 @@
-//'use strict';
-const sb = window.supabaseClient;
+'use strict';
+sb = window.supabaseClient;
 
 if (!sb) {
   console.error("❌ Supabase client not loaded");
@@ -213,6 +213,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
