@@ -1,4 +1,4 @@
-'use strict';
+//'use strict';
 const sb = window.supabaseClient;
 
 if (!sb) {
@@ -213,6 +213,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
