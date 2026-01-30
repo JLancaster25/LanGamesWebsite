@@ -116,21 +116,21 @@ sb.channel(`claims-${gameId}`)
 // ==========================================
 // CONTROLS
 // ==========================================
-startBtn.onclick = async () => {
+startGameBtn.onclick = async () => {
   gameActive = true;
   modeInputs.forEach(i => (i.disabled = true));
   await sb.from("games").update({ status: "active" }).eq("id", gameId);
   speak("Game started");
 };
 
-callBtn.onclick = callNumber;
+aiCallBtn.onclick = callNumber;
 
-autoBtn.onclick = () => {
+autoCallBtn.onclick = () => {
   clearInterval(autoTimer);
   autoTimer = setInterval(callNumber, speedInput.value * 1000);
 };
 
-stopBtn.onclick = () => {
+stopAutoCallBtn.onclick = () => {
   clearInterval(autoTimer);
 };
 
@@ -213,6 +213,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
