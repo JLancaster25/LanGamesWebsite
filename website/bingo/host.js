@@ -131,7 +131,7 @@ sb.channel(`claims-${gameId}`)
 startGameBtn.onclick = async () => {
   gameActive = true;
   modeInputs.forEach(i => (i.disabled = true));
-  await window.sb.from("games").update({ status: "active" }).eq("id", gameId);
+  await sb.from("games").update({ status: "active" }).eq("id", gameId);
   speak("Game started");
 };
 
@@ -258,6 +258,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
