@@ -204,8 +204,17 @@ function renderCall(text) {
 }
 
 function renderCurrentBall(number) {
-  const el = document.getElementById("currentBall");
-  if (el) el.textContent = number;
+const el = document.getElementById("currentBall");
+  if (!el) return;
+
+  const letter = formatCall(n);
+
+  // reset animation + state
+  el.className = "current-ball";
+  void el.offsetWidth;
+
+  el.textContent = `${letter} ${number}`;
+  el.classList.add(letter, "animate");
 }
 
 function renderCallHistory(number) {
@@ -218,24 +227,6 @@ function renderCallHistory(number) {
   callsEl.prepend(div);
 }
 
-/*function subscribeHostCalls() {
-  sb.channel(`calls-${gameId}`)
-    .on(
-      "postgres_changes",
-      { event: "INSERT", schema: "public", table: "calls" },
-      payload => {
-        if (payload.new.game_id !== gameId) return;
-
-        const number = payload.new.number;
-        renderCurrentBall(number);
-        renderCallHistory(number);
-      }
-    )
-    .subscribe();
-}
-//gameId = game.id;
-subscribeHostCalls();
-*/
 function formatCall(n) {
   const l =
     n <= 15 ? "B" :
@@ -258,6 +249,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
