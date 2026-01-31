@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
 async function initHost() {
 const {
   data: { user }
-} = await sb.auth.getUser();
+} = await window.sb.auth.getUser();
 
 if (!user) throw new Error("Host not logged in");
 
@@ -85,7 +85,7 @@ gameId = game.id;
 // ==========================================
 // REALTIME
 // ==========================================
-sb.channel(`players-${gameId}`)
+window.sb.channel(`players-${gameId}`)
   .on(
     "postgres_changes",
     { event: "INSERT", schema: "public", table: "players" },
@@ -95,7 +95,7 @@ sb.channel(`players-${gameId}`)
   )
   .subscribe();
 
-sb.channel(`calls-${gameId}`)
+window.sb.channel(`calls-${gameId}`)
   .on(
     "postgres_changes",
     { event: "INSERT", schema: "public", table: "calls" },
@@ -105,7 +105,7 @@ sb.channel(`calls-${gameId}`)
   )
   .subscribe();
 
-sb.channel(`claims-${gameId}`)
+window.sb.channel(`claims-${gameId}`)
   .on(
     "postgres_changes",
     { event: "INSERT", schema: "public", table: "claims" },
@@ -115,7 +115,7 @@ sb.channel(`claims-${gameId}`)
       if (!valid) return;
 
       speak("Bingo!");
-      await sb.from("winners").insert({
+      await window.sb.from("winners").insert({
         game_id: gameId,
         player_id: p.new.player_id,
         pattern: p.new.pattern
@@ -131,7 +131,7 @@ sb.channel(`claims-${gameId}`)
 startGameBtn.onclick = async () => {
   gameActive = true;
   modeInputs.forEach(i => (i.disabled = true));
-  await sb.from("games").update({ status: "active" }).eq("id", gameId);
+  await window.sb.from("games").update({ status: "active" }).eq("id", gameId);
   speak("Game started");
 };
 
@@ -165,7 +165,7 @@ async function callNumber() {
   called.add(n);
   speak(formatCall(n));
 
-  await sb.from("calls").insert({
+  await window.sb.from("calls").insert({
     game_id: gameId,
     number: n
   });
@@ -178,7 +178,7 @@ function nextNumber() {
 }
 
 async function validateClaim(claim) {
-  const { data: player } = await sb
+  const { data: player } = await window.sb
     .from("players")
     .select("card")
     .eq("id", claim.player_id)
@@ -259,6 +259,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
