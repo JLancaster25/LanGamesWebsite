@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
 async function initHost() {
 const {
   data: { user }
-} = await window.sb.auth.getUser();
+} = await sb.auth.getUser();
 
 if (!user) throw new Error("Host not logged in");
 
@@ -85,7 +85,7 @@ gameId = game.id;
 // ==========================================
 // REALTIME
 // ==========================================
-window.sb.channel(`players-${gameId}`)
+sb.channel(`players-${gameId}`)
   .on(
     "postgres_changes",
     { event: "INSERT", schema: "public", table: "players" },
@@ -95,7 +95,7 @@ window.sb.channel(`players-${gameId}`)
   )
   .subscribe();
 
-window.sb.channel(`calls-${gameId}`)
+sb.channel(`calls-${gameId}`)
   .on(
     "postgres_changes",
     { event: "INSERT", schema: "public", table: "calls" },
@@ -105,7 +105,7 @@ window.sb.channel(`calls-${gameId}`)
   )
   .subscribe();
 
-window.sb.channel(`claims-${gameId}`)
+sb.channel(`claims-${gameId}`)
   .on(
     "postgres_changes",
     { event: "INSERT", schema: "public", table: "claims" },
@@ -219,8 +219,7 @@ function renderCallHistory(number) {
 }
 
 function subscribeHostCalls() {
-  window.sb
-    .channel(`calls-${gameId}`)
+  sb.channel(`calls-${gameId}`)
     .on(
       "postgres_changes",
       { event: "INSERT", schema: "public", table: "calls" },
@@ -259,6 +258,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
