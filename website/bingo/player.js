@@ -40,12 +40,12 @@ let card = [];
 document.addEventListener("DOMContentLoaded", initPlayer);
 
 async function initPlayer() {
-  const { data } = await sb.auth.getSession();
+  const { data } = await window.sb.auth.getSession();
   userId = data?.session?.user?.id ?? null;
 
   // load daub color
   if (userId) {
-    const { data: profile } = await sb
+    const { data: profile } = await window.sb
       .from("profiles")
       .select("daub_color")
       .eq("id", userId)
@@ -220,6 +220,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
