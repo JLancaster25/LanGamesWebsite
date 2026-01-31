@@ -115,7 +115,7 @@ sb.channel(`claims-${gameId}`)
       if (!valid) return;
 
       speak("Bingo!");
-      await window.sb.from("winners").insert({
+      await sb.from("winners").insert({
         game_id: gameId,
         player_id: p.new.player_id,
         pattern: p.new.pattern
@@ -258,6 +258,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
