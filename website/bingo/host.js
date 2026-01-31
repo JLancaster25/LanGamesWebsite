@@ -163,7 +163,8 @@ async function callNumber() {
 
   called.add(n);
   speak(formatCall(n));
-
+  renderCurrentBall(n);
+  renderCallHistory(n);
   await sb.from("calls").insert({
     game_id: gameId,
     number: n
@@ -257,6 +258,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
