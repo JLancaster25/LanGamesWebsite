@@ -1,5 +1,4 @@
 'use strict';
-//sb = window.supabaseClient;
 
 if (!sb) {
   console.error("❌ Supabase client not loaded");
@@ -165,7 +164,7 @@ async function callNumber() {
   called.add(n);
   speak(formatCall(n));
 
-  await window.sb.from("calls").insert({
+  await sb.from("calls").insert({
     game_id: gameId,
     number: n
   });
@@ -178,7 +177,7 @@ function nextNumber() {
 }
 
 async function validateClaim(claim) {
-  const { data: player } = await window.sb
+  const { data: player } = await sb
     .from("players")
     .select("card")
     .eq("id", claim.player_id)
@@ -258,6 +257,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
