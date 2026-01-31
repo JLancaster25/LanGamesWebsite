@@ -231,21 +231,52 @@ header {
 }
 
 /* ===============================
-   CURRENT BALL
+   CURRENT BALL LETTER COLORS
 ================================ */
+
 .current-ball {
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background: radial-gradient(circle at top, #ff6a6a, #b30000);
+  color: #fff;
+  font-size: 2.6rem;
+  font-weight: 900;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.8rem;
-  font-weight: bold;
-  box-shadow: 0 0 25px rgba(255, 77, 77, 0.6);
+  text-align: center;
+  line-height: 1;
+  box-shadow:
+    inset -6px -6px 12px rgba(0,0,0,0.25),
+    0 0 30px rgba(0,0,0,0.5);
 }
 
+/* Letter-specific colors */
+.current-ball.B {
+  background: radial-gradient(circle at 30% 30%, #ff6b6b, #c1121f);
+  box-shadow: 0 0 40px rgba(255, 0, 0, 0.8);
+}
+
+.current-ball.I {
+  background: radial-gradient(circle at 30% 30%, #4dabf7, #1c4ed8);
+  box-shadow: 0 0 40px rgba(59, 130, 246, 0.9);
+}
+
+.current-ball.N {
+  background: radial-gradient(circle at 30% 30%, #ffa94d, #f76707);
+  box-shadow: 0 0 40px rgba(255, 140, 0, 0.9);
+}
+
+.current-ball.G {
+  background: radial-gradient(circle at 30% 30%, #ffe066, #f59f00);
+  box-shadow: 0 0 40px rgba(255, 215, 0, 0.9);
+  color: #222;
+}
+
+.current-ball.O {
+  background: radial-gradient(circle at 30% 30%, #69db7c, #2f9e44);
+  box-shadow: 0 0 40px rgba(0, 200, 0, 0.9);
+}
 /* ===============================
    COUNTDOWN
 ================================ */
@@ -583,6 +614,7 @@ input[type="range"] {
 .hidden {
   display: none;
 }
+
 
 
 
