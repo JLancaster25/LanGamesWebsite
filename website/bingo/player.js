@@ -1,7 +1,7 @@
 // ==========================================
 // SUPABASE CLIENT
 // ==========================================
-if (!sb) {
+if (!window.sb) {
   console.error("❌ Supabase client not loaded");
 }
 // ==========================================
@@ -220,5 +220,6 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
