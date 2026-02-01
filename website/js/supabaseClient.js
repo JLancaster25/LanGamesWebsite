@@ -10,6 +10,8 @@ const supabaseClient = window.supabase.createClient(
 );
 
 // Expose a SINGLE global reference
+const sb = window.supabaseClient;
 window.supabaseClient = supabaseClient
+
 
 
