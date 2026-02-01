@@ -176,6 +176,17 @@ header {
   height: 100%;
 }
 
+.auth-blocked {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #0f0f14;
+  color: white;
+  text-align: center;
+}
+
 /* ===============================
    PANELS
 ================================ */
@@ -614,6 +625,7 @@ input[type="range"] {
 .hidden {
   display: none;
 }
+
 
 
 
