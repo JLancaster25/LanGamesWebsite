@@ -47,7 +47,7 @@ async function initPlayer() {
 
   // load daub color
   if (userId) {
-const { data: profiles } = await window.sb
+const { data: profiles } = await sb
   .from("profiles")
   .select("daub_color")
   .eq("id", userId)
@@ -221,6 +221,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
