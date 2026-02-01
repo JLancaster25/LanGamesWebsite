@@ -3,9 +3,9 @@
 // ==========================================
 'use strict';
 //const sb = window.supabaseClient;
-if (!sb) {
-  console.error("❌ Supabase client not loaded");
-}
+//if (!sb) {
+//  console.error("❌ Supabase client not loaded");
+//}
 // ==========================================
 // DOM
 // ==========================================
@@ -222,6 +222,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
