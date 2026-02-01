@@ -62,7 +62,21 @@ const {
   data: { user }
 } = await sb.auth.getUser();
 
-if (!user) throw new Error("Host not logged in");
+if (!user) {
+  document.body.innerHTML = `
+    <div class="auth-blocked">
+      <h1>🔒 Host Login Required</h1>
+      <p>You must be logged in to host a Bingo game.</p>
+      <button id="loginBtn">Log In</button>
+    </div>
+  `;
+
+  document.getElementById("loginBtn").onclick = () => {
+    window.location.href = "/account/login.html";
+  };
+
+  return;
+}
 
 const roomCode = generateCode();
 roomCodeEl.textContent = roomCode;
@@ -249,6 +263,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
