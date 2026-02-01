@@ -47,17 +47,16 @@ async function initPlayer() {
 
   // load daub color
   if (userId) {
-    const { data: profile } = await sb
-      .from("profiles")
-      .select("daub_color")
-      .eq("id", userId)
-      .single();
+const { data: profiles } = await window.sb
+  .from("profiles")
+  .select("daub_color")
+  .eq("id", userId)
+  .limit(1);
 
-    if (profile?.daub_color) {
-      daubColor = profile.daub_color;
-      localStorage.setItem("bingo_daub_color", daubColor);
-    }
-  } else {
+if (profiles && profiles.length && profiles[0].daub_color) {
+  daubColor = profiles[0].daub_color;
+  localStorage.setItem("bingo_daub_color", daubColor);
+} else {
     daubColor = "#32d46b";
   }
 
@@ -222,6 +221,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
