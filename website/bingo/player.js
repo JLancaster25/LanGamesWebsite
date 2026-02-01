@@ -52,7 +52,7 @@ const { data: profiles } = await window.sb
   .select("daub_color")
   .eq("id", userId)
   .limit(1);
-
+  }
 if (profiles && profiles.length && profiles[0].daub_color) {
   daubColor = profiles[0].daub_color;
   localStorage.setItem("bingo_daub_color", daubColor);
@@ -221,6 +221,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
