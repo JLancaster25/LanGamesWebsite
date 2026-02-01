@@ -1,6 +1,7 @@
 // ==========================================
 // SUPABASE CLIENT
 // ==========================================
+'use strict';
 if (!sb) {
   console.error("❌ Supabase client not loaded");
 }
@@ -220,6 +221,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
