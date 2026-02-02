@@ -51,6 +51,7 @@ let gameActive = false;
 let autoTimer = null;
 const called = new Set();
 let gameChannel;
+let gameChannelReady = false;
 
 // ==========================================
 // INIT
@@ -311,6 +312,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
