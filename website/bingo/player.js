@@ -27,6 +27,7 @@ const currentBallEl = document.getElementById("currentBall");
 let gameId = null;
 let playerId = null;
 let userId = null;
+let gameChannel = null;
 
 let daubColor = "#32d46b"; // default GREEN
 const calledNumbers = new Set();
@@ -111,6 +112,11 @@ async function handleJoin(e) {
   titleEl.textContent = `${name}'s Bingo Card`;
 
   renderCard();
+
+// 🔁 Replay first
+  await replayCallsFromDB();
+
+// 📡 Then listen live
   subscribeCalls();
 }
 
@@ -160,32 +166,42 @@ function renderCard() {
 // REALTIME CALLS
 // ==========================================
 function subscribeCalls() {
-  console.log("[PLAYER] Subscribing to calls…");
+  console.log("[PLAYER] Subscribing to broadcast calls…");
 
-  window.sb
-    .channel("calls-feed")
-    .on(
-      "postgres_changes",
-      {
-        event: "INSERT",
-        schema: "public",
-        table: "calls"
-      },
-      payload => {
-        console.log("🔥 PLAYER RECEIVED CALL:", payload);
+  gameChannel = sb.channel(`game-${gameId}`)
+    .on("broadcast", { event: "call" }, payload => {
+      const number = payload?.payload?.number;
+      if (!number) return;
 
-        const row = payload.new;
-        if (!row) return;
-
-        if (row.game_id !== gameId) return;
-
-        handleCall(Number(row.number));
-      }
-    )
+      console.log("[PLAYER] Received call via broadcast:", number);
+      handleCall(Number(number));
+    })
     .subscribe(status => {
-      console.log("[PLAYER] Calls channel status:", status);
+      console.log("[PLAYER] Game channel status:", status);
     });
 }
+
+async function replayCallsFromDB() {
+  console.log("[PLAYER] Replaying calls from DB…");
+
+  const { data, error } = await sb
+    .from("calls")
+    .select("number")
+    .eq("game_id", gameId)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    console.error("[PLAYER] Replay failed:", error);
+    return;
+  }
+
+  data.forEach(row => {
+    handleCall(Number(row.number));
+  });
+
+  console.log(`[PLAYER] Replayed ${data.length} calls`);
+}
+
 /*
 function handleCall(number) {
   if (calledNumbers.has(number)) return;
@@ -329,3 +345,4 @@ function openRealtimeSocket() {
     });
 }
 openRealtimeSocket();
+
