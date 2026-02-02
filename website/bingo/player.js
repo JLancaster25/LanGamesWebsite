@@ -175,7 +175,6 @@ function subscribeCalls() {
     })
     .subscribe(status => 
       console.log("[PLAYER] Game channel status:", status));
-    );
 }
 
 async function replayCallsFromDB() {
@@ -342,6 +341,7 @@ function openRealtimeSocket() {
     });
 }
 openRealtimeSocket();
+
 
 
 
