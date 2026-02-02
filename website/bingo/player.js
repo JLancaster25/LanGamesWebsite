@@ -173,10 +173,10 @@ function renderCard() {
 // REALTIME CALLS
 // ==========================================
 function subscribeCalls() {
-  console.log("[PLAYER] Subscribing to calls (GLOBAL)");
+  console.log("[PLAYER] Subscribing to calls…");
 
   window.sb
-    .channel("realtime-calls")
+    .channel("calls-feed")
     .on(
       "postgres_changes",
       {
@@ -185,18 +185,14 @@ function subscribeCalls() {
         table: "calls"
       },
       payload => {
-        console.log("[PLAYER] RAW realtime payload:", payload);
+        console.log("🔥 PLAYER RECEIVED CALL:", payload);
 
         const row = payload.new;
         if (!row) return;
 
-        if (row.game_id !== gameId) {
-          console.log("[PLAYER] Ignored call for other game:", row.game_id);
-          return;
-        }
+        if (row.game_id !== gameId) return;
 
-        const n = Number(row.number);
-        handleCall(n);
+        handleCall(Number(row.number));
       }
     )
     .subscribe(status => {
@@ -337,6 +333,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
