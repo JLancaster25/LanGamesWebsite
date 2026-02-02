@@ -166,15 +166,26 @@ function renderCard() {
 // REALTIME CALLS
 // ==========================================
 function subscribeCalls() {
-  console.log("[PLAYER] Subscribing to broadcast calls…");
+  if (gameChannel) {
+    console.log("[PLAYER] Game channel already exists, skipping subscribe");
+    return;
+  }
+
+  console.log("[PLAYER] Subscribing to game channel:", gameId);
 
   gameChannel = sb.channel(`game-${gameId}`);
-  gameChannel.on("broadcast", { event: "call" }, payload => {
-    console.log("[PLAYER] Received call via broadcast:", payload);
-      handleCall(Number(payload.payload.number));
+
+  gameChannel
+    .on("broadcast", { event: "call" }, payload => {
+      const number = payload?.payload?.number;
+      if (number == null) return;
+
+      console.log("🔥 PLAYER RECEIVED LIVE CALL:", number);
+      handleCall(Number(number));
     })
-    .subscribe(status => 
-      console.log("[PLAYER] Game channel status:", status));
+    .subscribe(status => {
+      console.log("[PLAYER] Game channel status:", status);
+    });
 }
 
 async function replayCallsFromDB() {
@@ -215,7 +226,7 @@ function handleCall(number) {
   badge.textContent = `${letter} ${number}`;
   calledNumbersListEl.prepend(badge);
 }
-*/
+*
 function handleCall(number) {
   console.log("[PLAYER] APPLYING CALL:", number);
   if (calledNumbers.has(number)) return;
@@ -231,6 +242,24 @@ function handleCall(number) {
   calledNumbersListEl.appendChild(badge);
 
   // Enable matching cell
+  const cell = document.querySelector(
+    `.bingo-cell[data-number="${number}"]`
+  );
+
+  if (cell) {
+    cell.classList.add("call-available");
+  }
+}
+*/
+function handleCall(number) {
+  console.log("[PLAYER] APPLYING CALL:", number);
+  if (calledNumbers.has(number)) return;
+
+  calledNumbers.add(number);
+
+  renderPlayerCurrentBall(number);
+  renderPlayerCalled(number);
+
   const cell = document.querySelector(
     `.bingo-cell[data-number="${number}"]`
   );
@@ -332,16 +361,3 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
-
-function openRealtimeSocket() {
-  window.sb
-    .channel("socket-opener")
-    .subscribe(status => {
-      console.log("🔌 Realtime socket status:", status);
-    });
-}
-openRealtimeSocket();
-
-
-
-
