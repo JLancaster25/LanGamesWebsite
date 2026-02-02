@@ -50,7 +50,7 @@ let gameId;
 let gameActive = false;
 let autoTimer = null;
 const called = new Set();
-let gameChannel = null;
+let gameChannel;
 
 // ==========================================
 // INIT
@@ -80,10 +80,9 @@ if (!user) {
   return;
 }
   
-gameChannel = sb.channel(`game-${gameId}`)
-  .subscribe(status => {
-    console.log("[HOST] Game channel:", status);
-  });
+gameChannel = sb.channel(`game-${gameId}`);
+gameChannel.subscribe(status => 
+    console.log("[HOST] Game channel:", status);                     
   
 const roomCode = generateCode();
 roomCodeEl.textContent = roomCode;
@@ -216,10 +215,14 @@ async function callNumber() {
   }
 
   // 2️⃣ Broadcast live to players
+broadcastCall(n);
+}
+
+function broadcastCall(number) {
   gameChannel.send({
     type: "broadcast",
     event: "call",
-    payload: { number: n }
+    payload: { number }
   });
 }
 
@@ -301,6 +304,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
