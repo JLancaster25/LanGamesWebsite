@@ -27,7 +27,7 @@ const currentBallEl = document.getElementById("currentBall");
 let gameId = null;
 let playerId = null;
 let userId = null;
-let gameChannel = null;
+let gameChannel;
 
 let daubColor = "#32d46b"; // default GREEN
 const calledNumbers = new Set();
@@ -168,17 +168,14 @@ function renderCard() {
 function subscribeCalls() {
   console.log("[PLAYER] Subscribing to broadcast calls…");
 
-  gameChannel = sb.channel(`game-${gameId}`)
-    .on("broadcast", { event: "call" }, payload => {
-      const number = payload?.payload?.number;
-      if (!number) return;
-
-      console.log("[PLAYER] Received call via broadcast:", number);
-      handleCall(Number(number));
+  gameChannel = sb.channel(`game-${gameId}`);
+  gameChannel.on("broadcast", { event: "call" }, payload => {
+    console.log("[PLAYER] Received call via broadcast:", payload);
+      handleCall(Number(payload.payload.number));
     })
-    .subscribe(status => {
+    .subscribe(status => 
       console.log("[PLAYER] Game channel status:", status);
-    });
+    );
 }
 
 async function replayCallsFromDB() {
@@ -345,4 +342,5 @@ function openRealtimeSocket() {
     });
 }
 openRealtimeSocket();
+
 
