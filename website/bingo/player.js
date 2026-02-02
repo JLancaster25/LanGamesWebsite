@@ -23,6 +23,7 @@ const calledNumbersListEl = document.getElementById("calledNumbersList");
 
 const bingoBtn = document.getElementById("bingoBtn");
 const bingoMessage = document.getElementById("bingoMessage");
+const currentBallEl = document.getElementById("currentBall");
 
 // ==========================================
 // STATE
@@ -156,15 +157,14 @@ function renderCard() {
 // ==========================================
 function subscribeCalls() {
   sb.channel(`calls-${gameId}`)
-    .on("postgres_changes", 
+    .on(
+      "postgres_changes", 
         { event: "INSERT", schema: "public", table: "calls" },
       p => {
         if (p.new.game_id !== gameId) return;
         handleCall(p.new.number);
       }
     )
-    renderPlayerCalled(number);
-    renderPlayerCurrentBall(number);
     .subscribe();
 }
 /*
@@ -189,6 +189,8 @@ function handleCall(number) {
   if (calledNumbers.has(number)) return;
 
   calledNumbers.add(number);
+  renderPlayerCalled(number);
+  renderPlayerCurrentBall(number);
 
   // Show in called numbers UI
   const badge = document.createElement("div");
@@ -204,6 +206,18 @@ function handleCall(number) {
   if (cell) {
     cell.classList.add("call-available");
   }
+}
+
+function renderPlayerCurrentBall(number) {
+  if (!currentBallEl) return;
+
+  const letter = getBingoLetter(number);
+
+  currentBallEl.className = "current-ball";
+  void currentBallEl.offsetWidth;
+
+  currentBallEl.textContent = `${letter} ${number}`;
+  currentBallEl.classList.add(letter, "animate");
 }
 
 function renderPlayerCalled(number) {
@@ -286,6 +300,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
