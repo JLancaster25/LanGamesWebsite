@@ -246,11 +246,19 @@ function generateCard() {
     O: shuffle(range(61, 75)).slice(0, 5)
   };
 }
+  
+function range(min, max) {
+  return Array.from({ length: max - min + 1 }, (_, i) => i + min);
+}
 
+function shuffle(arr) {
+  return arr.sort(() => Math.random() - 0.5);
+  
 function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
