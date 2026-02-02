@@ -156,13 +156,14 @@ function renderCard() {
 // ==========================================
 function subscribeCalls() {
   sb.channel(`calls-${gameId}`)
-    .on(
-      "postgres_changes",
-      { event: "INSERT", schema: "public", table: "calls" },
+    .on("postgres_changes", 
+        { event: "INSERT", schema: "public", table: "calls" },
       p => {
         if (p.new.game_id !== gameId) return;
         handleCall(p.new.number);
       }
+      renderPlayerCalled(number);
+      renderPlayerCurrentBall(number);
     )
     .subscribe();
 }
@@ -285,6 +286,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
