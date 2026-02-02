@@ -1,11 +1,20 @@
 // ==========================================
 // SUPABASE CLIENT
 // ==========================================
-'use strict';
-//const sb = window.supabaseClient;
-//if (!sb) {
-//  console.error("❌ Supabase client not loaded");
-//}
+if (!window.supabase) {
+  throw new Error("Supabase CDN not loaded");
+}
+
+if (!window.sb) {
+  window.sb = supabase.createClient(
+    "https://kppgmvfdfuhmtuaukkdn.supabase.co",
+    "YOUR_PUBLIC_ANON_KEY"
+  );
+} else {
+  console.warn("Supabase client already exists, not recreating");
+}
+
+console.log("[SUPABASE] Client ready:", window.sb);
 // ==========================================
 // DOM
 // ==========================================
@@ -320,6 +329,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
