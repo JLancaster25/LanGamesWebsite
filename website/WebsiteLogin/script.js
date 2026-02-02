@@ -145,8 +145,8 @@ registerForm.addEventListener("submit", async (e) => {
   if (!username || !email || !password || !confirm)
     return showError("All fields are required.");
 
-  if (username.length < 8)
-    return showError("Username must be at least 8 characters.");
+  if (username.length < 8 || username.length > 15)
+    return showError("Username must be 8 - 15 characters.");
 
   if (!isValidEmail(email))
     return showError("Invalid email address.");
@@ -169,6 +169,7 @@ registerForm.addEventListener("submit", async (e) => {
 
   showSuccess("Account created! Check your email.");
 });
+
 
 
 
