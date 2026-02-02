@@ -280,7 +280,7 @@ function generateCard() {
   }
 
   // FREE space
-  card[2][2] = "FREE";
+  card[2][2] = 0;
 
   return card;
 }
@@ -300,6 +300,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
