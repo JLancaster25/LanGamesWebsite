@@ -166,7 +166,7 @@ function subscribeCalls() {
     )
     .subscribe();
 }
-
+/*
 function handleCall(number) {
   if (calledNumbers.has(number)) return;
   calledNumbers.add(number);
@@ -182,6 +182,27 @@ function handleCall(number) {
 
   badge.textContent = `${letter} ${number}`;
   calledNumbersListEl.prepend(badge);
+}
+*/
+function handleCall(number) {
+  if (calledNumbers.has(number)) return;
+
+  calledNumbers.add(number);
+
+  // Show in called numbers UI
+  const badge = document.createElement("div");
+  badge.className = "called-number";
+  badge.textContent = number;
+  calledNumbersListEl.appendChild(badge);
+
+  // Enable matching cell
+  const cell = document.querySelector(
+    `.bingo-cell[data-number="${number}"]`
+  );
+
+  if (cell) {
+    cell.classList.add("call-available");
+  }
 }
 
 // ==========================================
@@ -209,19 +230,28 @@ async function submitBingoClaim() {
 // UTIL
 // ==========================================
 function generateCard() {
-  const nums = [];
+ /* const nums = [];
   while (nums.length < 24) {
     const n = Math.floor(Math.random() * 75) + 1;
     if (!nums.includes(n)) nums.push(n);
   }
   nums.splice(12, 0, 0);
   return nums;
+  */
+    return {
+    B: shuffle(range(1, 15)).slice(0, 5),
+    I: shuffle(range(16, 30)).slice(0, 5),
+    N: shuffle(range(31, 45)).slice(0, 5),
+    G: shuffle(range(46, 60)).slice(0, 5),
+    O: shuffle(range(61, 75)).slice(0, 5)
+  };
 }
 
 function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
