@@ -1,7 +1,7 @@
 // ===============================
 // SUPABASE CONFIG
 // ===============================
-const sb = window.supabaseClient;
+//const sb = window.supabaseClient;
 
 // ===============================
 // ELEMENTS
@@ -104,6 +104,7 @@ async function logout() {
   await sb.auth.signOut();
   location.href = '/';
 }
+
 
 
 
