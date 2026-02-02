@@ -123,7 +123,7 @@ function subscribeHostRealtime() {
       }
     )
     .subscribe();
-*/
+
   sb.channel("public:calls")
     .on(
       "postgres_changes",
@@ -158,7 +158,7 @@ function subscribeHostRealtime() {
     )
     .subscribe();
 }
-
+*/
 // ==========================================
 // CONTROLS
 // ==========================================
@@ -315,6 +315,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
