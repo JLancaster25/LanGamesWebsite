@@ -82,9 +82,11 @@ if (!user) {
 }
   
 gameChannel = sb.channel(`game-${gameId}`);
-gameChannel.subscribe(status => 
-    console.log("[HOST] Game channel:", status));                     
-  
+gameChannel.subscribe(status => {
+    console.log("[HOST] Game channel:", status);
+  if(status === "SUBSCRIBED"){ gameChannelReady = true;}
+});
+    
 const roomCode = generateCode();
 roomCodeEl.textContent = roomCode;
 
@@ -312,6 +314,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
