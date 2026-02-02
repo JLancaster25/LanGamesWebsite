@@ -253,11 +253,13 @@ function range(min, max) {
 
 function shuffle(arr) {
   return arr.sort(() => Math.random() - 0.5);
+}
   
 function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
