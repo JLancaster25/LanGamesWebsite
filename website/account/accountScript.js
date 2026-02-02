@@ -8,16 +8,24 @@ if (!sb) {
 // ===============================
 // ELEMENTS
 // ===============================
+document.addEventListener("DOMContentLoaded", () => {
+  wireAccountUI();
+  loadProfile();
+});
+function wireAccountUI() {
+  const saveBtn = document.getElementById("saveColor");
+  const resetBtn = document.getElementById("resetPassword");
+  const logoutBtn = document.getElementById("logout");
+
+  if (saveBtn) saveBtn.onclick = saveDaubColor;
+  if (resetBtn) resetBtn.onclick = resetPassword;
+  if (logoutBtn) logoutBtn.onclick = logout;
+}
 const emailEl = document.getElementById('email');
 const displayUsernameEl = document.getElementById('displayUsername');
 const avatarEl = document.getElementById('currentAvatar');
 const avatarOptions = document.querySelectorAll('.avatar-option');
 const daubColorSelect = document.getElementById('daubColor');
-
-document.getElementById('saveColor').onclick = saveDaubColor;
-document.getElementById('resetPassword').onclick = resetPassword;
-document.getElementById('logout').onclick = logout;
-
 // ===============================
 // LOAD PROFILE
 // ===============================
@@ -106,6 +114,7 @@ async function logout() {
   await sb.auth.signOut();
   location.href = '/';
 }
+
 
 
 
