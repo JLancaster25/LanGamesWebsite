@@ -108,6 +108,7 @@ subscribeHostRealtime();
 // ==========================================
 // REALTIME
 // ==========================================
+/*
 function subscribeHostRealtime() {
   console.log("[HOST] Subscribing realtime for game:", gameId);
 
@@ -122,7 +123,7 @@ function subscribeHostRealtime() {
       }
     )
     .subscribe();
-
+*/
   sb.channel("public:calls")
     .on(
       "postgres_changes",
@@ -314,6 +315,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
