@@ -151,7 +151,7 @@ function renderCard() {
           } else {
             markedNumbers.delete(value);
           }
-           console.log("Called set:", [...calledNumbers]);
+           console.log("Called set:", [calledNumbers]);
         };
       }
 
@@ -308,6 +308,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
