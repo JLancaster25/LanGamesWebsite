@@ -1,7 +1,6 @@
 // ==================================================
 // SUPABASE POINTER
 // ==================================================
-const sb = window.supabaseClient;
 const message = document.getElementById("message");
 
 // ELEMENTS
@@ -169,6 +168,7 @@ registerForm.addEventListener("submit", async (e) => {
 
   showSuccess("Account created! Check your email.");
 });
+
 
 
 
