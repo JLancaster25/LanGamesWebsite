@@ -36,9 +36,9 @@ async function loadProfile() {
   emailEl.textContent = user.email;
 
   const { data, error } = await supabase
-    .from('profiles')
-    .select('display_username')
-    .eq('id', user.id)
+    .from("profiles")
+    .select("display_username, daub_color")
+    .eq("id", user.id)
     .single();
 
   if (error) {
@@ -46,7 +46,13 @@ async function loadProfile() {
     return;
   }
 
-  displayUsernameEl.textContent = data.display_username;
+  if (data && data.length) {
+  displayUsernameEl.textContent = data[0].display_name || "";
+  if (data[0].daub_color) {
+    daubColorSelect.value = data[0].daub_color;
+  }
+ }
+ // displayUsernameEl.textContent = data.display_username;
 
   const meta = user.user_metadata || {};
   if (meta.avatar) avatarEl.src = meta.avatar;
@@ -79,7 +85,8 @@ avatarOptions.forEach(img => {
 async function saveDaubColor() {
 // Always save locally
   localStorage.setItem("bingo_daub_color", color);
-
+  const color = daubColorSelect?.value;
+  if (!color) return;
   const {
     data: { user }
   } = await sb.auth.getUser();
@@ -114,6 +121,7 @@ async function logout() {
   await sb.auth.signOut();
   location.href = '/';
 }
+
 
 
 
