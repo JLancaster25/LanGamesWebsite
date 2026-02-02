@@ -54,10 +54,6 @@ async function initPlayer() {
   .limit(1);
   }
   
-  if (error) {
-    console.error("Profile load error:", error);
-  }
-  
   if (data && data.length && data[0].daub_color) {
     daubColor = data[0].daub_color;
     localStorage.setItem("bingo_daub_color", daubColor);
@@ -226,6 +222,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
