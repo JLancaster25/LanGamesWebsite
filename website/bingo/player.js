@@ -140,7 +140,8 @@ function renderCard() {
         cell.dataset.number = value;
 
         cell.onclick = () => {
-          if (!calledNumbers.has(value)) return;
+          const n = Number(value);
+          if (!calledNumbers.has(n)) return;
 
           cell.classList.toggle("marked");
 
@@ -306,6 +307,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
