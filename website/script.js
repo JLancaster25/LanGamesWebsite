@@ -2,7 +2,7 @@
 // ================================
 // SUPABASE CLIENT
 // ================================
-const sb = window.supabaseClient;
+//const sb = window.supabaseClient;
 
 if (!sb) {
   console.error("❌ Supabase client not loaded. Check script order.");
@@ -161,6 +161,7 @@ function showUser(email) {
 sb.auth.getSession().then(({ data }) => {
   if (data.session) showUser(data.session.user.email);
 });
+
 
 
 
