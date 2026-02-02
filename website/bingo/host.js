@@ -102,7 +102,7 @@ const { data: game } = await sb
   .single();
 
 gameId = game.id;
-subscribeHostRealtime();
+//subscribeHostRealtime();
 }
 
 // ==========================================
@@ -315,6 +315,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
