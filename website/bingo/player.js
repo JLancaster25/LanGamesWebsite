@@ -174,7 +174,7 @@ function subscribeCalls() {
       handleCall(Number(payload.payload.number));
     })
     .subscribe(status => 
-      console.log("[PLAYER] Game channel status:", status);
+      console.log("[PLAYER] Game channel status:", status));
     );
 }
 
@@ -342,5 +342,6 @@ function openRealtimeSocket() {
     });
 }
 openRealtimeSocket();
+
 
 
