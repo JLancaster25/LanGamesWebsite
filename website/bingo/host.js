@@ -93,50 +93,61 @@ const { data: game } = await sb
   .single();
 
 gameId = game.id;
+subscribeHostRealtime();
 }
 
 // ==========================================
 // REALTIME
 // ==========================================
-sb.channel(`players-${gameId}`)
-  .on(
-    "postgres_changes",
-    { event: "INSERT", schema: "public", table: "players" },
-    p => {
-      if (p.new.game_id === gameId) addPlayer(p.new.display_name);
-    }
-  )
-  .subscribe();
+function subscribeHostRealtime() {
+  console.log("[HOST] Subscribing realtime for game:", gameId);
 
-sb.channel(`calls-${gameId}`)
-  .on(
-    "postgres_changes",
-    { event: "INSERT", schema: "public", table: "calls" },
-    p => {
-      if (p.new.game_id === gameId) renderCall(formatCall(p.new.number));
-    }
-  )
-  .subscribe();
+  sb.channel("public:players")
+    .on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table: "players" },
+      p => {
+        if (p.new.game_id === gameId) {
+          addPlayer(p.new.display_name);
+        }
+      }
+    )
+    .subscribe();
 
-sb.channel(`claims-${gameId}`)
-  .on(
-    "postgres_changes",
-    { event: "INSERT", schema: "public", table: "claims" },
-    async p => {
-      if (!gameActive) return;
-      const valid = await validateClaim(p.new);
-      if (!valid) return;
+  sb.channel("public:calls")
+    .on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table: "calls" },
+      p => {
+        if (p.new.game_id === gameId) {
+          renderCall(formatCall(p.new.number));
+        }
+      }
+    )
+    .subscribe();
 
-      speak("Bingo!");
-      await sb.from("winners").insert({
-        game_id: gameId,
-        player_id: p.new.player_id,
-        pattern: p.new.pattern
-      });
-      endGame();
-    }
-  )
-  .subscribe();
+  sb.channel("public:claims")
+    .on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table: "claims" },
+      async p => {
+        if (!gameActive) return;
+        if (p.new.game_id !== gameId) return;
+
+        const valid = await validateClaim(p.new);
+        if (!valid) return;
+
+        speak("Bingo!");
+        await sb.from("winners").insert({
+          game_id: gameId,
+          player_id: p.new.player_id,
+          pattern: p.new.pattern
+        });
+        endGame();
+      }
+    )
+    .subscribe();
+}
 
 // ==========================================
 // CONTROLS
@@ -183,6 +194,16 @@ async function callNumber() {
     game_id: gameId,
     number: n
   });
+  console.log("[HOST] Calling number:", n);
+
+const { error } = await sb.from("calls").insert({
+  game_id: gameId,
+  number: n
+});
+
+if (error) {
+  console.error("[HOST] Call insert failed:", error);
+}
 }
 
 function nextNumber() {
@@ -263,6 +284,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
