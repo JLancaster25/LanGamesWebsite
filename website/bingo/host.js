@@ -208,17 +208,24 @@ async function callNumber() {
     game_id: gameId,
     number: n
   });
-
+  
+ // 2️⃣ Broadcast live to players
+broadcastCall(n);
+  
   if (error) {
     console.error("[HOST] Call insert failed:", error);
     return;
   }
-
-  // 2️⃣ Broadcast live to players
-broadcastCall(n);
 }
 
 function broadcastCall(number) {
+  if (!gameChannel || !gameChannelReady) {
+    console.warn("[HOST] Channel not ready, cannot broadcast");
+    return;
+  }
+
+  console.log("[HOST] Broadcasting:", number);
+
   gameChannel.send({
     type: "broadcast",
     event: "call",
@@ -304,6 +311,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
