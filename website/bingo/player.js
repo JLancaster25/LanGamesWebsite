@@ -162,9 +162,9 @@ function subscribeCalls() {
         if (p.new.game_id !== gameId) return;
         handleCall(p.new.number);
       }
-      renderPlayerCalled(number);
-      renderPlayerCurrentBall(number);
     )
+    renderPlayerCalled(number);
+    renderPlayerCurrentBall(number);
     .subscribe();
 }
 /*
@@ -286,6 +286,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
