@@ -1,6 +1,4 @@
 // js/navbar.js
-const sb = window.supabaseClient;
-
 if (!sb) {
   console.error("❌ Supabase client not found. Load supabaseClient.js first.");
 } 
