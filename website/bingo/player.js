@@ -125,30 +125,36 @@ function renderCard() {
   bingoCardEl.innerHTML = "";
   markedNumbers.clear();
 
-  card.forEach((n, i) => {
-    const cell = document.createElement("div");
-    cell.className = "cell";
+  card.forEach((row, rowIndex) => {
+    row.forEach((value, colIndex) => {
+      const cell = document.createElement("div");
+      cell.className = "bingo-cell";
 
-    if (n === 0) {
-      cell.textContent = "FREE";
-      cell.classList.add("free", "marked");
-      markedNumbers.add(0);
-    } else {
-      cell.textContent = n;
-      cell.onclick = () => {
-        if (!calledNumbers.has(n)) return;
-        cell.classList.toggle("marked");
+      // FREE space (stored as 0)
+      if (value === 0) {
+        cell.textContent = "FREE";
+        cell.classList.add("free", "marked");
+        markedNumbers.add(0);
+      } else {
+        cell.textContent = value;
+        cell.dataset.number = value;
 
-        if (cell.classList.contains("marked")) {
-          cell.style.setProperty("--daub-color", daubColor);
-          markedNumbers.add(n);
-        } else {
-          markedNumbers.delete(n);
-        }
-      };
-    }
+        cell.onclick = () => {
+          if (!calledNumbers.has(value)) return;
 
-    bingoCardEl.appendChild(cell);
+          cell.classList.toggle("marked");
+
+          if (cell.classList.contains("marked")) {
+            cell.style.setProperty("--daub-color", daubColor);
+            markedNumbers.add(value);
+          } else {
+            markedNumbers.delete(value);
+          }
+        };
+      }
+
+      bingoCardEl.appendChild(cell);
+    });
   });
 }
 
@@ -300,6 +306,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
