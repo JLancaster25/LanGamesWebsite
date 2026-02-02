@@ -164,16 +164,28 @@ function renderCard() {
 // REALTIME CALLS
 // ==========================================
 function subscribeCalls() {
-  sb.channel(`calls-${gameId}`)
+  console.log("[PLAYER] Subscribing to calls for game:", gameId);
+
+  window.sb
+    .channel("public:calls")
     .on(
-      "postgres_changes", 
-        { event: "INSERT", schema: "public", table: "calls" },
-      p => {
-        if (p.new.game_id !== gameId) return;
-        handleCall(p.new.number);
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "calls"
+      },
+      payload => {
+        console.log("[PLAYER] Call received:", payload.new);
+
+        if (payload.new.game_id !== gameId) return;
+
+        handleCall(Number(payload.new.number));
       }
     )
-    .subscribe();
+    .subscribe(status => {
+      console.log("[PLAYER] Calls channel status:", status);
+    });
 }
 /*
 function handleCall(number) {
@@ -308,6 +320,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
