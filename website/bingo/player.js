@@ -321,34 +321,11 @@ function showLobbyError(msg) {
   lobbyError.classList.toggle("hidden", !msg);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+function openRealtimeSocket() {
+  window.sb
+    .channel("socket-opener")
+    .subscribe(status => {
+      console.log("🔌 Realtime socket status:", status);
+    });
+}
+openRealtimeSocket();
