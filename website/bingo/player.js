@@ -8,7 +8,7 @@ if (!window.supabase) {
 if (!window.sb) {
   window.sb = supabase.createClient(
     "https://kppgmvfdfuhmtuaukkdn.supabase.co",
-    "YOUR_PUBLIC_ANON_KEY"
+    "sb_publishable_e4AhlY9ZIgdlsG8rl111Fg_tWghrBW4"
   );
 } else {
   console.warn("Supabase client already exists, not recreating");
@@ -329,6 +329,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
