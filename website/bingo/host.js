@@ -72,7 +72,7 @@ if (!user) {
   `;
 
   document.getElementById("loginBtn").onclick = () => {
-    window.location.href = "/websiteLogin/login.html";
+    window.location.href = "/WebsiteLogin/login.html";
   };
 
   return;
@@ -263,6 +263,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
