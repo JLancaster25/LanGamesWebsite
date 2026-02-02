@@ -205,6 +205,22 @@ function handleCall(number) {
   }
 }
 
+function renderPlayerCalled(number) {
+  const list = document.getElementById("calledNumbersList");
+  if (!list) return;
+
+  const letter =
+    number <= 15 ? "B" :
+    number <= 30 ? "I" :
+    number <= 45 ? "N" :
+    number <= 60 ? "G" : "O";
+
+  const el = document.createElement("span");
+  el.className = "called-number";
+  el.textContent = `${letter} ${number}`;
+
+  list.prepend(el);
+}
 // ==========================================
 // CLAIM
 // ==========================================
@@ -230,35 +246,46 @@ async function submitBingoClaim() {
 // UTIL
 // ==========================================
 function generateCard() {
- /* const nums = [];
-  while (nums.length < 24) {
-    const n = Math.floor(Math.random() * 75) + 1;
-    if (!nums.includes(n)) nums.push(n);
+  const card = [];
+
+  const ranges = [
+    range(1, 15),   // B
+    range(16, 30),  // I
+    range(31, 45),  // N
+    range(46, 60),  // G
+    range(61, 75)   // O
+  ];
+
+  for (let col = 0; col < 5; col++) {
+    shuffle(ranges[col]);
+    for (let row = 0; row < 5; row++) {
+      if (!card[row]) card[row] = [];
+      card[row][col] = ranges[col][row];
+    }
   }
-  nums.splice(12, 0, 0);
-  return nums;
-  */
-    return {
-    B: shuffle(range(1, 15)).slice(0, 5),
-    I: shuffle(range(16, 30)).slice(0, 5),
-    N: shuffle(range(31, 45)).slice(0, 5),
-    G: shuffle(range(46, 60)).slice(0, 5),
-    O: shuffle(range(61, 75)).slice(0, 5)
-  };
+
+  // FREE space
+  card[2][2] = "FREE";
+
+  return card;
 }
-  
+
 function range(min, max) {
-  return Array.from({ length: max - min + 1 }, (_, i) => i + min);
+  return Array.from({ length: max - min + 1 }, (_, i) => min + i);
 }
 
 function shuffle(arr) {
-  return arr.sort(() => Math.random() - 0.5);
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
 }
   
 function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
