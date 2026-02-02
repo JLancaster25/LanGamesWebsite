@@ -42,6 +42,7 @@ const modeInputs = document.querySelectorAll(".modes input");
   if (!el) console.error(`❌ Missing DOM element: ${name}`);
 });
 
+
 // ==========================================
 // STATE
 // ==========================================
@@ -49,6 +50,7 @@ let gameId;
 let gameActive = false;
 let autoTimer = null;
 const called = new Set();
+let gameChannel = null;
 
 // ==========================================
 // INIT
@@ -77,7 +79,12 @@ if (!user) {
 
   return;
 }
-
+  
+gameChannel = sb.channel(`game-${gameId}`)
+  .subscribe(status => {
+    console.log("[HOST] Game channel:", status);
+  });
+  
 const roomCode = generateCode();
 roomCodeEl.textContent = roomCode;
 
@@ -183,27 +190,37 @@ newGameBtn.onclick = async () => {
 // ==========================================
 async function callNumber() {
   if (!gameActive) return;
+
   const n = nextNumber();
   if (!n) return;
 
+  if (called.has(n)) return;
   called.add(n);
+
+  // UI + voice
   speak(formatCall(n));
   renderCurrentBall(n);
   renderCallHistory(n);
-  await sb.from("calls").insert({
+
+  console.log("[HOST] Calling number:", n);
+
+  // 1️⃣ Persist to DB (history / replay)
+  const { error } = await sb.from("calls").insert({
     game_id: gameId,
     number: n
   });
-  console.log("[HOST] Calling number:", n);
 
-const { error } = await sb.from("calls").insert({
-  game_id: gameId,
-  number: n
-});
+  if (error) {
+    console.error("[HOST] Call insert failed:", error);
+    return;
+  }
 
-if (error) {
-  console.error("[HOST] Call insert failed:", error);
-}
+  // 2️⃣ Broadcast live to players
+  gameChannel.send({
+    type: "broadcast",
+    event: "call",
+    payload: { number: n }
+  });
 }
 
 function nextNumber() {
@@ -284,6 +301,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
