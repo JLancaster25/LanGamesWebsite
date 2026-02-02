@@ -2,7 +2,9 @@
 // SUPABASE CONFIG
 // ===============================
 //const sb = window.supabaseClient;
-
+if (!sb) {
+  throw new Error("Supabase client not loaded");
+}
 // ===============================
 // ELEMENTS
 // ===============================
@@ -104,6 +106,7 @@ async function logout() {
   await sb.auth.signOut();
   location.href = '/';
 }
+
 
 
 
