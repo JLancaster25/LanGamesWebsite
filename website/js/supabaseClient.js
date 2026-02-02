@@ -1,18 +1,25 @@
-// IMPORTANT:
-// This file is loaded ONCE and owns Supabase completely.
-const SUPABASE_URL = "https://kppgmvfdfuhmtuaukkdn.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_e4AhlY9ZIgdlsG8rl111Fg_tWghrBW4";
+// supabaseClient.js — SINGLETON, FINAL
 
-// Supabase CDN must already be loaded in index.html
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY
-);
+if (!window.supabase) {
+  throw new Error("❌ Supabase CDN not loaded");
+}
 
-// Expose a SINGLE global reference
-//const sb = window.supabaseClient;
-window.supabaseClient = supabaseClient
+if (!window.__SB_SINGLETON__) {
+  window.__SB_SINGLETON__ = supabase.createClient(
+    "https://kppgmvfdfuhmtuaukkdn.supabase.co",
+    "sb_publishable_e4AhlY9ZIgdlsG8rl111Fg_tWghrBW4",
+    {
+      realtime: {
+        params: {
+          eventsPerSecond: 10
+        }
+      }
+    }
+  );
 
+  console.log("✅ Supabase singleton created");
+} else {
+  console.log("ℹ️ Supabase singleton reused");
+}
 
-
-
+window.sb = window.__SB_SINGLETON__;
