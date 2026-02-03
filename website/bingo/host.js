@@ -201,10 +201,6 @@ async function callNumber() {
   if (called.has(n)) return;
   called.add(n);
 
-  await sb.from("games")
-  .update({last_call: n})
-  .eq("id", gameId);
-
   // UI + voice
   speak(formatCall(n));
   renderCurrentBall(n);
@@ -241,15 +237,6 @@ function broadcastCall(number) {
     payload: { number }
   });
 }
-
-setInterval(async() => {
-  const {data } = await sb.from("games").select("last_call").eq("id", gameId).single();
-  if (!data?.laast_call) return;
-  if(data.lasst_call !== lastSeenCall){
-    lastSeenCall = data.last_call;
-    handleCall(Number(data.last_call));
-  }
-}, 1000);
 
 function nextNumber() {
   const remaining = [];
@@ -329,6 +316,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
