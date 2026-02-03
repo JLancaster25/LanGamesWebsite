@@ -103,7 +103,7 @@ gameChannel.subscribe(status => {
     console.log("[HOST] Game channel:", status);
   if(status === "SUBSCRIBED"){ 
     gameChannelReady = true;
-    startGameButton.disabled = false;
+    startGameBtn.disabled = false;
   }
 });
 //subscribeHostRealtime();
@@ -319,6 +319,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
