@@ -119,10 +119,11 @@ function subscribeHostRealtime() {
       "postgres_changes",
       { event: "INSERT", schema: "public", table: "claims" },
       async payload => {
-        if (!gameActive) return;
-        if (payload.new.game_id !== gameId) return;
 
-        console.log("[HOST] Bingo claim received");
+        console.log("[HOST] Bingo claim received", payload);
+
+        if (payload.new.game_id !== gameId) return;
+        if (gameEnded) return; // ✔ correct guard
 
         const isValid = await validateClaim(payload.new);
 
@@ -134,7 +135,9 @@ function subscribeHostRealtime() {
         handleVerifiedBingo(payload.new.player_id);
       }
     )
-    .subscribe();
+    .subscribe(status => {
+      console.log("[HOST] Claims channel:", status);
+    });
 }
 // ==========================================
 // CONTROLS
@@ -356,6 +359,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
