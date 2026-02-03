@@ -219,6 +219,7 @@ function nextNumber() {
 }
 
 async function validateClaim(claim) {
+  console.log("ValidateClaim Triggered");
   const { data: player, error } = await sb
     .from("players")
     .select("card")
@@ -349,6 +350,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
