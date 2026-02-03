@@ -313,10 +313,9 @@ async function submitBingoClaim() {
   bingoMessage.classList.add("success");
 }
 
-function showWinners(names, final) {
+function showWinners(names) {
   const msg = final
-    ? "🏆 Winners"
-    : "🎉 Bingo Winners (pending)";
+    ? "🏆 Winners";
 
   bingoMessage.classList.remove("hidden", "error");
   bingoMessage.classList.add("success");
@@ -391,6 +390,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
