@@ -224,6 +224,28 @@ header {
   font-size: 0.95rem;
 }
 
+.host-winners {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #f5f5f5;
+}
+
+.host-winners ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.host-winners li {
+  font-size: 1.1rem;
+  margin: 6px 0;
+}
+
+.hidden {
+  display: none;
+}
+
 /* ===============================
    BINGO HEADER (HOST)
 ================================ */
@@ -691,6 +713,7 @@ input[type="range"] {
 .hidden {
   display: none;
 }
+
 
 
 
