@@ -18,7 +18,7 @@ const bingoCardEl = document.getElementById("bingoCard");
 const calledNumbersListEl = document.getElementById("calledNumbersList");
 
 const bingoBtn = document.getElementById("bingoBtn");
-const closeWinnerBannerBtn = document.getElement("closeWinnerBanner");
+const closeWinnerBannerBtn = document.getElementById("closeWinnerBanner");
 
 const bingoMessage = document.getElementById("bingoMessage");
 const currentBallEl = document.getElementById("currentBall");
@@ -67,11 +67,13 @@ async function initPlayer() {
 
   bingoBtn.onclick = submitBingoClaim;
   joinForm.onsubmit = handleJoin;
-}
-
-closeWinnerBannerBtn.onclick = () => {
+  
+  closeWinnerBannerBtn.onclick = () => {
   winnerOverlay.classList.add("hidden");
 };
+}
+
+
 
 // ==========================================
 // JOIN
@@ -210,6 +212,7 @@ function subscribeCalls() {
   .on("broadcast", { event: "game_over" }, payload => {
     gameEnded = true;
     showWinners(payload.payload.winners, true);
+    showWinnerBanner(payload.payload.winners);
   });
 }
 
@@ -388,6 +391,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
