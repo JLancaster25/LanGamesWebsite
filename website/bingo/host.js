@@ -29,6 +29,7 @@ const autoCallBtn = document.getElementById("autoCallBtn");
 const stopAutoCallBtn = document.getElementById("stopAutoCallBtn");
 const newGameBtn = document.getElementById("newGameBtn")
 const presenterToggleBtn = document.getElementById("presenterToggleBtn");;
+const exitPresenterBtn = document.getElementById("exitPresenterBtn");
 const speedInput = document.getElementById("callSpeed");
 
 let presenterMode = false;
@@ -223,8 +224,11 @@ presenterToggleBtn.onclick = () => {
 
   if (presenterMode) {
     initPresenterBackground();
+  } else {
+    exitPresenterMode();
   }
 };
+exitPresenterBtn.onclick = exitPresenterMode;
 
 
 // ==========================================
@@ -285,6 +289,18 @@ function animatePresenterBall(number) {
   }, 3000);
 }
 
+function exitPresenterMode() {
+  presenterMode = false;
+
+  presenterLayer.classList.add("hidden");
+
+  // stop any active animations
+  activeBall.classList.add("hidden");
+  activeBall.classList.remove("show", "roll-away");
+
+  // optional: clear background balls
+  ballField.innerHTML = "";
+}
 
 function broadcastCall(number) {
   /*
@@ -496,6 +512,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
