@@ -53,6 +53,7 @@ const called = new Set();
 let gameChannel;
 let gameChannelReady = false;
 let lastSeenCall = null;
+let gameEnded = false;
 
 // ==========================================
 // INIT
@@ -170,11 +171,14 @@ newGameBtn.onclick = async () => {
 // ==========================================
 async function callNumber() {
   if (!gameActive) return;
+  if (autoTimer === null && !gameActive) return;
 
+  // 🔒 HARD STOP after bingo
+  if (gameEnded) return;
+  
   const n = nextNumber();
-  if (!n) return;
-
-  if (called.has(n)) return;
+  if (!n || called.has(n)) return;
+  
   called.add(n);
 
   // UI + voice
@@ -182,7 +186,7 @@ async function callNumber() {
   renderCurrentBall(n);
   renderCallHistory(n);
 
-  console.log("[HOST] Calling number:", n);
+  //console.log("[HOST] Calling number:", n);
 
   // 1️⃣ Persist to DB (history / replay)
   const { error } = await sb.from("calls").insert({
@@ -200,13 +204,14 @@ broadcastCall(n);
 }
 
 function broadcastCall(number) {
+  /*
   if (!gameChannel || !gameChannelReady) {
     console.warn("[HOST] Channel not ready, cannot broadcast");
     return;
   }
 
   console.log("[HOST] Broadcasting:", number);
-
+*/
   gameChannel.send({
     type: "broadcast",
     event: "call",
@@ -254,6 +259,7 @@ async function validateClaim(claim) {
   return wins.some(pattern =>
     pattern.every(i => calledSet.has(flatCard[i]))
   );
+  //handleVerifiedBingo();
 }
 
 // ==========================================
@@ -314,10 +320,15 @@ function generateCode() {
 function handleVerifiedBingo(playerId) {
   console.log("[HOST] Bingo verified");
 
+  gameEnded = true;
+  gameActive = false;
+  
   // stop calling immediately
-  clearInterval(autoTimer);
-  autoTimer = null;
-
+  if(autoTimer){
+    clearInterval(autoTimer);
+    autoTimer = null;
+  }
+  
   // disable controls
   aiCallBtn.disabled = true;
   autoCallBtn.disabled = true;
@@ -325,8 +336,18 @@ function handleVerifiedBingo(playerId) {
   startGameBtn.disabled = true;
 
   speak("Bingo confirmed. Game over.");
-
+  
+  broadcastGameOver(playerId);
   endGame();
+}
+function broadcastGameOver(winnerId) {
+  if (!gameChannel || !gameChannelReady) return;
+
+  gameChannel.send({
+    type: "broadcast",
+    event: "game_over",
+    payload: { winnerId }
+  });
 }
 
 async function endGame() {
@@ -335,6 +356,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
