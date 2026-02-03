@@ -155,18 +155,32 @@ gameChannel
 function initPresenterBackground() {
   ballField.innerHTML = "";
 
-  for (let i = 0; i < 25; i++) {
+  for (let i = 0; i < 30; i++) {
     const ball = document.createElement("div");
     ball.className = "bg-ball";
 
+    // random bingo number → color
+    const n = Math.floor(Math.random() * 75) + 1;
+    const letter = getBingoLetter(n);
+
+    ball.classList.add(`ball-${letter}`);
+    ball.textContent = letter;
+
     ball.style.left = `${Math.random() * 100}%`;
-    ball.style.animationDuration = `${15 + Math.random() * 20}s`;
+    ball.style.animationDuration = `${18 + Math.random() * 20}s`;
     ball.style.animationDelay = `${Math.random() * 10}s`;
 
     ballField.appendChild(ball);
   }
 }
 
+function getBingoLetter(number) {
+  if (number <= 15) return "B";
+  if (number <= 30) return "I";
+  if (number <= 45) return "N";
+  if (number <= 60) return "G";
+  return "O";
+}
 
 // ==========================================
 // REALTIME
@@ -272,21 +286,31 @@ broadcastCall(n);
 }
 
 function animatePresenterBall(number) {
-  activeBallText.textContent = formatCall(number);
-  activeBall.classList.remove("hidden", "roll-away");
-  activeBall.classList.add("show");
+  const letter = getBingoLetter(number);
 
-  // Hold center
+  activeBallText.textContent = `${letter} ${number}`;
+
+  // reset classes
+  activeBall.className = "active-ball";
+  activeBall.classList.add(`ball-${letter}`);
+  activeBall.classList.remove("hidden");
+
+  // pop in
+  requestAnimationFrame(() => {
+    activeBall.classList.add("show");
+  });
+
+  // roll away
   setTimeout(() => {
     activeBall.classList.remove("show");
     activeBall.classList.add("roll-away");
-  }, 2000);
+  }, 2200);
 
-  // Reset
+  // cleanup
   setTimeout(() => {
     activeBall.classList.add("hidden");
-    activeBall.classList.remove("roll-away");
-  }, 3000);
+    activeBall.classList.remove(`ball-${letter}`, "roll-away");
+  }, 3400);
 }
 
 function exitPresenterMode() {
@@ -451,9 +475,12 @@ function renderCallHistory(number) {
   const callsEl = document.getElementById("calls");
   if (!callsEl) return;
 
+  const letter = getBingoLetter(number);
+
   const div = document.createElement("div");
-  div.className = "called-number";
-  div.textContent = formatCall(number);
+  div.className = `called-number ball-${letter}`;
+  div.textContent = `${letter} ${number}`;
+
   callsEl.prepend(div);
 }
 
@@ -512,6 +539,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
