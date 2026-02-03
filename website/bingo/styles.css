@@ -573,12 +573,18 @@ input[type="range"] {
 
 .winner-banner {
   position: relative;
-  background: #ffffff;
+  background: linear-gradient(
+    135deg,
+    #7b2ff7 0%,   /* Purple */
+    #4facfe 50%,  /* Light Azure */
+    #00c6ff 100%  /* Azure */
+  );
+  color: #ffffff;
   padding: 24px 32px;
   border-radius: 16px;
   width: 90%;
   max-width: 420px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
   text-align: center;
   animation: popIn 0.25s ease-out;
 }
@@ -715,6 +721,7 @@ input[type="range"] {
 .hidden {
   display: none;
 }
+
 
 
 
