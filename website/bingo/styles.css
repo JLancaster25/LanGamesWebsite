@@ -376,6 +376,89 @@ header {
   cursor: pointer;
 }
 
+/* ===========================
+   PRESENTER MODE
+=========================== */
+
+.presenter {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, #111 0%, #000 70%);
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.presenter.hidden {
+  display: none;
+}
+
+/* Background floating balls */
+#ballField {
+  position: absolute;
+  inset: 0;
+}
+
+.bg-ball {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #fff, #999);
+  opacity: 0.15;
+  animation: floatBall linear infinite;
+}
+
+@keyframes floatBall {
+  from {
+    transform: translateY(110vh) rotate(0deg);
+  }
+  to {
+    transform: translateY(-120vh) rotate(360deg);
+  }
+}
+
+/* ===========================
+   ACTIVE CALLED BALL
+=========================== */
+
+.active-ball {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #fff, #ccc);
+  transform: translate(-50%, -50%) scale(0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 4rem;
+  font-weight: bold;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+
+.active-ball.show {
+  animation: popBall 0.4s ease-out forwards;
+}
+
+@keyframes popBall {
+  to {
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.active-ball.roll-away {
+  animation: rollAway 1s ease-in forwards;
+}
+
+@keyframes rollAway {
+  to {
+    transform: translate(120vw, -50%) rotate(720deg) scale(0.6);
+    opacity: 0;
+  }
+}
+
 /* ===============================
    CONTROLS
 ================================ */
@@ -721,6 +804,7 @@ input[type="range"] {
 .hidden {
   display: none;
 }
+
 
 
 
