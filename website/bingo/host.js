@@ -56,6 +56,7 @@ let gameChannelReady = false;
 let lastSeenCall = null;
 let gameEnded = false;
 let claimsChannel;
+let winnerTimeout = null;
 
 // ==========================================
 // INIT
@@ -412,6 +413,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
