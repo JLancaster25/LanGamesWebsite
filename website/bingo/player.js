@@ -205,6 +205,7 @@ function subscribeCalls() {
     // stop accepting calls
     gameEnded = true;
   });
+  gameChannel
   .on("broadcast", { event: "game_over" }, payload => {
     gameEnded = true;
     showWinners(payload.payload.winners, true);
@@ -373,6 +374,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
