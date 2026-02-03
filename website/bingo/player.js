@@ -205,10 +205,6 @@ function subscribeCalls() {
     // stop accepting calls
     gameEnded = true;
   });
-  gameChannel
-  .on("broadcast", { event: "winners_update" }, payload => {
-    showWinners(payload.payload.winners, false);
-  })
   .on("broadcast", { event: "game_over" }, payload => {
     gameEnded = true;
     showWinners(payload.payload.winners, true);
@@ -313,16 +309,6 @@ async function submitBingoClaim() {
   bingoMessage.classList.add("success");
 }
 
-function showWinners(names) {
-  bingoMessage.classList.remove("hidden", "error");
-  bingoMessage.classList.add("success");
-
-  bingoMessage.innerHTML = `
-    <strong>${msg}</strong><br>
-    ${names.map(n => `• ${n}`).join("<br>")}
-  `;
-}
-
 function showWinnerBanner(winners) {
   winnerContent.innerHTML = `
     <ul>
@@ -387,6 +373,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
