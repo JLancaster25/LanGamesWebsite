@@ -54,6 +54,7 @@ let gameChannel;
 let gameChannelReady = false;
 let lastSeenCall = null;
 let gameEnded = false;
+let claimsChannel;
 
 // ==========================================
 // INIT
@@ -114,29 +115,18 @@ subscribeHostRealtime();
 // REALTIME
 // ==========================================
 function subscribeHostRealtime() {
-  sb.channel("public:claims")
+  claimsChannel = sb.channel("claims-listener");
+
+  claimsChannel
     .on(
       "postgres_changes",
       { event: "INSERT", schema: "public", table: "claims" },
-      async payload => {
-
-        console.log("[HOST] Bingo claim received", payload);
-
-        if (payload.new.game_id !== gameId) return;
-        if (gameEnded) return; // ✔ correct guard
-
-        const isValid = await validateClaim(payload.new);
-
-        if (!isValid) {
-          console.warn("[HOST] Invalid bingo claim");
-          return;
-        }
-
-        handleVerifiedBingo(payload.new.player_id);
+      payload => {
+        console.log("[HOST] CLAIM EVENT RECEIVED:", payload);
       }
     )
     .subscribe(status => {
-      console.log("[HOST] Claims channel:", status);
+      console.log("[HOST] Claims channel status:", status);
     });
 }
 // ==========================================
@@ -359,6 +349,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
