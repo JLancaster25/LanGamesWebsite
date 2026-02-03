@@ -129,10 +129,7 @@ gameChannel
       .eq("id", playerId)
       .single();
 
-     winners.set(playerId, {
-     name: player.display_name,
-     pattern
-     });
+     winners.set(playerId, {name: player.display_name});
     console.log("[HOST] Bingo winner:", player.display_name);
     addPlayer(player.display_name)
     broadcastWinners();
@@ -442,6 +439,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
