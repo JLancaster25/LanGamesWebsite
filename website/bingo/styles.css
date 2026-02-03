@@ -535,6 +535,72 @@ input[type="range"] {
 }
 
 /* ===============================
+   WINNER OVERLAY
+================================*/
+.winner-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.winner-banner {
+  position: relative;
+  background: #ffffff;
+  padding: 24px 32px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 420px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  text-align: center;
+  animation: popIn 0.25s ease-out;
+}
+
+.winner-banner h2 {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.winner-banner ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.winner-banner li {
+  font-size: 1.1rem;
+  margin: 6px 0;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  border: none;
+  background: transparent;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+.hidden {
+  display: none;
+}
+
+@keyframes popIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ===============================
    MOBILE LAYOUT
 ================================ */
 @media (max-width: 900px) {
@@ -625,6 +691,7 @@ input[type="range"] {
 .hidden {
   display: none;
 }
+
 
 
 
