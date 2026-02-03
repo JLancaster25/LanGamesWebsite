@@ -81,15 +81,7 @@ if (!user) {
 
   return;
 }
-gameId = game.id;
-gameChannel = sb.channel(`game-${gameId}`);
-gameChannel.subscribe(status => {
-    console.log("[HOST] Game channel:", status);
-  if(status === "SUBSCRIBED"){ 
-    gameChannelReady = true;
-    startGameButton.disabled = false;
-  }
-});
+
     
 const roomCode = generateCode();
 roomCodeEl.textContent = roomCode;
@@ -105,7 +97,15 @@ const { data: game } = await sb
   .select()
   .single();
 
-
+gameId = game.id;
+gameChannel = sb.channel(`game-${gameId}`);
+gameChannel.subscribe(status => {
+    console.log("[HOST] Game channel:", status);
+  if(status === "SUBSCRIBED"){ 
+    gameChannelReady = true;
+    startGameButton.disabled = false;
+  }
+});
 //subscribeHostRealtime();
 }
 
@@ -319,6 +319,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
