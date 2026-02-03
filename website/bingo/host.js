@@ -19,6 +19,8 @@ function speak(text) {
 // ==========================================
 const roomCodeEl = document.getElementById("roomCode");
 const playerListEl = document.getElementById("playerList");
+const hostWinnersEl = document.getElementById("hostWinners");
+const hostWinnersListEl = document.getElementById("hostWinnersList");
 const callsEl = document.getElementById("calls");
 
 const startGameBtn = document.getElementById("startGameBtn");
@@ -127,17 +129,22 @@ gameChannel
       .eq("id", playerId)
       .single();
 
-    winners.set(playerId, player.display_name);
-
+     winners.set(playerId, {
+     name: player.display_name,
+     pattern
+     });
     console.log("[HOST] Bingo winner:", player.display_name);
-
+    addPlayer(player.display_name)
     broadcastWinners();
+    renderHostWinners();
 
     // ⏱ allow more winners for 2 seconds
     if (!winnerTimeout) {
       winnerTimeout = setTimeout(finalizeWinners, 2000);
     }
   });
+ 
+  
 }
 
 // ==========================================
@@ -296,6 +303,28 @@ function broadcastWinners() {
   });
 }
 
+function renderHostWinners() {
+  if (!hostWinnersEl || !hostWinnersListEl) return;
+
+  hostWinnersListEl.innerHTML = "";
+
+  for (const w of winners.values()) {
+    const li = document.createElement("li");
+    li.textContent = `${w.name} (${formatPattern(w.pattern)})`;
+    hostWinnersListEl.appendChild(li);
+  }
+
+  hostWinnersEl.classList.remove("hidden");
+}
+
+function formatPattern(p) {
+  return {
+    cross: "Cross",
+    blackout: "Blackout",
+    four_corners: "4 Corners"
+  }[p] ?? p;
+}
+
 function finalizeWinners() {
   console.log("[HOST] Finalizing winners");
 
@@ -413,6 +442,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
