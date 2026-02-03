@@ -187,6 +187,13 @@ function subscribeCalls() {
     .subscribe(status => {
       console.log("[PLAYER] Game channel status:", status);
     });
+  gameChannel
+  .on("broadcast", { event: "game_over" }, payload => {
+    console.log("🏁 GAME OVER");
+    
+    // stop accepting calls
+    gameEnded = true;
+  });
 }
 
 async function replayCallsFromDB() {
@@ -259,6 +266,10 @@ function renderPlayerCalled(number) {
 // CLAIM
 // ==========================================
 async function submitBingoClaim() {
+  if (gameEnded) return;
+
+  bingoBtn.disabled = true;   // 🔒 lock immediately
+
   bingoMessage.classList.remove("hidden", "error", "success");
 
   const { error } = await sb.from("claims").insert({
@@ -268,6 +279,7 @@ async function submitBingoClaim() {
   });
 
   if (error) {
+    bingoBtn.disabled = false; // unlock on failure
     bingoMessage.textContent = "Claim failed";
     bingoMessage.classList.add("error");
   } else {
@@ -315,18 +327,9 @@ function shuffle(arr) {
   }
 }
 
-gameChannel
-  .on("broadcast", { event: "game_over" }, payload => {
-    console.log("🏁 GAME OVER");
-
-    bingoBtn.disabled = true;
-
-    // stop accepting calls
-    gameEnded = true;
-  });
-
 function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
