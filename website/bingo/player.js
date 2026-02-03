@@ -18,8 +18,13 @@ const bingoCardEl = document.getElementById("bingoCard");
 const calledNumbersListEl = document.getElementById("calledNumbersList");
 
 const bingoBtn = document.getElementById("bingoBtn");
+const closeWinnerBannerBtn = document.getElement("closeWinnerBanner");
+
 const bingoMessage = document.getElementById("bingoMessage");
 const currentBallEl = document.getElementById("currentBall");
+
+const winnerOverlay = document.getElementById("winnerOverlay");
+const winnerContent = document.getElementById("winnerContent");
 
 // ==========================================
 // STATE
@@ -63,6 +68,10 @@ async function initPlayer() {
   bingoBtn.onclick = submitBingoClaim;
   joinForm.onsubmit = handleJoin;
 }
+
+closeWinnerBannerBtn.onclick = () => {
+  winnerOverlay.classList.add("hidden");
+};
 
 // ==========================================
 // JOIN
@@ -314,6 +323,28 @@ function showWinners(names, final) {
     ${names.map(n => `• ${n}`).join("<br>")}
   `;
 }
+
+function showWinnerBanner(winners) {
+  winnerContent.innerHTML = `
+    <ul>
+      ${winners
+        .map(
+          w => `<li>🎉 <strong>${w.name}</strong> — ${formatPattern(w.pattern)}</li>`
+        )
+        .join("")}
+    </ul>
+  `;
+
+  winnerOverlay.classList.remove("hidden");
+}
+
+function formatPattern(p) {
+  return {
+    cross: "Cross",
+    blackout: "Blackout",
+    four_corners: "4 Corners"
+  }[p] ?? p;
+}
 // ==========================================
 // UTIL
 // ==========================================
@@ -357,6 +388,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
