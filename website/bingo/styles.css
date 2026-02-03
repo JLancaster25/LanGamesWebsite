@@ -228,7 +228,9 @@ header {
   margin-top: 16px;
   padding: 12px;
   border-radius: 12px;
-  background: #0b0b0e;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .host-winners ul {
@@ -713,6 +715,7 @@ input[type="range"] {
 .hidden {
   display: none;
 }
+
 
 
 
