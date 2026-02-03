@@ -106,63 +106,35 @@ gameChannel.subscribe(status => {
     startGameBtn.disabled = false;
   }
 });
-//subscribeHostRealtime();
+subscribeHostRealtime();
 }
 
 // ==========================================
 // REALTIME
 // ==========================================
-/*
 function subscribeHostRealtime() {
-  console.log("[HOST] Subscribing realtime for game:", gameId);
-
-  sb.channel("public:players")
-    .on(
-      "postgres_changes",
-      { event: "INSERT", schema: "public", table: "players" },
-      p => {
-        if (p.new.game_id === gameId) {
-          addPlayer(p.new.display_name);
-        }
-      }
-    )
-    .subscribe();
-
-  sb.channel("public:calls")
-    .on(
-      "postgres_changes",
-      { event: "INSERT", schema: "public", table: "calls" },
-      p => {
-        if (p.new.game_id === gameId) {
-          renderCall(formatCall(p.new.number));
-        }
-      }
-    )
-    .subscribe();
-
   sb.channel("public:claims")
     .on(
       "postgres_changes",
       { event: "INSERT", schema: "public", table: "claims" },
-      async p => {
+      async payload => {
         if (!gameActive) return;
-        if (p.new.game_id !== gameId) return;
+        if (payload.new.game_id !== gameId) return;
 
-        const valid = await validateClaim(p.new);
-        if (!valid) return;
+        console.log("[HOST] Bingo claim received");
 
-        speak("Bingo!");
-        await sb.from("winners").insert({
-          game_id: gameId,
-          player_id: p.new.player_id,
-          pattern: p.new.pattern
-        });
-        endGame();
+        const isValid = await validateClaim(payload.new);
+
+        if (!isValid) {
+          console.warn("[HOST] Invalid bingo claim");
+          return;
+        }
+
+        handleVerifiedBingo(payload.new.player_id);
       }
     )
     .subscribe();
 }
-*/
 // ==========================================
 // CONTROLS
 // ==========================================
@@ -182,6 +154,7 @@ autoCallBtn.onclick = () => {
 
 stopAutoCallBtn.onclick = () => {
   clearInterval(autoTimer);
+  autoTimer = null;
 };
 
 newGameBtn.onclick = async () => {
@@ -248,14 +221,39 @@ function nextNumber() {
 }
 
 async function validateClaim(claim) {
-  const { data: player } = await sb
+  const { data: player, error } = await sb
     .from("players")
     .select("card")
     .eq("id", claim.player_id)
     .single();
 
-  if (!player) return false;
-  return true; // authoritative validation placeholder
+  if (error || !player) return false;
+
+  const flatCard = player.card.flat();
+  const calledSet = new Set([...called, 0]); // include FREE
+
+  // simple row/column/diagonal check
+  const wins = [
+    // rows
+    [0,1,2,3,4],
+    [5,6,7,8,9],
+    [10,11,12,13,14],
+    [15,16,17,18,19],
+    [20,21,22,23,24],
+    // cols
+    [0,5,10,15,20],
+    [1,6,11,16,21],
+    [2,7,12,17,22],
+    [3,8,13,18,23],
+    [4,9,14,19,24],
+    // diagonals
+    [0,6,12,18,24],
+    [4,8,12,16,20]
+  ];
+
+  return wins.some(pattern =>
+    pattern.every(i => calledSet.has(flatCard[i]))
+  );
 }
 
 // ==========================================
@@ -313,12 +311,31 @@ function generateCode() {
   ).join("");
 }
 
+function handleVerifiedBingo(playerId) {
+  console.log("[HOST] Bingo verified");
+
+  // stop calling immediately
+  clearInterval(autoTimer);
+  autoTimer = null;
+
+  // disable controls
+  aiCallBtn.disabled = true;
+  autoCallBtn.disabled = true;
+  stopAutoCallBtn.disabled = true;
+  startGameBtn.disabled = true;
+
+  speak("Bingo confirmed. Game over.");
+
+  endGame();
+}
+
 async function endGame() {
   clearInterval(autoTimer);
   gameActive = false;
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
