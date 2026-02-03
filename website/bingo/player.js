@@ -217,34 +217,6 @@ async function replayCallsFromDB() {
   console.log(`[PLAYER] Replayed ${data.length} calls`);
 }
 
-async function submitBingoClaim() {
-  if (gameEnded) return;
-
-  bingoBtn.disabled = true;
-
-  bingoMessage.classList.remove("hidden", "error", "success");
-
-  // 1️⃣ Broadcast claim to host (INSTANT)
-  gameChannel.send({
-    type: "broadcast",
-    event: "bingo_claim",
-    payload: {
-      gameId,
-      playerId
-    }
-  });
-
-  // 2️⃣ Persist claim (for audit / history)
-  await sb.from("claims").insert({
-    game_id: gameId,
-    player_id: playerId,
-    pattern: "normal"
-  });
-
-  bingoMessage.textContent = "🎉 BINGO! Waiting for host…";
-  bingoMessage.classList.add("success");
-}
-
 function handleCall(number) {
   if (gameEnded) return;
   if (calledNumbers.has(number)) return;
@@ -296,24 +268,29 @@ function renderPlayerCalled(number) {
 async function submitBingoClaim() {
   if (gameEnded) return;
 
-  bingoBtn.disabled = true;   // 🔒 lock immediately
+  bingoBtn.disabled = true;
 
   bingoMessage.classList.remove("hidden", "error", "success");
 
-  const { error } = await sb.from("claims").insert({
+  // 1️⃣ Broadcast claim to host (INSTANT)
+  gameChannel.send({
+    type: "broadcast",
+    event: "bingo_claim",
+    payload: {
+      gameId,
+      playerId
+    }
+  });
+
+  // 2️⃣ Persist claim (for audit / history)
+  await sb.from("claims").insert({
     game_id: gameId,
     player_id: playerId,
     pattern: "normal"
   });
 
-  if (error) {
-    bingoBtn.disabled = false; // unlock on failure
-    bingoMessage.textContent = "Claim failed";
-    bingoMessage.classList.add("error");
-  } else {
-    bingoMessage.textContent = "🎉 BINGO! Waiting for host…";
-    bingoMessage.classList.add("success");
-  }
+  bingoMessage.textContent = "🎉 BINGO! Waiting for host…";
+  bingoMessage.classList.add("success");
 }
 
 // ==========================================
@@ -359,6 +336,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
