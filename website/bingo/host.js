@@ -42,6 +42,7 @@ const modeInputs = document.querySelectorAll(".modes input");
   if (!el) console.error(`❌ Missing DOM element: ${name}`);
 });
 
+const winners = new Map();
 
 // ==========================================
 // STATE
@@ -108,23 +109,33 @@ gameChannel.subscribe(status => {
     startGameBtn.disabled = false;
   }
 });
-  gameChannel
+gameChannel
   .on("broadcast", { event: "bingo_claim" }, async payload => {
-    console.log("[HOST] Bingo claim received via broadcast", payload);
+    const { playerId } = payload.payload;
 
     if (gameEnded) return;
-    if (payload.payload.gameId !== gameId) return;
+    if (winners.has(playerId)) return;
 
-    const isValid = await validateClaim({
-      player_id: payload.payload.playerId
-    });
+    const isValid = await validateClaim({ player_id: playerId });
+    if (!isValid) return;
 
-    if (!isValid) {
-      console.warn("[HOST] Invalid bingo claim");
-      return;
+    // fetch name
+    const { data: player } = await sb
+      .from("players")
+      .select("display_name")
+      .eq("id", playerId)
+      .single();
+
+    winners.set(playerId, player.display_name);
+
+    console.log("[HOST] Bingo winner:", player.display_name);
+
+    broadcastWinners();
+
+    // ⏱ allow more winners for 2 seconds
+    if (!winnerTimeout) {
+      winnerTimeout = setTimeout(finalizeWinners, 2000);
     }
-
-    handleVerifiedBingo(payload.payload.playerId);
   });
 }
 
@@ -265,6 +276,7 @@ async function validateClaim(claim) {
     // diagonals
     [0,6,12,18,24],
     [4,8,12,16,20]
+    
   ];
 
   return wins.some(pattern =>
@@ -273,6 +285,39 @@ async function validateClaim(claim) {
   //handleVerifiedBingo();
 }
 
+function broadcastWinners() {
+  gameChannel.send({
+    type: "broadcast",
+    event: "winners_update",
+    payload: {
+      winners: Array.from(winners.values())
+    }
+  });
+}
+
+function finalizeWinners() {
+  console.log("[HOST] Finalizing winners");
+
+  gameEnded = true;
+  gameActive = false;
+
+  clearInterval(autoTimer);
+  autoTimer = null;
+
+  aiCallBtn.disabled = true;
+  autoCallBtn.disabled = true;
+  stopAutoCallBtn.disabled = true;
+
+  gameChannel.send({
+    type: "broadcast",
+    event: "game_over",
+    payload: {
+      winners: Array.from(winners.values())
+    }
+  });
+
+  endGame();
+}
 // ==========================================
 // UI
 // ==========================================
@@ -367,6 +412,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
