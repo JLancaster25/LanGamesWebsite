@@ -108,7 +108,24 @@ gameChannel.subscribe(status => {
     startGameBtn.disabled = false;
   }
 });
-subscribeHostRealtime();
+  gameChannel
+  .on("broadcast", { event: "bingo_claim" }, async payload => {
+    console.log("[HOST] Bingo claim received via broadcast", payload);
+
+    if (gameEnded) return;
+    if (payload.payload.gameId !== gameId) return;
+
+    const isValid = await validateClaim({
+      player_id: payload.payload.playerId
+    });
+
+    if (!isValid) {
+      console.warn("[HOST] Invalid bingo claim");
+      return;
+    }
+
+    handleVerifiedBingo(payload.payload.playerId);
+  });
 }
 
 // ==========================================
@@ -350,6 +367,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
