@@ -81,11 +81,14 @@ if (!user) {
 
   return;
 }
-  
+gameId = game.id;
 gameChannel = sb.channel(`game-${gameId}`);
 gameChannel.subscribe(status => {
     console.log("[HOST] Game channel:", status);
-  if(status === "SUBSCRIBED"){ gameChannelReady = true;}
+  if(status === "SUBSCRIBED"){ 
+    gameChannelReady = true;
+    startGameButton.disabled = false;
+  }
 });
     
 const roomCode = generateCode();
@@ -102,7 +105,7 @@ const { data: game } = await sb
   .select()
   .single();
 
-gameId = game.id;
+
 //subscribeHostRealtime();
 }
 
@@ -274,7 +277,7 @@ function renderCurrentBall(number) {
 const el = document.getElementById("currentBall");
   if (!el) return;
 
-  const letter = formatCall(n);
+  const letter = formatCall(number);
 
   // reset animation + state
   el.className = "current-ball";
@@ -316,6 +319,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
