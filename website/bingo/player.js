@@ -332,7 +332,7 @@ function showWinnerBanner(winners) {
     <ul>
       ${winners
         .map(
-          w => `<li>🎉 <strong>${w.name}</strong> — ${formatPattern(w.pattern)}</li>`
+          w => `<li>🎉 <strong>${w.name}}</li>`
         )
         .join("")}
     </ul>
@@ -391,6 +391,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
