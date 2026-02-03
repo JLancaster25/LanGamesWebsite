@@ -28,6 +28,7 @@ let gameId = null;
 let playerId = null;
 let userId = null;
 let gameChannel;
+let gameEnded = false;
 
 let daubColor = "#32d46b"; // default GREEN
 const calledNumbers = new Set();
@@ -209,54 +210,11 @@ async function replayCallsFromDB() {
   console.log(`[PLAYER] Replayed ${data.length} calls`);
 }
 
-/*
 function handleCall(number) {
-  if (calledNumbers.has(number)) return;
-  calledNumbers.add(number);
-
-  const badge = document.createElement("div");
-  badge.className = "called-number";
-
-  const letter =
-    number <= 15 ? "B" :
-    number <= 30 ? "I" :
-    number <= 45 ? "N" :
-    number <= 60 ? "G" : "O";
-
-  badge.textContent = `${letter} ${number}`;
-  calledNumbersListEl.prepend(badge);
-}
-*
-function handleCall(number) {
-  console.log("[PLAYER] APPLYING CALL:", number);
+  if (gameEnded) return;
   if (calledNumbers.has(number)) return;
 
   calledNumbers.add(number);
-  renderPlayerCalled(number);
-  renderPlayerCurrentBall(number);
-
-  // Show in called numbers UI
-  const badge = document.createElement("div");
-  badge.className = "called-number";
-  badge.textContent = number;
-  calledNumbersListEl.appendChild(badge);
-
-  // Enable matching cell
-  const cell = document.querySelector(
-    `.bingo-cell[data-number="${number}"]`
-  );
-
-  if (cell) {
-    cell.classList.add("call-available");
-  }
-}
-*/
-function handleCall(number) {
-  console.log("[PLAYER] APPLYING CALL:", number);
-  if (calledNumbers.has(number)) return;
-
-  calledNumbers.add(number);
-
   renderPlayerCurrentBall(number);
   renderPlayerCalled(number);
 
@@ -356,8 +314,19 @@ function shuffle(arr) {
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
 }
-  
+
+gameChannel
+  .on("broadcast", { event: "game_over" }, payload => {
+    console.log("🏁 GAME OVER");
+
+    bingoBtn.disabled = true;
+
+    // stop accepting calls
+    gameEnded = true;
+  });
+
 function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
