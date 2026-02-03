@@ -27,8 +27,16 @@ const startGameBtn = document.getElementById("startGameBtn");
 const aiCallBtn = document.getElementById("aiCallBtn");
 const autoCallBtn = document.getElementById("autoCallBtn");
 const stopAutoCallBtn = document.getElementById("stopAutoCallBtn");
-const newGameBtn = document.getElementById("newGameBtn");
+const newGameBtn = document.getElementById("newGameBtn")
+const presenterToggleBtn = document.getElementById("presenterToggleBtn");;
 const speedInput = document.getElementById("callSpeed");
+
+let presenterMode = false;
+
+const presenterLayer = document.getElementById("presenterLayer");
+const ballField = document.getElementById("ballField");
+const activeBall = document.getElementById("activeBall");
+const activeBallText = document.getElementById("activeBallText");
 
 const modeInputs = document.querySelectorAll(".modes input");
 [
@@ -143,6 +151,21 @@ gameChannel
  
   
 }
+function initPresenterBackground() {
+  ballField.innerHTML = "";
+
+  for (let i = 0; i < 25; i++) {
+    const ball = document.createElement("div");
+    ball.className = "bg-ball";
+
+    ball.style.left = `${Math.random() * 100}%`;
+    ball.style.animationDuration = `${15 + Math.random() * 20}s`;
+    ball.style.animationDelay = `${Math.random() * 10}s`;
+
+    ballField.appendChild(ball);
+  }
+}
+
 
 // ==========================================
 // REALTIME
@@ -192,6 +215,18 @@ newGameBtn.onclick = async () => {
   await sb.from("games").update({ status: "lobby" }).eq("id", gameId);
 };
 
+
+presenterToggleBtn.onclick = () => {
+  presenterMode = !presenterMode;
+
+  presenterLayer.classList.toggle("hidden", !presenterMode);
+
+  if (presenterMode) {
+    initPresenterBackground();
+  }
+};
+
+
 // ==========================================
 // GAME LOGIC
 // ==========================================
@@ -206,7 +241,10 @@ async function callNumber() {
   if (!n || called.has(n)) return;
   
   called.add(n);
-
+  
+  if (presenterMode) {
+    animatePresenterBall(n);
+  }
   // UI + voice
   speak(formatCall(n));
   renderCurrentBall(n);
@@ -228,6 +266,25 @@ broadcastCall(n);
     return;
   }
 }
+
+function animatePresenterBall(number) {
+  activeBallText.textContent = formatCall(number);
+  activeBall.classList.remove("hidden", "roll-away");
+  activeBall.classList.add("show");
+
+  // Hold center
+  setTimeout(() => {
+    activeBall.classList.remove("show");
+    activeBall.classList.add("roll-away");
+  }, 2000);
+
+  // Reset
+  setTimeout(() => {
+    activeBall.classList.add("hidden");
+    activeBall.classList.remove("roll-away");
+  }, 3000);
+}
+
 
 function broadcastCall(number) {
   /*
@@ -439,6 +496,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
