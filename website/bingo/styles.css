@@ -434,6 +434,16 @@ header {
   animation-fill-mode: forwards;
 }
 
+/* ===========================
+   PRESENTER MODE TEXT COLOR
+=========================== */
+
+.presenter .active-ball,
+.presenter .active-ball span,
+.presenter .bg-ball {
+  color: #000000; /* BLACK */
+}
+
 @keyframes floatBall {
   from {
     transform: translateY(110vh) rotate(0deg);
@@ -868,6 +878,7 @@ input[type="range"] {
 .hidden {
   display: none;
 }
+
 
 
 
