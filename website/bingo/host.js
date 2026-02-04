@@ -290,7 +290,7 @@ function animatePresenterBall(number) {
 
   activeBallText.textContent = `${letter} ${number}`;
 
-  // reset classes
+  // reset
   activeBall.className = "active-ball";
   activeBall.classList.add(`ball-${letter}`);
   activeBall.classList.remove("hidden");
@@ -300,17 +300,17 @@ function animatePresenterBall(number) {
     activeBall.classList.add("show");
   });
 
-  // roll away
+  // 🕒 HOLD LONGER IN CENTER (was ~2s)
   setTimeout(() => {
     activeBall.classList.remove("show");
     activeBall.classList.add("roll-away");
-  }, 2200);
+  }, 3500); // ← slower, TV-friendly
 
-  // cleanup
+  // cleanup after roll-away finishes
   setTimeout(() => {
     activeBall.classList.add("hidden");
     activeBall.classList.remove(`ball-${letter}`, "roll-away");
-  }, 3400);
+  }, 6000); // ← match roll-away duration
 }
 
 function exitPresenterMode() {
@@ -539,6 +539,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
