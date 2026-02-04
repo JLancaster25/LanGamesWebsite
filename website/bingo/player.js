@@ -203,6 +203,22 @@ function subscribeCalls() {
     .subscribe(status => {
       console.log("[PLAYER] Game channel status:", status);
     });
+    .on("broadcast", { event: "new_game" }, async () => {
+    console.log("🔄 NEW GAME RECEIVED");
+
+    resetPlayerGameState();
+
+    // generate a brand-new card
+    card = generateCard();
+
+      // persist new card (optional but recommended)
+    await sb
+      .from("players")
+      .update({ card })
+      .eq("id", playerId);
+
+  renderCard();
+});
 }
 
 async function replayCallsFromDB() {
@@ -321,6 +337,26 @@ function formatPattern(p) {
     four_corners: "4 Corners"
   }[p] ?? p;
 }
+
+function resetPlayerGameState() {
+  gameEnded = false;
+
+  calledNumbers.clear();
+  markedNumbers.clear();
+
+  bingoBtn.disabled = false;
+  bingoMessage.classList.add("hidden");
+
+  currentBallEl.textContent = "";
+
+  // clear call history
+  calledNumbersListEl.innerHTML = "";
+
+  // hide winner banner if open
+  winnerOverlay.classList.add("hidden");
+
+  console.log("[PLAYER] Game state reset");
+}
 // ==========================================
 // UTIL
 // ==========================================
@@ -364,6 +400,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
