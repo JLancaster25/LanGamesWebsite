@@ -203,20 +203,11 @@ function subscribeCalls() {
     .subscribe(status => {
       console.log("[PLAYER] Game channel status:", status);
     });
-    .on("broadcast", { event: "new_game" }, async () => {
-    console.log("🔄 NEW GAME RECEIVED");
+.on("broadcast", { event: "new_game" }, async () => {
+  console.log("🔄 NEW GAME RECEIVED");
 
-    resetPlayerGameState();
-
-    // generate a brand-new card
-    card = generateCard();
-
-      // persist new card (optional but recommended)
-    await sb
-      .from("players")
-      .update({ card })
-      .eq("id", playerId);
-
+  resetPlayerGameState();
+  card = generateCard();
   renderCard();
 });
 }
@@ -400,6 +391,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
