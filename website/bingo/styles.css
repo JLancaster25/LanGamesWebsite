@@ -422,12 +422,38 @@ header {
   font-weight: bold;
 }
 
+.active-ball.show {
+  animation: popBall 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.active-ball.roll-away {
+  animation: rollAway 2.2s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+}
+
 @keyframes floatBall {
   from {
     transform: translateY(110vh) rotate(0deg);
   }
   to {
     transform: translateY(-120vh) rotate(360deg);
+  }
+}
+
+@keyframes popBall {
+  from {
+    transform: translate(-50%, -50%) scale(0.3);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes rollAway {
+  to {
+    transform: translate(140vw, -50%) rotate(1080deg) scale(0.65);
+    opacity: 0;
   }
 }
 
@@ -838,6 +864,7 @@ input[type="range"] {
 .hidden {
   display: none;
 }
+
 
 
 
