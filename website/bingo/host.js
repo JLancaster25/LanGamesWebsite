@@ -149,8 +149,15 @@ gameChannel
       winnerTimeout = setTimeout(finalizeWinners, 2000);
     }
   });
- 
-  
+ gameChannel
+  .on("broadcast", { event: "player_joined" }, payload => {
+    const { playerId, displayName } = payload.payload;
+
+    console.log("[HOST] Player joined:", displayName);
+
+    addPlayer(displayName);
+  });
+  await loadExistingPlayers();
 }
 function initPresenterBackground() {
   ballField.innerHTML = "";
@@ -283,6 +290,15 @@ broadcastCall(n);
     console.error("[HOST] Call insert failed:", error);
     return;
   }
+}
+
+async function loadExistingPlayers() {
+  const { data } = await sb
+    .from("players")
+    .select("display_name")
+    .eq("game_id", gameId);
+
+  data?.forEach(p => addPlayer(p.display_name));
 }
 
 function animatePresenterBall(number) {
@@ -560,6 +576,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
