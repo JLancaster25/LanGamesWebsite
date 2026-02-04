@@ -203,7 +203,8 @@ function subscribeCalls() {
     .subscribe(status => {
       console.log("[PLAYER] Game channel status:", status);
     });
-.on("broadcast", { event: "new_game" }, async () => {
+  gameChannel
+  .on("broadcast", { event: "new_game" }, async () => {
   console.log("🔄 NEW GAME RECEIVED");
 
   resetPlayerGameState();
@@ -391,6 +392,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
