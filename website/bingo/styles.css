@@ -423,11 +423,15 @@ header {
 }
 
 .active-ball.show {
-  animation: popBall 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-name: popBall;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  animation-fill-mode: forwards;
 }
 
 .active-ball.roll-away {
-  animation: rollAway 2.2s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+  animation-name: rollAway;
+  animation-timing-function: cubic-bezier(0.4, 0.0, 0.2, 1);
+  animation-fill-mode: forwards;
 }
 
 @keyframes floatBall {
@@ -864,6 +868,7 @@ input[type="range"] {
 .hidden {
   display: none;
 }
+
 
 
 
