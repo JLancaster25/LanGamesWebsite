@@ -191,26 +191,18 @@ function subscribeCalls() {
     .on("broadcast", { event: "call" }, payload => {
       const number = payload?.payload?.number;
       if (number == null) return;
-
-      console.log("🔥 PLAYER RECEIVED LIVE CALL:", number);
       handleCall(Number(number));
     })
+
+    .on("broadcast", { event: "game_over" }, payload => {
+      console.log("🏁 GAME OVER (player)");
+      gameEnded = true;
+      showWinnerBanner(payload.payload.winners);
+    })
+
     .subscribe(status => {
       console.log("[PLAYER] Game channel status:", status);
     });
-  gameChannel
-  .on("broadcast", { event: "game_over" }, payload => {
-    console.log("🏁 GAME OVER");
-    
-    // stop accepting calls
-    gameEnded = true;
-  });
-  gameChannel
-  .on("broadcast", { event: "game_over" }, payload => {
-    gameEnded = true;
-    showWinners(payload.payload.winners, true);
-    showWinnerBanner(payload.payload.winners);
-  });
 }
 
 async function replayCallsFromDB() {
@@ -314,9 +306,7 @@ function showWinnerBanner(winners) {
   winnerContent.innerHTML = `
     <ul>
       ${winners
-        .map(
-          w => `<li>🎉 <strong>${w.name}}</li>`
-        )
+        .map(w => `<li>🎉 <strong>${w.name}</strong></li>`)
         .join("")}
     </ul>
   `;
@@ -374,6 +364,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
