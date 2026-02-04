@@ -236,16 +236,18 @@ stopAutoCallBtn.onclick = () => {
   autoTimer = null;
 };
 
-newGameBtn.onclick = async () => {
-  called.clear();
-  callsEl.innerHTML = "";
-  gameActive = false;
-  modeInputs.forEach(i => (i.disabled = false));
-  await sb.from("games").update({ status: "lobby" }).eq("id", gameId);
+newGameBtn.onclick = () => {
+  resetHostGameState();
 
-  
+  // notify players to regenerate cards
+  gameChannel.send({
+    type: "broadcast",
+    event: "new_game",
+    payload: {}
+  });
+
+  console.log("[HOST] New game broadcast sent");
 };
-
 
 presenterToggleBtn.onclick = () => {
   presenterMode = !presenterMode;
@@ -488,6 +490,39 @@ function finalizeWinners() {
 
   endGame();
 }
+
+function resetHostGameState() {
+  console.log("[HOST] Resetting game state");
+
+  // flags
+  gameActive = false;
+  gameEnded = false;
+
+  // clear timers
+  if (autoTimer) {
+    clearInterval(autoTimer);
+    autoTimer = null;
+  }
+
+  // clear called numbers
+  called.clear();
+
+  // reset UI
+  currentBallEl.textContent = "";
+  callHistoryEl.innerHTML = "";
+
+  // re-enable buttons
+  aiCallBtn.disabled = false;
+  autoCallBtn.disabled = false;
+  stopAutoCallBtn.disabled = true; // nothing running yet
+
+  // reset winners
+  winners.clear();
+  winnerTimeout = null;
+
+  console.log("[HOST] Game state reset complete");
+}
+
 // ==========================================
 // UI
 // ==========================================
@@ -585,6 +620,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
