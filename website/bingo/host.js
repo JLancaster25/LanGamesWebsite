@@ -237,16 +237,17 @@ stopAutoCallBtn.onclick = () => {
 };
 
 newGameBtn.onclick = () => {
-  resetHostGameState();
+  console.log("[HOST] New Game pressed");
 
-  // notify players to regenerate cards
+  // 🔔 broadcast FIRST while channel is guaranteed alive
   gameChannel.send({
     type: "broadcast",
     event: "new_game",
     payload: {}
   });
 
-  console.log("[HOST] New game broadcast sent");
+  // 🧹 then reset host-side state + UI
+  resetHostGameState();
 };
 
 presenterToggleBtn.onclick = () => {
@@ -492,37 +493,36 @@ function finalizeWinners() {
 }
 
 function resetHostGameState() {
-  console.log("[HOST] Resetting game state");
+  console.log("[HOST] Resetting host game state");
 
   // flags
-  gameActive = false;
   gameEnded = false;
+  gameActive = false;
 
-  // clear timers
+  // timers
   if (autoTimer) {
     clearInterval(autoTimer);
     autoTimer = null;
   }
 
-  // clear called numbers
+  // calls
   called.clear();
 
-  // reset UI
+  // UI
   currentBallEl.textContent = "";
   callHistoryEl.innerHTML = "";
 
-  // re-enable buttons
+  // ✅ BUTTONS — THIS WAS MISSING
   aiCallBtn.disabled = false;
   autoCallBtn.disabled = false;
-  stopAutoCallBtn.disabled = true; // nothing running yet
+  stopAutoCallBtn.disabled = true;
 
-  // reset winners
+  // winners
   winners.clear();
   winnerTimeout = null;
 
-  console.log("[HOST] Game state reset complete");
+  console.log("[HOST] Host reset complete");
 }
-
 // ==========================================
 // UI
 // ==========================================
@@ -620,6 +620,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
