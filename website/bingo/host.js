@@ -313,6 +313,21 @@ function animatePresenterBall(number) {
   }, 6000); // ← match roll-away duration
 }
 
+function getPresenterTimings() {
+  // callSpeed is in seconds (string → number)
+  const callInterval = Number(speedInput?.value || 3) * 1000;
+
+  // never let animation be too fast or too slow
+  const total = Math.min(Math.max(callInterval * 0.9, 2500), 7000);
+
+  return {
+    total,
+    pop: total * 0.15,     // 15%
+    hold: total * 0.45,    // 45%
+    roll: total * 0.40     // 40%
+  };
+}
+
 function exitPresenterMode() {
   presenterMode = false;
 
@@ -539,6 +554,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
