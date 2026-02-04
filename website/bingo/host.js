@@ -287,6 +287,7 @@ broadcastCall(n);
 
 function animatePresenterBall(number) {
   const letter = getBingoLetter(number);
+  const t = getPresenterTimings();
 
   activeBallText.textContent = `${letter} ${number}`;
 
@@ -295,22 +296,27 @@ function animatePresenterBall(number) {
   activeBall.classList.add(`ball-${letter}`);
   activeBall.classList.remove("hidden");
 
+  // set animation durations dynamically
+  activeBall.style.animationDuration = `${t.pop}ms`;
+
   // pop in
   requestAnimationFrame(() => {
     activeBall.classList.add("show");
   });
 
-  // 🕒 HOLD LONGER IN CENTER (was ~2s)
+  // hold, then roll away
   setTimeout(() => {
     activeBall.classList.remove("show");
     activeBall.classList.add("roll-away");
-  }, 3500); // ← slower, TV-friendly
+    activeBall.style.animationDuration = `${t.roll}ms`;
+  }, t.pop + t.hold);
 
-  // cleanup after roll-away finishes
+  // cleanup
   setTimeout(() => {
     activeBall.classList.add("hidden");
     activeBall.classList.remove(`ball-${letter}`, "roll-away");
-  }, 6000); // ← match roll-away duration
+    activeBall.style.animationDuration = "";
+  }, t.total);
 }
 
 function getPresenterTimings() {
@@ -554,6 +560,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
