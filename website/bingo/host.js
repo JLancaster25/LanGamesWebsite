@@ -158,6 +158,13 @@ gameChannel
     addPlayer(displayName);
   });
   await loadExistingPlayers();
+
+  gameChannel.send({
+  type: "broadcast",
+  event: "new_game",
+  payload: {}
+  });
+});
 }
 function initPresenterBackground() {
   ballField.innerHTML = "";
@@ -235,6 +242,8 @@ newGameBtn.onclick = async () => {
   gameActive = false;
   modeInputs.forEach(i => (i.disabled = false));
   await sb.from("games").update({ status: "lobby" }).eq("id", gameId);
+
+  
 };
 
 
@@ -576,6 +585,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
