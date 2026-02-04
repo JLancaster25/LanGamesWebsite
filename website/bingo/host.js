@@ -164,8 +164,8 @@ gameChannel
   event: "new_game",
   payload: {}
   });
-});
 }
+
 function initPresenterBackground() {
   ballField.innerHTML = "";
 
@@ -620,6 +620,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
