@@ -509,7 +509,7 @@ function resetHostGameState() {
   called.clear();
 
   // UI
-  currentBallEl.textContent = "";
+  currentCallEl.textContent = "";
   callHistoryEl.innerHTML = "";
 
   // ✅ BUTTONS — THIS WAS MISSING
@@ -620,6 +620,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
