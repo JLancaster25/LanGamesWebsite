@@ -331,24 +331,42 @@ function formatPattern(p) {
 }
 
 function resetPlayerGameState() {
+  console.log("[PLAYER] Resetting player game state");
+
   gameEnded = false;
 
   calledNumbers.clear();
   markedNumbers.clear();
 
-  bingoBtn.disabled = false;
-  bingoMessage.classList.add("hidden");
+  // Bingo button
+  if (bingoBtn) {
+    bingoBtn.disabled = false;
+  }
 
-  currentBallEl.textContent = "";
+  // Message
+  if (bingoMessage) {
+    bingoMessage.classList.add("hidden");
+    bingoMessage.textContent = "";
+  }
 
-  // clear call history
-  calledNumbersListEl.innerHTML = "";
+  // Current ball
+  if (currentBallEl) {
+    currentBallEl.textContent = "";
+  }
 
-  // hide winner banner if open
-  winnerOverlay.classList.add("hidden");
+  // Called numbers list
+  if (calledNumbersListEl) {
+    calledNumbersListEl.innerHTML = "";
+  }
 
-  console.log("[PLAYER] Game state reset");
+  // Winner banner
+  if (winnerOverlay) {
+    winnerOverlay.classList.add("hidden");
+  }
+
+  console.log("[PLAYER] Player game state reset complete");
 }
+
 // ==========================================
 // UTIL
 // ==========================================
@@ -392,6 +410,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
