@@ -492,89 +492,6 @@ function finalizeWinners() {
   endGame();
 }
 
-Perfect — this error tells us exactly what’s wrong, and it’s a simple scoping / naming issue, not a logic problem.
-
-❌ THE ERROR (What it means)
-Uncaught ReferenceError: currentBallEl is not defined
-    at resetHostGameState
-
-
-This means:
-
-resetHostGameState() is trying to use currentBallEl,
-but that variable does not exist in host.js.
-
-So JavaScript crashes before:
-
-buttons are re-enabled
-
-broadcast finishes
-
-players reset
-
-That’s why nothing happened when you pressed New Game.
-
-🔍 WHY THIS HAPPENED
-
-On the player side, you do have:
-
-const currentBallEl = document.getElementById("currentBall");
-
-
-But on the host side, the element is named something else, usually one of these:
-
-currentCallEl
-
-hostCurrentBallEl
-
-currentNumberEl
-
-calledBallEl
-
-So the reset function referenced a variable that does not exist in host scope.
-
-✅ FIX (2 OPTIONS — Pick ONE)
-✅ OPTION 1 (Recommended): Use the correct host variable name
-1️⃣ Find the correct variable in host.js
-
-Search for something like:
-
-document.getElementById("current")
-
-
-Example (very common):
-
-const currentCallEl = document.getElementById("currentCall");
-
-2️⃣ Update resetHostGameState() to use THAT variable
-❌ Wrong (current)
-currentBallEl.textContent = "";
-
-✅ Correct (example)
-currentCallEl.textContent = "";
-
-
-⚠️ The variable name must exactly match what exists at the top of host.js.
-
-✅ OPTION 2 (Safe Guard – won’t crash even if missing)
-
-If you want the reset function to be bulletproof, change this line:
-
-currentBallEl.textContent = "";
-
-
-to:
-
-const el = document.getElementById("currentBall");
-if (el) el.textContent = "";
-
-
-This avoids crashes even if the element doesn’t exist.
-
-✅ RECOMMENDED FINAL VERSION (Robust)
-
-Here is a safe, corrected resetHostGameState() that cannot crash:
-
 function resetHostGameState() {
   console.log("[HOST] Resetting host game state");
 
@@ -706,6 +623,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
