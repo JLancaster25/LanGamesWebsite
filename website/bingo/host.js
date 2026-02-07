@@ -505,15 +505,16 @@ function resetHostGameState() {
     autoTimer = null;
   }
 
-  // calls
+  // called numbers (data)
   called.clear();
 
-  // UI (SAFE)
+  // 🔥 CLEAR CURRENT BALL (safe)
   const currentEl = document.getElementById("currentBall");
   if (currentEl) currentEl.textContent = "";
 
-  const historyEl = document.getElementById("callHistory");
-  if (historyEl) historyEl.innerHTML = "";
+  // 🔥 CLEAR CALL HISTORY (THIS WAS THE BUG)
+  const calledListEl = document.getElementById("calledNumbersList");
+  if (calledListEl) calledListEl.innerHTML = "";
 
   // buttons
   aiCallBtn.disabled = false;
@@ -526,6 +527,7 @@ function resetHostGameState() {
 
   console.log("[HOST] Host reset complete");
 }
+
 // ==========================================
 // UI
 // ==========================================
@@ -623,6 +625,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
