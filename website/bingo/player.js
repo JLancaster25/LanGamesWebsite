@@ -128,13 +128,6 @@ async function handleJoin(e) {
 // 🔁 Replay first
   await replayCallsFromDB();
 
-  .on("broadcast", { event: "new_game" }, async () => {
-  console.log("🔄 NEW GAME RECEIVED");
-
-  resetPlayerGameState();
-  card = generateCard();
-  renderCard();
-});
 // 📡 Then listen live
   subscribeCalls();
 }
@@ -399,6 +392,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
