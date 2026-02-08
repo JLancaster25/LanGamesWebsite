@@ -162,11 +162,9 @@ function renderCard() {
           if (cell.classList.contains("marked")) {
             cell.style.setProperty("--daub-color", daubColor);
             markedNumbers.add(value);
-          } 
-          /*else {
+          } else {
             markedNumbers.delete(value);
           }
-          */
            console.log("Called set:", [calledNumbers]);
         };
       }
@@ -415,6 +413,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
