@@ -153,7 +153,20 @@ function renderCard() {
         cell.textContent = value;
         cell.dataset.number = value;
 
-        cell.onclick = () => handleCellClick(number, cell);
+          cell.onclick = () => {
+          const n = Number(value);
+          if (!calledNumbers.has(n)) return;
+
+          cell.classList.toggle("marked");
+
+          if (cell.classList.contains("marked")) {
+            cell.style.setProperty("--daub-color", daubColor);
+            markedNumbers.add(value);
+          } else {
+            markedNumbers.delete(value);
+          }
+           console.log("Called set:", [calledNumbers]);
+        };
       }
 
       bingoCardEl.appendChild(cell);
@@ -414,3 +427,4 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
