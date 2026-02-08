@@ -162,9 +162,11 @@ function renderCard() {
           if (cell.classList.contains("marked")) {
             cell.style.setProperty("--daub-color", daubColor);
             markedNumbers.add(value);
-          } else {
+          } 
+          /*else {
             markedNumbers.delete(value);
           }
+          */
            console.log("Called set:", [calledNumbers]);
         };
       }
@@ -324,6 +326,9 @@ function showWinnerBanner(winners) {
 
 function formatPattern(p) {
   return {
+    vertical: "vertical",
+    diagonal: "diagonal",
+    horizontal: "horizontal",
     cross: "Cross",
     blackout: "Blackout",
     four_corners: "4 Corners"
@@ -410,6 +415,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
