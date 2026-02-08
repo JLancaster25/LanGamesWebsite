@@ -153,20 +153,7 @@ function renderCard() {
         cell.textContent = value;
         cell.dataset.number = value;
 
-        cell.onclick = () => {
-          const n = Number(value);
-          if (!calledNumbers.has(n)) return;
-
-          cell.classList.toggle("marked");
-
-          if (cell.classList.contains("marked")) {
-            cell.style.setProperty("--daub-color", daubColor);
-            markedNumbers.add(value);
-          } else {
-            markedNumbers.delete(value);
-          }
-           console.log("Called set:", [calledNumbers]);
-        };
+        cell.onclick = () => handleCellClick(number, cell);
       }
 
       bingoCardEl.appendChild(cell);
@@ -409,28 +396,21 @@ function shuffle(arr) {
   }
 }
 
+function handleCellClick(number, cell) {
+  // already marked → do nothing
+  if (markedNumbers.has(number)) return;
+
+  // not called yet → do nothing
+  if (!calledNumbers.has(number) && number !== 0) return;
+
+  // mark permanently
+  markedNumbers.add(number);
+  cell.classList.add("marked");
+
+  console.log("[PLAYER] Marked cell:", number);
+}
+
 function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
