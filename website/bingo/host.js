@@ -239,7 +239,7 @@ stopAutoCallBtn.onclick = () => {
 newGameBtn.onclick = () => {
   console.log("[HOST] New Game pressed");
 
-  await clearCallsFromDB();
+  clearCallsFromDB();
   // 🔔 broadcast FIRST while channel is guaranteed alive
   gameChannel.send({
     type: "broadcast",
@@ -633,6 +633,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
