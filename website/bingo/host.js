@@ -236,19 +236,23 @@ stopAutoCallBtn.onclick = () => {
   autoTimer = null;
 };
 
-newGameBtn.onclick = () => {
+newGameBtn.onclick = async () => {
   console.log("[HOST] New Game pressed");
 
+  // archive old calls
   archiveCallsFromDB();
   clearCallsFromDB();
-  // 🔔 broadcast FIRST while channel is guaranteed alive
+
+  // create a brand-new game
+  createNewGame();
+
+  // broadcast new gameId
   gameChannel.send({
     type: "broadcast",
     event: "new_game",
-    payload: {}
+    payload: { gameId }
   });
 
-  // 🧹 then reset host-side state + UI
   resetHostGameState();
 };
 
@@ -674,6 +678,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
