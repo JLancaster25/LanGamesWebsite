@@ -239,6 +239,7 @@ stopAutoCallBtn.onclick = () => {
 newGameBtn.onclick = () => {
   console.log("[HOST] New Game pressed");
 
+  archiveCallsFromDB();
   clearCallsFromDB();
   // 🔔 broadcast FIRST while channel is guaranteed alive
   gameChannel.send({
@@ -470,6 +471,8 @@ function finalizeWinners() {
   clearInterval(autoTimer);
   autoTimer = null;
 
+  archiveCallsFromDB();
+  
   aiCallBtn.disabled = true;
   autoCallBtn.disabled = true;
   stopAutoCallBtn.disabled = true;
@@ -534,6 +537,44 @@ async function clearCallsFromDB() {
   } else {
     console.log("[HOST] Calls table cleared for game:", gameId);
   }
+}
+
+async function archiveCallsFromDB() {
+  console.log("[HOST] Archiving calls for game:", gameId);
+
+  // 1️⃣ Fetch calls
+  const { data: calls, error: fetchError } = await sb
+    .from("calls")
+    .select("game_id, number, created_at")
+    .eq("game_id", gameId);
+
+  if (fetchError) {
+    console.error("[HOST] Failed to fetch calls:", fetchError);
+    return;
+  }
+
+  if (!calls || calls.length === 0) {
+    console.log("[HOST] No calls to archive");
+    return;
+  }
+
+  // 2️⃣ Insert into archive
+  const { error: insertError } = await sb
+    .from("archived_calls")
+    .insert(
+      calls.map(c => ({
+        game_id: c.game_id,
+        number: c.number,
+        created_at: c.created_at
+      }))
+    );
+
+  if (insertError) {
+    console.error("[HOST] Failed to archive calls:", insertError);
+    return;
+  }
+
+  console.log(`[HOST] Archived ${calls.length} calls`);
 }
 
 // ==========================================
@@ -633,6 +674,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
