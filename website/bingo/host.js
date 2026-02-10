@@ -376,14 +376,6 @@ function exitPresenterMode() {
 }
 
 function broadcastCall(number) {
-  /*
-  if (!gameChannel || !gameChannelReady) {
-    console.warn("[HOST] Channel not ready, cannot broadcast");
-    return;
-  }
-
-  console.log("[HOST] Broadcasting:", number);
-*/
   gameChannel.send({
     type: "broadcast",
     event: "call",
@@ -625,6 +617,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
