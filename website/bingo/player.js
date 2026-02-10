@@ -201,14 +201,18 @@ function subscribeCalls() {
     })
 
     // ✅ MOVE THIS HERE
-    .on("broadcast", { event: "new_game" }, async () => {
-      console.log("🔄 NEW GAME RECEIVED");
+.on("broadcast", { event: "new_game" }, async payload => {
+  console.log("🔄 NEW GAME RECEIVED");
 
-      resetPlayerGameState();
+  gameId = payload.payload.gameId;
 
-      card = generateCard();
-      renderCard();
-    })
+  resetPlayerGameState();
+
+  card = generateCard();
+  renderCard();
+
+  // IMPORTANT: do NOT replay old calls
+});
 
     .subscribe(status => {
       console.log("[PLAYER] Game channel status:", status);
@@ -430,5 +434,6 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
