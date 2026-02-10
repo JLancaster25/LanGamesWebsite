@@ -200,18 +200,21 @@ function subscribeCalls() {
       showWinnerBanner(payload.payload.winners);
     })
 
+    // ✅ MOVE THIS HERE
+    .on("broadcast", { event: "new_game" }, async () => {
+      console.log("🔄 NEW GAME RECEIVED");
+
+      resetPlayerGameState();
+
+      card = generateCard();
+      renderCard();
+    })
+
     .subscribe(status => {
       console.log("[PLAYER] Game channel status:", status);
     });
-  gameChannel
-  .on("broadcast", { event: "new_game" }, async () => {
-  console.log("🔄 NEW GAME RECEIVED");
-
-  resetPlayerGameState();
-  card = generateCard();
-  renderCard();
-});
 }
+
 
 async function replayCallsFromDB() {
   console.log("[PLAYER] Replaying calls from DB…");
@@ -427,4 +430,5 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
