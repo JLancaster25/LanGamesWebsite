@@ -239,6 +239,7 @@ stopAutoCallBtn.onclick = () => {
 newGameBtn.onclick = () => {
   console.log("[HOST] New Game pressed");
 
+    await clearCallsFromDB();
   // 🔔 broadcast FIRST while channel is guaranteed alive
   gameChannel.send({
     type: "broadcast",
@@ -520,6 +521,21 @@ function resetHostGameState() {
   console.log("[HOST] Host reset complete");
 }
 
+async function clearCallsFromDB() {
+  console.log("[HOST] Clearing calls from DB");
+
+  const { error } = await sb
+    .from("calls")
+    .delete()
+    .eq("game_id", gameId);
+
+  if (error) {
+    console.error("[HOST] Failed to clear calls:", error);
+  } else {
+    console.log("[HOST] Calls table cleared for game:", gameId);
+  }
+}
+
 // ==========================================
 // UI
 // ==========================================
@@ -617,6 +633,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
