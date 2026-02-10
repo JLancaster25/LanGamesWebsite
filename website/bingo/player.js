@@ -213,7 +213,7 @@ function subscribeCalls() {
 
   // IMPORTANT: do NOT replay old calls
 });
-
+gameChannel
     .subscribe(status => {
       console.log("[PLAYER] Game channel status:", status);
     });
@@ -434,6 +434,7 @@ function showLobbyError(msg) {
   lobbyError.textContent = msg;
   lobbyError.classList.toggle("hidden", !msg);
 }
+
 
 
 
