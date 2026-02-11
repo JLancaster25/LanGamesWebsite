@@ -581,6 +581,25 @@ async function archiveCallsFromDB() {
   console.log(`[HOST] Archived ${calls.length} calls`);
 }
 
+async function createNewGame() {
+  const { data: game, error } = await sb
+    .from("games")
+    .insert({
+      host_id: hostId,
+      status: "active"
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Failed to create new game", error);
+    return;
+  }
+
+  gameId = game.id;
+  console.log("[HOST] New game created:", gameId);
+}
+
 // ==========================================
 // UI
 // ==========================================
@@ -678,6 +697,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
