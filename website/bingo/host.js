@@ -68,6 +68,7 @@ let lastSeenCall = null;
 let gameEnded = false;
 let claimsChannel;
 let winnerTimeout = null;
+let hostId = null;
 
 // ==========================================
 // INIT
@@ -94,6 +95,13 @@ if (!user) {
     window.location.href = "/WebsiteLogin/";
   };
 
+  const {
+  data: { user }
+} = await sb.auth.getUser();
+
+hostId = user.id;
+
+console.log("[HOST] Authenticated host:", hostId);
   return;
 }
 
@@ -697,6 +705,7 @@ async function endGame() {
   await sb.from("games").update({ status: "finished" }).eq("id", gameId);
   speak("Game over");
 }
+
 
 
 
